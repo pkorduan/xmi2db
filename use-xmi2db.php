@@ -3,32 +3,27 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   </head>
-  <body>
-<?php
-// +----------------------------------------------------------------------+
-// | xmi2db / Example                                                     |
-// | Creating SQL Queries from an xmi file                                |
-// | Requirements: PHP5 with SimpleXMI Support                            |
-// | This file explains how to use and call the class                     |
-// +----------------------------------------------------------------------+
-// | Author: Christian Seip <christian.seip@gdi-service.de>               |
-// +----------------------------------------------------------------------+
-// based on http://www.phpclasses.org/package/2272-PHP-Generate-SQL-queries-to-import-data-from-XML-files.html
+  <body><?php
 
 include( dirname(__FILE__) . "/class.xmi2db.php");
 include( dirname(__FILE__) . "/conf/database_conf.php");
 
 // Call the class with the root element of the xmi data
 $xmi2db = new xmi2db("XMI.content");
+if (isset($_REQUEST['file']))
+  $xmi2db->setXMIFile($_REQUEST['file']);
+else
+  $xmi2db->setXMIFile("XPlanGML-xmi12-uml14.xml");
 
-if (isset($_REQUEST['file'])) $xmi2db->setXMIFile($_REQUEST['file']);
-else $xmi2db->setXMIFile("XPlanGML-xmi12-uml14.xml");
+if (isset($_REQUEST['schema']))
+  $xmi2db->setSchema($_REQUEST['schema']);
+else
+  $xmi2db->setSchema("xplan_eatest");
 
-if (isset($_REQUEST['schema'])) $xmi2db->setSchema($_REQUEST['schema']);
-else $xmi2db->setSchema("xplan_eatest");
-
-if (isset($_REQUEST['basepackage'])) $xmi2db->setBasePackage($_REQUEST['basepackage']);
-else $xmi2db->setBasePackage("XPlanGML 4.1");
+if (isset($_REQUEST['basepackage']))
+  $xmi2db->setBasePackage($_REQUEST['basepackage']);
+else
+  $xmi2db->setBasePackage("XPlanGML 4.1");
 
 // Set (path to) XMI file
 //$xmi2db->setXMIFile("xplan_short.xml");
@@ -107,6 +102,5 @@ if ($_REQUEST['argo'] == 1) {
 echo "<pre>";
 print_r($xmi2db->getQueries());
 echo "</pre>";
-?>
-  </body>
+?></body>
 </html>

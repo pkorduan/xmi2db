@@ -14,15 +14,13 @@ class xmi2db {
   private $data;
   private $xmi_file;
   private $basePackage;
-  
 
   /**
   * Constructor
   *
   * @param XMI root element
   */
-  function xmi2db($root)
-  {
+  function xmi2db($root) {
     $this->root_element = $root;
   }
   
@@ -31,8 +29,7 @@ class xmi2db {
   *
   * @param file (can be local or remote http://..)
   */
-  function setXMIFile($xmi_file)
-  {
+  function setXMIFile($xmi_file) {
     $this->xmi_file = $xmi_file;
   }
 
@@ -41,8 +38,7 @@ class xmi2db {
   *
   * @param the table
   */
-  function setTable($table)
-  {
+  function setTable($table) {
     if(!is_array($table))  return false;
     $this->table = $table;
   }
@@ -791,14 +787,13 @@ class xmi2db {
   /**
   * Build the query - Main Function
   *  ("classes" => "uml_classes",++
-    "attributes" => "uml_attributes",+
-    "association_classes" => "association_classes",+
-    "class_generalizations" => "class_generalizations",+
-    "packages" => "packages",+
-    "stereotypes" => "stereotypes"));+
+  *  "attributes" => "uml_attributes",+
+  *  "association_classes" => "association_classes",+
+  *  "class_generalizations" => "class_generalizations",+
+  *  "packages" => "packages",+
+  *  "stereotypes" => "stereotypes"));+
   */
-  function getQueries()
-  {
+  function getQueries() {
     if (!file_exists($this->xmi_file))  {
       echo "File ".$this->xmi_file." not found.";
       return false;
@@ -809,7 +804,7 @@ class xmi2db {
     
     //analyse everything top-level
     
-    echo "<h3>Übergeordnetes: ".$idPackage_sub."</h3><br>";
+    echo "<h3>Übergeordnetes: " . $idPackage_sub . "</h3><br>";
     //1. Stereotypes
     //echo "<h2>Stereotypes</h2>";
     $i_stereotypes = 0;
@@ -871,10 +866,6 @@ class xmi2db {
     
     //Now use this to convert the model
     //iterate through packages
-
-    
-
-    
     
     //echo "</pre>";
     /*

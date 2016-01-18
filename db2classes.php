@@ -4,8 +4,7 @@
   ******************************************************************************/
   include( dirname(__FILE__) . "/conf/database_conf.php");
 
-  $sql = '
-SET search_path = gml_classes, public;
+  $sql = 'SET search_path = gml_classes, public;
 DROP SCHEMA gml_classes CASCADE;
 CREATE SCHEMA gml_classes;
 ';
@@ -18,9 +17,9 @@ CREATE SCHEMA gml_classes;
     $sql .= createTableDefinition(null, $topClass);
   }
 ?>
-<pre>
-  <?php echo $sql; ?>
-</pre>
+<pre><?php
+  echo $sql;
+?></pre>
 <?php
   /*****************************************************************************
   * Funktionen
@@ -170,7 +169,7 @@ COMMENT ON COLUMN " . strtolower($class_name) . "." . $attribute_name . " IS '" 
     $sql = "CREATE TABLE IF NOT EXISTS " . strtolower($class['name']) . " (";
     if ($superClass == null) {
       $sql .= "
-  gml_id uuid primary key,
+  gml_id uuid NOT NULL DEFAULT uuid_generate_v5(uuid_ns_url(), 'http://xplan-raumordnung.org') primary key,
   ";
     }
 

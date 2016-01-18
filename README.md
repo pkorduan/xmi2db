@@ -33,3 +33,10 @@ To fill the tables in xplan_uml schema
 * Select the schema xplan_uml
 * Select the base package of the UML model, in case of XPlanGML application schema "XPlanGML 4.1"
 * Click on "Fülle DB mit XMI Inhalten"
+
+Notes
+
+This application was originally developed by Christian Seip and Peter Korduan separately and will now be maintaint together in this git repo.
+
+This version is the first draft and in development. 
+Conversion is currently not stable.
