@@ -11,7 +11,7 @@ Installation
 
 * Clone the project into your web folder.
 ```
-git clone https://github.com/pkorduan/xmi2db.git<>
+git clone https://github.com/pkorduan/xmi2db.git
 ```
 * Create and edit the database config
 ```
