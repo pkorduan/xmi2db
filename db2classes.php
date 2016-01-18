@@ -87,7 +87,8 @@ CREATE SCHEMA gml_classes;
         c.name AS classifier,
         s.name AS classifier_stereotype,
         a.multiplicity_range_lower,
-        a.multiplicity_range_upper
+        a.multiplicity_range_upper,
+        a.initialvalue_body
       FROM
         xplan_model.uml_attributes a LEFT JOIN
         xplan_model.datatypes d ON a.datatype = d.xmi_id LEFT JOIN
@@ -118,7 +119,7 @@ CREATE SCHEMA gml_classes;
           $sql = 'double precision';
           break;
         default:
-          $sql = strtolower($type);
+          $sql = strtolower($datatype);
       }
     }
     else {
@@ -154,6 +155,11 @@ CREATE SCHEMA gml_classes;
       $attribute['classifier_stereotype'],
       $attribute['multiplicity_range_upper']
     );
+    if ($attribute['initialvalue_body'] != '')
+      $sql .= ' NOT NULL';
+    if ($attribute['initialvalue_body'] != '')
+      $sql .= " DEFAULT '" . $attribute['initialvalue_body'] . "'";
+    $sql .= ',';
     return $sql;
   }
 
@@ -169,8 +175,7 @@ COMMENT ON COLUMN " . strtolower($class_name) . "." . $attribute_name . " IS '" 
     $sql = "CREATE TABLE IF NOT EXISTS " . strtolower($class['name']) . " (";
     if ($superClass == null) {
       $sql .= "
-  gml_id uuid NOT NULL DEFAULT uuid_generate_v5(uuid_ns_url(), 'http://xplan-raumordnung.org') primary key,
-  ";
+  gml_id uuid NOT NULL DEFAULT uuid_generate_v5(uuid_ns_url(), 'http://xplan-raumordnung.org'),";
     }
 
     # lade Attribute
@@ -178,14 +183,14 @@ COMMENT ON COLUMN " . strtolower($class_name) . "." . $attribute_name . " IS '" 
 
     # für jedes Attribut erzeuge Attributzeilen
     foreach($attributes AS $i => $attribute) {
-      if ($i > 0) {
-        $sql .= ",
-  ";
-      }
+
+      $sql .= '
+  ';
       $sql .= createAttributeDefinition($attribute);
     }
 
     $sql .= '
+  CONSTRAINT ' . strtolower($class['name']) . '_pkey PRIMARY KEY (gml_id)
 )';
     if ($superClass != null) {
       # leite von superClass ab
