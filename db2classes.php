@@ -86,7 +86,7 @@ CREATE SCHEMA gml_classes;
         d.name AS datatype,
         c.name AS classifier,
         s.name AS classifier_stereotype,
-        a.multiplicity_range_lower,
+        a.multiplicity_range_lower::integer,
         a.multiplicity_range_upper,
         a.initialvalue_body
       FROM
@@ -155,7 +155,7 @@ CREATE SCHEMA gml_classes;
       $attribute['classifier_stereotype'],
       $attribute['multiplicity_range_upper']
     );
-    if ($attribute['initialvalue_body'] != '')
+    if ($attribute['multiplicity_range_lower'] > '0')
       $sql .= ' NOT NULL';
     if ($attribute['initialvalue_body'] != '')
       $sql .= " DEFAULT '" . $attribute['initialvalue_body'] . "'";
