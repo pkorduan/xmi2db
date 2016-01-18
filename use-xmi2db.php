@@ -1,3 +1,9 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  </head>
+  <body>
 <?php
 // +----------------------------------------------------------------------+
 // | xmi2db / Example                                                     |
@@ -102,3 +108,5 @@ echo "<pre>";
 print_r($xmi2db->getQueries());
 echo "</pre>";
 ?>
+  </body>
+</html>
