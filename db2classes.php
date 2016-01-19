@@ -1,20 +1,44 @@
+<!DOCTYPE html>
+<html lang="de">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+  </head>
+  <body>
 <?php
   /*****************************************************************************
   * 
   ******************************************************************************/
   include( dirname(__FILE__) . "/conf/database_conf.php");
 
-  $sql = 'SET search_path = gml_classes, public;
-DROP SCHEMA gml_classes CASCADE;
-CREATE SCHEMA gml_classes;
+  $sql = 'SET search_path = ' . CLASSES_SCHEMA . ', public;
+DROP SCHEMA ' . CLASSES_SCHEMA . ' CASCADE;
+CREATE SCHEMA ' . CLASSES_SCHEMA . ';
 ';
-  # Lade oberste Klassen
+  # Lade oberste Klassen, die von keinen anderen abgeleitet wurden
   $topClasses = getTopClasses();
   
-  # Für alle oberen Generalisierungen
+  # Für alle oberen Klassen
   foreach($topClasses as $topClass) {
     output('<br><b>TopKlasse: ' . $topClass['name'] . '</b> (' . $topClass['xmi_id'] . ')');
-    $sql .= createTableDefinition(null, $topClass);
+    $sql .= createClassTables(null, $topClass);
+  }
+
+  # Lade Enummerations
+  $enumerations = getEnumerations();
+
+  # Für alle Enumerations
+  foreach($enumerations AS $enumeration) {
+    output('<br><b>Enumeration: ' . $enumeration['name'] . '</b> (' . $enumeration['xmi_id'] . ')');
+    $sql .= createEnumerationTable($enumeration);
+  }
+
+  # Lade CodeLists
+  $code_lists = getCodeLists();
+
+  # Für alle Enumerations
+  foreach($code_lists AS $code_list) {
+    output('<br><b>CodeList: ' . $enumeration['name'] . '</b> (' . $enumeration['xmi_id'] . ')');
+    $sql .= createCodeListTable($code_list);
   }
 ?>
 <pre><?php
@@ -25,8 +49,7 @@ CREATE SCHEMA gml_classes;
   * Funktionen
   ******************************************************************************/
   function output($text) {
-    $debug = false;
-    if ($debug) {
+    if (DEBUG) {
       echo '<br>' . $text;
     }
   }
@@ -41,13 +64,14 @@ CREATE SCHEMA gml_classes;
         c.xmi_id,
         c.name
       FROM
-        xplan_model.uml_classes c LEFT JOIN
-        xplan_model.stereotypes s ON c.stereotype_id = s.xmi_id
+        " . UML_SCHEMA . ".uml_classes c LEFT JOIN
+        " . UML_SCHEMA . ".stereotypes s ON c.stereotype_id = s.xmi_id
       WHERE
         general_id = '-1' AND
         s.name = 'FeatureType'
     ";
-    output($sql);
+    output('<b>Get TopClasses: </b><br>');
+    output('<pre>' . $sql . '</pre>');
     $result = pg_fetch_all(
       pg_query($db_conn, $sql)
     );
@@ -63,13 +87,56 @@ CREATE SCHEMA gml_classes;
         c.xmi_id,
         c.name
       FROM
-        xplan_model.class_generalizations g LEFT JOIN
-        xplan_model.uml_classes p ON g.parent_id = p.xmi_id LEFT JOIN
-        xplan_model.uml_classes c ON g.child_id = c.xmi_id
+        " . UML_SCHEMA . ".class_generalizations g LEFT JOIN
+        " . UML_SCHEMA . ".uml_classes p ON g.parent_id = p.xmi_id JOIN
+        " . UML_SCHEMA . ".uml_classes c ON g.child_id = c.xmi_id
       WHERE
         p.xmi_id = '" . $class['xmi_id'] . "'
     ";
-    output($sql);
+    output('<b>Get SubClasses</b>');
+    output('<pre>' . $sql . '</pre>');
+    $result = pg_fetch_all(
+      pg_query($db_conn, $sql)
+    );
+    if ($result == false) $result = array();
+    return $result;
+  }
+  
+  function getEnumerations() {
+    global $db_conn;
+    $sql = "
+      SELECT
+        c.id,
+        c.name
+      FROM
+        " . UML_SCHEMA . ".uml_classes c LEFT JOIN
+        " . UML_SCHEMA . ".stereotypes s ON c.stereotype_id = s.xmi_id
+      WHERE
+        lower(s.name) = 'enumeration'
+    ";
+    output('<b>Get Enumerations</b>');
+    output('<pre>' . $sql . '</pre>');
+    $result = pg_fetch_all(
+      pg_query($db_conn, $sql)
+    );
+    if ($result == false) $result = array();
+    return $result;
+  }
+
+  function getCodeLists() {
+    global $db_conn;
+    $sql = "
+      SELECT
+        c.id,
+        c.name
+      FROM
+        " . UML_SCHEMA . ".uml_classes c LEFT JOIN
+        " . UML_SCHEMA . ".stereotypes s ON c.stereotype_id = s.xmi_id
+      WHERE
+        lower(s.name) = 'codelist'
+    ";
+    output('<b>Get CodeList</b>');
+    output('<pre>' . $sql . '</pre>');
     $result = pg_fetch_all(
       pg_query($db_conn, $sql)
     );
@@ -90,14 +157,15 @@ CREATE SCHEMA gml_classes;
         a.multiplicity_range_upper,
         a.initialvalue_body
       FROM
-        xplan_model.uml_attributes a LEFT JOIN
-        xplan_model.datatypes d ON a.datatype = d.xmi_id LEFT JOIN
-        xplan_model.uml_classes c ON a.classifier = c.xmi_id LEFT JOIN
-        xplan_model.stereotypes s ON c.stereotype_id = s.xmi_id
+        " . UML_SCHEMA . ".uml_attributes a LEFT JOIN
+        " . UML_SCHEMA . ".datatypes d ON a.datatype = d.xmi_id LEFT JOIN
+        " . UML_SCHEMA . ".uml_classes c ON a.classifier = c.xmi_id LEFT JOIN
+        " . UML_SCHEMA . ".stereotypes s ON c.stereotype_id = s.xmi_id
       WHERE
         uml_class_id = " . $class['id'] . "
     ";
-    output($sql);
+    output('<b>Get Attributes: </b>');
+    output('<pre>' . $sql . '</pre>');
     $result = pg_fetch_all(
       pg_query($db_conn, $sql)
     );
@@ -169,13 +237,14 @@ COMMENT ON COLUMN " . strtolower($class_name) . "." . $attribute_name . " IS '" 
     return $sql;
   }
 
-  function createTableDefinition($superClass, $class) {
+  function createClassTables($superClass, $class) {
     # Erzeuge Create Table Statement
+    $table = strtolower($class['name']);
 
-    $sql = "CREATE TABLE IF NOT EXISTS " . strtolower($class['name']) . " (";
+    $sql = "CREATE TABLE IF NOT EXISTS " . $table . " (";
     if ($superClass == null) {
       $sql .= "
-  gml_id uuid NOT NULL DEFAULT uuid_generate_v5(uuid_ns_url(), 'http://xplan-raumordnung.org'),";
+  gml_id uuid NOT NULL DEFAULT uuid_generate_v1mc(),";
     }
 
     # lade Attribute
@@ -183,21 +252,26 @@ COMMENT ON COLUMN " . strtolower($class_name) . "." . $attribute_name . " IS '" 
 
     # für jedes Attribut erzeuge Attributzeilen
     foreach($attributes AS $i => $attribute) {
-
       $sql .= '
   ';
       $sql .= createAttributeDefinition($attribute);
     }
 
     $sql .= '
-  CONSTRAINT ' . strtolower($class['name']) . '_pkey PRIMARY KEY (gml_id)
+  CONSTRAINT ' . $table . '_pkey PRIMARY KEY (gml_id)
 )';
     if ($superClass != null) {
       # leite von superClass ab
       $sql .= '
 INHERITS ('. strtolower($superClass['name']) . ')';
+      $sql .= '
+WITH OIDS';
     }
-    $sql .= ';';
+    $sql .= ";
+COMMENT ON TABLE " . $table . " IS 'Tabelle " . $class['name'];
+    if ($superClass != null)
+      $sql .= " abgeleitet von " . $superClass['name'];
+    $sql .= "';";
     # für jedes Attribut erzeuge Kommentar, wenn der type ein
     # Datentyp ist
     foreach($attributes AS $i => $attribute) {
@@ -212,16 +286,83 @@ INHERITS ('. strtolower($superClass['name']) . ')';
     $sql .= '
 
 ';
-    output($sql);
+    output('<pre>' . $sql . '</pre>');
     
     # lade abgeleitete Klassen
     $subClasses = getSubClasses($class);
     # Für alle abgeleiteten Klassen
     foreach($subClasses as $subClass) {
       output('<br><b>SubKlasse: ' . $subClass['name'] . '</b> (' . $subClass['xmi_id'] . ')');
-      $sql .= createTableDefinition($class, $subClass);
+      $sql .= createClassTables($class, $subClass);
     }
 
     return $sql;
   }
+  
+  function createEnumerationTable($class) {
+    $table = strtolower($class['name']);
+    # Erzeuge Create Table Statement
+    $sql = "
+CREATE TABLE IF NOT EXISTS " . $table . " (
+  wert integer,
+  beschreibung character varying,
+  CONSTRAINT " . $table . "_pkey PRIMARY KEY (wert)
+);
+COMMENT ON TABLE " . $table . " IS 'Aufzählung " . $class['name'] . "';
+";
+    # lade Values
+    $values = getAttributes($class);
+    if (empty($values)) return $sql;
+      
+    $sql .= "
+INSERT INTO " . $table . " (wert, beschreibung)
+VALUES
+  ";
+    # für jeden Value erzeuge Datenzeile
+    $sql .= implode(
+      ",
+  "   ,
+      array_map(
+        function($value) {
+          if ($value['initialvalue_body'] == '') {
+            $parts = explode('=', $value['name']);
+            if (trim($parts[1]) == '')
+              $wert = -1;
+            else
+              $wert = $parts[1];
+          }
+          else 
+            $wert = str_replace(array('`', '´', '+'), '', $value['initialvalue_body']);
+          return "(" . trim($wert) . ", '" . trim($value['name']) . "')";
+        },
+        $values
+      )
+    );
+    $sql .= ";
+";
+
+    output('<pre>' . $sql . '</pre>');
+    return $sql;    
+  }
+
+  function createCodeListTable($class) {
+    $table = strtolower($class['name']);
+    # Erzeuge Create Table Statement
+    $sql = "
+CREATE TABLE IF NOT EXISTS " . $table . " (
+  id integer,
+  name character varying,
+  status character varying,
+  definition text,
+  description text,
+  additional_information text,
+  CONSTRAINT " . $table . "_pkey PRIMARY KEY (id)
+);
+COMMENT ON TABLE " . $table . " IS 'Code Liste " . $class['name'] . "';
+";
+    output('<pre>' . $sql . '</pre>');
+    return $sql;    
+  }
 ?>
+  </body>
+</html>
