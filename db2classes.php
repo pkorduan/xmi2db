@@ -173,6 +173,43 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
     return $result;
   }
 
+  function getAssociations($class) {
+    $sql = "
+      SELECT
+        ca.name,
+        b.name,
+        b.multiplicity_range_upper,
+        b."isNavigable",
+        cb.name,
+        a.name,
+        a.multiplicity_range_upper,
+        a."isNavigable"
+      FROM
+        (
+          SELECT
+            min(id) AS a_id,
+            max(id) AS b_id
+          FROM
+            xplan_model.association_ends ae
+          GROUP BY
+            assoc_id
+          ORDER BY
+            a_id
+        ) c JOIN
+        xplan_model.association_ends a ON a.id = c.a_id JOIN
+        xplan_model.association_ends b ON b.id = c.b_id JOIN
+        xplan_model.uml_classes ca ON a.participant = ca.xmi_id JOIN
+        xplan_model.uml_classes cb ON b.participant = cb.xmi_id
+    ";
+    output('<b>Get Associations: </b>');
+    output('<pre>' . $sql . '</pre>');
+    $result = pg_fetch_all(
+      pg_query($db_conn, $sql)
+    );
+    if ($result == false) $result = array();
+    return $result;
+  }
+
   function createDataType($datatype, $classifier_stereotype, $multiplicity) {
     if ($datatype != '') {
       switch (true) {
