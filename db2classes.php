@@ -1,10 +1,10 @@
-<!DOCTYPE html>
+<?php
+echo '<!DOCTYPE html>
 <html lang="de">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   </head>
-  <body>
-<?php
+  <body>';
   /*****************************************************************************
   * 
   ******************************************************************************/
@@ -39,6 +39,16 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
   foreach($code_lists AS $code_list) {
     output('<br><b>CodeList: ' . $enumeration['name'] . '</b> (' . $enumeration['xmi_id'] . ')');
     $sql .= createCodeListTable($code_list);
+  }
+  
+  # Lade Associations
+  $associations = getAssociations();
+  foreach($associations AS $association) {
+    $text = '<br><b>Association: ' . $association['assoc_id'] . '</b><br>' .
+      $association['a_class'] . ' hat ' . $association['a_num'] . ' ' . $association['b_class'] . ' über ' . $association['a_rel'] . '<br>';
+    if ($association['b_rel'] != '')
+      $text .= $association['b_class'] . ' hat ' . $association['b_num'] . ' ' . $association['b_rel'];
+    output($text);
   }
 ?>
 <pre><?php
@@ -173,20 +183,29 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
     return $result;
   }
 
-  function getAssociations($class) {
+  function getAssociations() {
+    global $db_conn;
     $sql = "
       SELECT
-        ca.name,
-        b.name,
-        b.multiplicity_range_upper,
-        b."isNavigable",
-        cb.name,
-        a.name,
-        a.multiplicity_range_upper,
-        a."isNavigable"
+        c.assoc_id,
+        ca.name a_class,
+        b.name a_rel,
+        CASE WHEN b.multiplicity_range_upper = '-1'
+          THEN 'n'
+          ELSE b.multiplicity_range_upper
+        END a_num,
+        b.\"isNavigable\",
+        cb.name b_class,
+        a.name b_rel,
+        CASE WHEN a.multiplicity_range_upper = '-1'
+          THEN 'n'
+          ELSE a.multiplicity_range_upper
+        END b_num,
+        a.\"isNavigable\"
       FROM
         (
           SELECT
+            assoc_id,
             min(id) AS a_id,
             max(id) AS b_id
           FROM
@@ -400,6 +419,6 @@ COMMENT ON TABLE " . $table . " IS 'Code Liste " . $class['name'] . "';
     output('<pre>' . $sql . '</pre>');
     return $sql;    
   }
+echo '</body>
+</html>';
 ?>
-  </body>
-</html>
