@@ -41,7 +41,6 @@ else
 //$xmi2db->setXMIFile("xplanerweitert20150609.xmi");
 
 //Set DB connection
-//$xmi2db->setConn("dbname=moro user=kvwmap password=kv_Map-12:)");
 $xmi2db->setConn($db_conn);
 
 // The table name for the insert queries
