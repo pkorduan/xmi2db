@@ -77,7 +77,7 @@ if ($schemaBool[0]=='t') {
 else {
   echo "Schema NICHT vorhanden<br>";
   //Load SQL dump file and replace "schema_name" placeholder with desired schema name
-  $sql_dump = file_get_contents('sql/db-schema.sql');
+  $sql_dump = file_get_contents('sql/uml-schema_base.sql');
   //echo $sql_dump;
   $sql_dump2 = str_replace('schema_name', $_REQUEST['schema'], $sql_dump);
   //echo $sql_dump2;
