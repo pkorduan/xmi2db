@@ -48,6 +48,11 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
       $association['a_class'] . ' hat ' . $association['a_num'] . ' ' . $association['b_class'] . ' über ' . $association['a_rel'] . '<br>';
     if ($association['b_rel'] != '')
       $text .= $association['b_class'] . ' hat ' . $association['b_num'] . ' ' . $association['b_rel'];
+    if ($association['a_num'] == 'n' AND $association['b_num'] == 'n') {
+      $assoc_table = strtolower($association['a_class'] . '2' . $association['b_class']);
+      $text .= '<br>Lege n:m Tabelle ' . $assoc_table . ' an.';
+      $sql .= createAssociationTable($association);
+    }
     output($text);
   }
 ?>
@@ -74,11 +79,13 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
         c.xmi_id,
         c.name
       FROM
-        " . UML_SCHEMA . ".uml_classes c LEFT JOIN
+        " . UML_SCHEMA . ".packages p LEFT JOIN
+        " . UML_SCHEMA . ".uml_classes c ON p.id = c.package_id LEFT JOIN
         " . UML_SCHEMA . ".stereotypes s ON c.stereotype_id = s.xmi_id
       WHERE
         general_id = '-1' AND
-        s.name = 'FeatureType'
+        s.name = 'FeatureType' AND
+        p.name IN (" . PACKAGES . ")
     ";
     output('<b>Get TopClasses: </b><br>');
     output('<pre>' . $sql . '</pre>');
@@ -99,9 +106,11 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
       FROM
         " . UML_SCHEMA . ".class_generalizations g LEFT JOIN
         " . UML_SCHEMA . ".uml_classes p ON g.parent_id = p.xmi_id JOIN
-        " . UML_SCHEMA . ".uml_classes c ON g.child_id = c.xmi_id
+        " . UML_SCHEMA . ".uml_classes c ON g.child_id = c.xmi_id LEFT JOIN
+        " . UML_SCHEMA . ".packages pa ON c.package_id = pa.id
       WHERE
-        p.xmi_id = '" . $class['xmi_id'] . "'
+        p.xmi_id = '" . $class['xmi_id'] . "' AND
+        pa.name IN (" . PACKAGES . ")
     ";
     output('<b>Get SubClasses</b>');
     output('<pre>' . $sql . '</pre>');
@@ -119,10 +128,12 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
         c.id,
         c.name
       FROM
-        " . UML_SCHEMA . ".uml_classes c LEFT JOIN
+        " . UML_SCHEMA . ".packages p LEFT JOIN
+        " . UML_SCHEMA . ".uml_classes c ON p.id = c.package_id LEFT JOIN
         " . UML_SCHEMA . ".stereotypes s ON c.stereotype_id = s.xmi_id
       WHERE
-        lower(s.name) = 'enumeration'
+        lower(s.name) = 'enumeration' AND
+        p.name IN (" . PACKAGES . ")
     ";
     output('<b>Get Enumerations</b>');
     output('<pre>' . $sql . '</pre>');
@@ -140,10 +151,12 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
         c.id,
         c.name
       FROM
-        " . UML_SCHEMA . ".uml_classes c LEFT JOIN
+        " . UML_SCHEMA . ".packages p LEFT JOIN
+        " . UML_SCHEMA . ".uml_classes c ON p.id = c.package_id LEFT JOIN
         " . UML_SCHEMA . ".stereotypes s ON c.stereotype_id = s.xmi_id
       WHERE
-        lower(s.name) = 'codelist'
+        lower(s.name) = 'codelist' AND
+        p.name IN (" . PACKAGES . ")
     ";
     output('<b>Get CodeList</b>');
     output('<pre>' . $sql . '</pre>');
@@ -209,16 +222,21 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
             min(id) AS a_id,
             max(id) AS b_id
           FROM
-            xplan_model.association_ends ae
+            " . UML_SCHEMA .".association_ends ae
           GROUP BY
             assoc_id
           ORDER BY
             a_id
         ) c JOIN
-        xplan_model.association_ends a ON a.id = c.a_id JOIN
-        xplan_model.association_ends b ON b.id = c.b_id JOIN
-        xplan_model.uml_classes ca ON a.participant = ca.xmi_id JOIN
-        xplan_model.uml_classes cb ON b.participant = cb.xmi_id
+        " . UML_SCHEMA . ".association_ends a ON a.id = c.a_id JOIN
+        " . UML_SCHEMA . ".association_ends b ON b.id = c.b_id JOIN
+        " . UML_SCHEMA . ".uml_classes ca ON a.participant = ca.xmi_id JOIN
+        " . UML_SCHEMA . ".uml_classes cb ON b.participant = cb.xmi_id JOIN
+        " . UML_SCHEMA . ".packages pa ON ca.package_id = pa.id JOIN
+        " . UML_SCHEMA . ".packages pb ON cb.package_id = pb.id
+      WHERE
+        pa.name IN (" . PACKAGES . ") AND
+        pb.name IN (" . PACKAGES . ")
     ";
     output('<b>Get Associations: </b>');
     output('<pre>' . $sql . '</pre>');
@@ -230,20 +248,34 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
   }
 
   function createDataType($datatype, $classifier_stereotype, $multiplicity) {
+    $sql = '';
     if ($datatype != '') {
       switch (true) {
-        case ($datatype == 'CharacterString'):
+        case (strtolower($datatype) == 'characterstring'):
           $sql = 'character varying';
           break;
-        case in_array($datatype, array(
-            'Angle',
-            'Length',
-            'Decimal'
+        case (strtolower($datatype) == 'date'):
+          $sql = 'date';
+          break;
+        case in_array(strtolower($datatype), array(
+            'integer',
+            'int'
+          )):
+          $sql = 'integer';
+          break;
+        case (strtolower($datatype) == 'boolean'):
+          $sql = 'boolean';
+          break;
+        case in_array(strtolower($datatype), array(
+            'angle',
+            'length',
+            'decimal',
+            'volume',
+            'area',
+            'tm_duration'
           )):
           $sql = 'double precision';
           break;
-        default:
-          $sql = strtolower($datatype);
       }
     }
     else {
@@ -260,8 +292,6 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
         case 'Union':
           $sql = 'geometry';
           break;
-        default:
-          $sql = 'text';
       }
     }
     if ($sql == '')
@@ -354,7 +384,7 @@ COMMENT ON TABLE " . $table . " IS 'Tabelle " . $class['name'];
 
     return $sql;
   }
-  
+
   function createEnumerationTable($class) {
     $table = strtolower($class['name']);
     # Erzeuge Create Table Statement
@@ -369,36 +399,34 @@ COMMENT ON TABLE " . $table . " IS 'Aufzählung " . $class['name'] . "';
     # lade Values
     $values = getAttributes($class);
     if (empty($values)) return $sql;
-      
+
+    $i = 0;
     $sql .= "
 INSERT INTO " . $table . " (wert, beschreibung)
 VALUES
-  ";
+";
     # für jeden Value erzeuge Datenzeile
-    $sql .= implode(
-      ",
-  "   ,
-      array_map(
-        function($value) {
-          if ($value['initialvalue_body'] == '') {
-            $parts = explode('=', $value['name']);
-            if (trim($parts[1]) == '')
-              $wert = -1;
-            else
-              $wert = $parts[1];
-          }
-          else 
-            $wert = str_replace(array('`', '´', '+'), '', $value['initialvalue_body']);
-          return "(" . trim($wert) . ", '" . trim($value['name']) . "')";
-        },
-        $values
-      )
-    );
+    for($i=0; $i < count($values); $i++) {
+      if ($i > 0)
+        $sql .= ",
+";
+      $value = $values[$i];
+      if ($value['initialvalue_body'] == '') {
+        $parts = explode('=', $value['name']);
+        if (trim($parts[1]) == '' )
+          $wert = $i;
+        else
+          $wert = $parts[1];
+      }
+      else
+        $wert = str_replace(array('`', '´', '+'), '', $value['initialvalue_body']);
+      $sql .= "  (" . trim($wert) . ", '" . trim($value['name']) . "')";
+    };
     $sql .= ";
 ";
 
     output('<pre>' . $sql . '</pre>');
-    return $sql;    
+    return $sql;
   }
 
   function createCodeListTable($class) {
@@ -418,6 +446,24 @@ COMMENT ON TABLE " . $table . " IS 'Code Liste " . $class['name'] . "';
 ";
     output('<pre>' . $sql . '</pre>');
     return $sql;    
+  }
+
+  function createAssociationTable($association) {
+    $table = strtolower($association['a_class'] . '2' . $association['b_class']);
+    $sql = "
+CREATE TABLE IF NOT EXISTS " . $table . " (
+  " . strtolower($association['a_class']) . "_gml_id integer,
+  " . strtolower($association['b_class']) . "_gml_id integer
+);
+COMMENT ON TABlE " . $table . " IS 'Association " . $association['a_class'] . '2' . $association['b_class'] . "';";
+    if ($association['a_rel'] != '')
+      $sql .= "
+COMMENT ON COLUMN " . $table . "." . strtolower($association['a_class']) . "_gml_id IS '" . $association['a_rel'] ."';";
+    if ($association['b_rel'] != '')
+      $sql .= "
+COMMENT ON COLUMN " . $table . "." . strtolower($association['b_class']) . "_gml_id IS '" . $association['b_rel'] ."';";
+    output($sql);
+    return $sql;
   }
 echo '</body>
 </html>';
