@@ -518,8 +518,8 @@ class xmi2db {
       //echo "body: ".$xml->attributes()->body."<br>";
       $infoArray['body'] = (string) $xml->attributes()->body;
     }
-    if (isset($xml->{'TaggedValue.dataValue'})) {
-      $infoArray['dataValue'] = (string) $xml->{'TaggedValue.dataValue'};
+    if (isset($xml->{'TaggedValue.dataValue'})) {//Problem: 'Art' gibt die Namen der Attribute an, ...
+      $infoArray['dataValue'] = (string) str_replace("'", "", $xml->{'TaggedValue.dataValue'});
     }
     if (isset($xml->{'TaggedValue.type'})) {
       if (isset($xml->{'TaggedValue.type'}->TagDefinition->attributes()->{'xmi.idref'})) $infoArray['taggedValueType'] = (string) $xml->{'TaggedValue.type'}->TagDefinition->attributes()->{'xmi.idref'};
@@ -774,8 +774,12 @@ class xmi2db {
           $commentArray = $this->getAttributeInfos($comment);
           
           //echo "\t\t\tGeneralization.child: ".$generalization->{'Generalization.child'}->Class->attributes()->{'xmi.idref'}."<br>";
-          $commentArray['class_id'] = (string) $comment->{'Comment.annotatedElement'}->Class->attributes()->{'xmi.idref'};
-          
+          if (isset($comment->{'Comment.annotatedElement'})) $commentArray['class_id'] = (string) $comment->{'Comment.annotatedElement'}->Class->attributes()->{'xmi.idref'};
+		  
+		  //TODO: Anpassen an neue EA Version
+		  //if (isset($comment->{'ModelElement.taggedValue'})) $commentArray['class_id'] = (string) $comment->{'ModelElement.taggedValue'}->TaggedValue->{'TaggedValue.dataValue'};
+
+		  
           $this->buildQueryForComment($commentArray, $packageId);
           $i_comments++;
         }
