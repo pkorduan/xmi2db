@@ -452,7 +452,7 @@ class xmi2db {
     $infoArray  = array();
     if (isset($xml->attributes()->name)) {
       //echo "name: ".$xml->attributes()->name."<br>";
-      $infoArray['name'] = (string) $xml->attributes()->name;
+      $infoArray['name'] = (string) str_replace("'", "", $xml->attributes()->name);
     }
     if (isset($xml->attributes()->{'xmi.id'})) {
       //echo "xmi.id: ".$xml->attributes()->{'xmi.id'}."<br>";
