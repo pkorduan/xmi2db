@@ -73,11 +73,21 @@ if ($schemaBool[0]=='t') {
   echo "Schema vorhanden<br>";
   //Truncate if wanted
   if ($_REQUEST['truncate'] == 1) $xmi2db->truncateTables();
+  $migration_files = scandir('sql');
+  foreach ($migration_files as $migration_file) {
+    if (strpos($migration_file, '_mig')) {
+      echo 'mig file '.$migration_file.' found<br>';
+      //Load SQL migration file and replace "schema_name" placeholder with desired schema name
+      $result = pg_query($db_conn, str_replace('schema_name', $_REQUEST['schema'], file_get_contents('sql/'.$migration_file)));
+	  if ($result) echo 'mig file '.$migration_file.' loaded<br>';
+	  else echo 'mig file '.$migration_file.' NOT loaded<br>';
+    }
+  }
 }
 else {
   echo "Schema NICHT vorhanden<br>";
   //Load SQL dump file and replace "schema_name" placeholder with desired schema name
-  $sql_dump = file_get_contents('sql/uml-schema_base.sql');
+  $sql_dump = file_get_contents('sql/db-schema.sql');
   //echo $sql_dump;
   $sql_dump2 = str_replace('schema_name', $_REQUEST['schema'], $sql_dump);
   //echo $sql_dump2;
@@ -86,9 +96,11 @@ else {
   $migration_files = scandir('sql');
   foreach ($migration_files as $migration_file) {
     if (strpos($migration_file, '_mig')) {
-      echo 'mig file '.$migration_file.' found';
+      echo 'mig file '.$migration_file.' found<br>';
       //Load SQL migration file and replace "schema_name" placeholder with desired schema name
-      pg_query($db_conn, str_replace('schema_name', $_REQUEST['schema'], file_get_contents('sql/'.$migration_file)));
+      $result = pg_query($db_conn, str_replace('schema_name', $_REQUEST['schema'], file_get_contents('sql/'.$migration_file)));
+	  if ($result) echo 'mig file '.$migration_file.' loaded<br>';
+	  else echo 'mig file '.$migration_file.' NOT loaded<br>';
     }
   }
 }
