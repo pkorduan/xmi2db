@@ -17,6 +17,7 @@
   <body>
 <?php
 
+include( dirname(__FILE__) . '/class.debug.php');
 include( dirname(__FILE__) . "/class.xmi2db.php");
 include( dirname(__FILE__) . "/conf/database_conf.php");
 
@@ -38,21 +39,6 @@ if (isset($_REQUEST['basepackage']))
 else
   $xmi2db->setBasePackage("XPlanGML 4.1");
 
-# Set (path to) XMI file
-#$xmi2db->setXMIFile("xplan_short.xml");
-#$xmi2db->setXMIFile("XPlanGML-xmi12-uml14.xml");
-
-# Set db schema
-#$xmi2db->setSchema("xplan_eatest");
-
-# Set base package
-# Only if you want to iterate through one package, if you want to iterate through all packages, uncomment!
-#$xmi2db->setBasePackage("XPlanGML 4.1");
-
-#$xmi2db->setSchema("xplan_argotest");
-#$xmi2db->setBasePackage("Raumordnungsplan_Kernmodell");
-#$xmi2db->setXMIFile("xplanerweitert20150609.xmi");
-
 #Set DB connection
 $xmi2db->setConn($db_conn);
 
@@ -66,7 +52,7 @@ $xmi2db->setTable(array(
   "stereotypes" => "stereotypes"
 ));
 
-#Create Schema and Table structure if needed
+# Create Schema and Table structure if needed
 $schema_sql = "
   SELECT EXISTS (
     SELECT
@@ -77,8 +63,6 @@ $schema_sql = "
       schema_name = '" . $_REQUEST['schema'] . "'
   )
 ";
-#echo $schema_sql;
-#echo "<br>";
 $result = pg_query($db_conn, $schema_sql);
 $schemaBool = pg_fetch_row($result);
 if ($schemaBool[0]=='t') {
@@ -100,12 +84,13 @@ if ($schemaBool[0]=='t') {
 }
 else {
   echo "Schema NICHT vorhanden<br>";
+
   #Load SQL dump file and replace "schema_name" placeholder with desired schema name
-  $sql_dump = file_get_contents('sql/db-schema.sql');
-  #echo $sql_dump;
-  $sql_dump2 = str_replace('schema_name', $_REQUEST['schema'], $sql_dump);
-  #echo $sql_dump2;
-  pg_query($db_conn, $sql_dump2);
+  $sql_dump = file_get_contents('sql/uml-schema_base.sql');
+  # Replace default schema name with selected
+  $sql_dump = str_replace('_uml_schema_name_', $_REQUEST['schema'], $sql_dump);
+  pg_query($db_conn, $sql_dump);
+
   #Check for additional migration files (e.g. 20150731_mig.sql)
   $migration_files = scandir('sql');
   foreach ($migration_files as $migration_file) {
