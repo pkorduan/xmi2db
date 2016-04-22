@@ -21,6 +21,7 @@ class xmi2db {
   * @param XMI root element
   */
   function xmi2db($root) {
+    $this->debug = new Debug(DEBUG);
     $this->root_element = $root;
   }
   
