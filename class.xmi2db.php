@@ -452,8 +452,9 @@ class xmi2db {
     $infoArray  = array();
     if (isset($xml->attributes()->name)) {
       //echo "name: ".$xml->attributes()->name."<br>";
-      $infoArray['name'] = (string) $xml->attributes()->name;
+      $infoArray['name'] = (string) str_replace("'", "", $xml->attributes()->name);
     }
+	else $infoArray['name'] = "<undefined>";
     if (isset($xml->attributes()->{'xmi.id'})) {
       //echo "xmi.id: ".$xml->attributes()->{'xmi.id'}."<br>";
       $infoArray['xmi.id'] = (string) $xml->attributes()->{'xmi.id'};
@@ -518,8 +519,8 @@ class xmi2db {
       //echo "body: ".$xml->attributes()->body."<br>";
       $infoArray['body'] = (string) $xml->attributes()->body;
     }
-    if (isset($xml->{'TaggedValue.dataValue'})) {
-      $infoArray['dataValue'] = (string) $xml->{'TaggedValue.dataValue'};
+    if (isset($xml->{'TaggedValue.dataValue'})) {//Problem: 'Art' gibt die Namen der Attribute an, ...
+      $infoArray['dataValue'] = (string) str_replace("'", "", $xml->{'TaggedValue.dataValue'});
     }
     if (isset($xml->{'TaggedValue.type'})) {
       if (isset($xml->{'TaggedValue.type'}->TagDefinition->attributes()->{'xmi.idref'})) $infoArray['taggedValueType'] = (string) $xml->{'TaggedValue.type'}->TagDefinition->attributes()->{'xmi.idref'};
@@ -587,29 +588,39 @@ class xmi2db {
       //The top-level package should only have packages as children, now iterate through them
       //foreach ($package_sub->{'Namespace.ownedElement'}->Package as $package_objektbereich) {
       foreach ($package as $package_objektbereich) {
-        //print_r($package_objektbereich);
-        echo $package_objektbereich->attributes()->name."<br>";
-        //echo $package_objektbereich;
-        $idPackage_objektbereich = $this->getQueriesForPackages($package_objektbereich);
-        echo "\tObjektbereich: ".$idPackage_objektbereich."<br>";
-        $this->getAttributeInfos($package_objektbereich);
+		$this->iteratePackage($package_objektbereich, $packageIdTop);
+      }
+    }
+  }
         
-        $packageArray = $this->getAttributeInfos($package_objektbereich);
+		
+	/** Go through a package and store everything
+	* TODO
+	*/
+	function iteratePackage($pckg, $packageIdTop) {
+		//print_r($pckg);
+        echo $pckg->attributes()->name."<br>";
+        //echo $pckg;
+        $idpckg = $this->getQueriesForPackages($pckg);
+        echo "\tObjektbereich: ".$idpckg."<br>";
+        $this->getAttributeInfos($pckg);
         
-        if (isset($package_objektbereich->{'ModelElement.stereotype'})) {
-          $stereotypeId = $package_objektbereich->{'ModelElement.stereotype'}->Stereotype->attributes()->{'xmi.idref'};
+        $packageArray = $this->getAttributeInfos($pckg);
+        
+        if (isset($pckg->{'ModelElement.stereotype'})) {
+          $stereotypeId = $pckg->{'ModelElement.stereotype'}->Stereotype->attributes()->{'xmi.idref'};
           $packageId = $this->buildQueryForPackage($packageArray, $packageIdTop, $stereotypeId);
         }
         else $packageId = $this->buildQueryForPackage($packageArray, $packageIdTop, '-1');
         
         //TODO: ModelElement.comment mit auswerten
         
-        if (isset($package_objektbereich->{'Namespace.ownedElement'})) $package_objektbereichChildren = $package_objektbereich->{'Namespace.ownedElement'};
-        else $package_objektbereichChildren = $package_objektbereich;
+        if (isset($pckg->{'Namespace.ownedElement'})) $pckgChildren = $pckg->{'Namespace.ownedElement'};
+        else $pckgChildren = $pckg;
         
         $i_classes = 0;
         //iterate through classes
-        foreach ($package_objektbereichChildren->Class as $class) {
+        foreach ($pckgChildren->Class as $class) {
           echo "\t\tKlasse: ".$class->attributes()->name."<br>";
           //$this->getAttributeInfos($class);
           
@@ -708,7 +719,7 @@ class xmi2db {
           echo "\t\t\t".$i_attributes." Attribute in die DB geschrieben.<br>";
           $i_classes++;
         }
-        echo "\t\t".$i_classes." Klassen in die DB geschrieben.<br>";
+		echo "\t\t".$i_classes." Klassen in die DB geschrieben.<br>";
         
         //iterate through generalizations after classes
         /*
@@ -723,7 +734,7 @@ class xmi2db {
           </UML:Generalization>
         */
         $i_generalizations = 0;
-        foreach ($package_objektbereichChildren->Generalization as $generalization) {
+        foreach ($pckgChildren->Generalization as $generalization) {
           //echo "\t\t\tGeneralization: ".$generalization->attributes()->{'xmi.id'}."<br>";
           $generalizationArray = $this->getAttributeInfos($generalization);
           
@@ -739,7 +750,7 @@ class xmi2db {
         
         //iterate through associations after classes
         $i_associations = 0;
-        foreach ($package_objektbereichChildren->Association as $association) {
+        foreach ($pckgChildren->Association as $association) {
           //echo "\t\t\tAssociation: ".$association->attributes()->{'xmi.id'}."<br>";
           $associationArray = $this->getAttributeInfos($association);
           //echo("<br>associationArray<br>");
@@ -769,21 +780,30 @@ class xmi2db {
         echo "\t\t".$i_associations." Assoziationen in die DB geschrieben.<br>";
         
         $i_comments = 0;
-        foreach ($package_objektbereichChildren->Comment as $comment) {
+        foreach ($pckgChildren->Comment as $comment) {
           //echo "\t\t\tGeneralization: ".$generalization->attributes()->{'xmi.id'}."<br>";
           $commentArray = $this->getAttributeInfos($comment);
           
           //echo "\t\t\tGeneralization.child: ".$generalization->{'Generalization.child'}->Class->attributes()->{'xmi.idref'}."<br>";
-          $commentArray['class_id'] = (string) $comment->{'Comment.annotatedElement'}->Class->attributes()->{'xmi.idref'};
-          
+          if (isset($comment->{'Comment.annotatedElement'})) $commentArray['class_id'] = (string) $comment->{'Comment.annotatedElement'}->Class->attributes()->{'xmi.idref'};
+		  
+		  //TODO: Anpassen an neue EA Version
+		  //if (isset($comment->{'ModelElement.taggedValue'})) $commentArray['class_id'] = (string) $comment->{'ModelElement.taggedValue'}->TaggedValue->{'TaggedValue.dataValue'};
+
+		  
           $this->buildQueryForComment($commentArray, $packageId);
           $i_comments++;
         }
         echo "\t\t".$i_comments." Kommentare in die DB geschrieben.<br>";
-      }
-    }
-  }
-        
+		
+		if (isset($pckg->{'Namespace.ownedElement'}->Package)) {
+			$subpackage = $pckg->{'Namespace.ownedElement'}->Package;
+			foreach ($subpackage as $subpckg) {
+				$this->iteratePackage($subpckg, $packageId);
+			}
+		}
+	}
+	
   /**
   * Build the query - Main Function
   *  ("classes" => "uml_classes",++
