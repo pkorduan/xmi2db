@@ -48,7 +48,7 @@
 			</datalist>
 			
 			<h4>BasePackageauswahl/-eingabe</h4>
-			<i>Bei enem EA-xport unbedingt "XPlanGML 4.1" wählen, bei einem ArgoUML Export leer lassen oder ein Package eintragen, falls man nur das eine laden m&ouml;chte.</i>
+			<i>Bei enem EA-xport unbedingt "XPlanGML 4.1" wÃ¤hlen, bei einem ArgoUML Export leer lassen oder ein Package eintragen, falls man nur das eine laden m&ouml;chte.</i>
 			<input type="text" id="basepkg" name="basepkg" list="basepkgName"/>
 			<datalist id="basepkgName">
 				<option value="XPlanGML 4.1">XPlanGML 4.1</option>
@@ -63,7 +63,7 @@
 			-->
 			<div class="text-center" id="queryButton">
 				<!--<button type="submit" class="btn btn-primary btn-sm" id="queryNERC" onclick="document.location.href='use-xmi2db.php?truncate=1&file=xplanerweitert20150609.xmi&schema=xplan_argotest&basepackage=Raumordnungsplan_Kernmodell'"><span class="glyphicon glyphicon-ok"> </span> Suche passende Begriffe</button>-->
-				<button type="submit" class="btn btn-primary btn-sm" onclick="exefunction()"><span class="glyphicon glyphicon-ok"> </span> Erzeuge CSV für JSKOSify</button>
+				<button type="submit" class="btn btn-primary btn-sm" onclick="exefunction()"><span class="glyphicon glyphicon-ok"> </span> Erzeuge CSV fÃ¼r JSKOSify</button>
 			</div>
 		</div>
 	</body>
