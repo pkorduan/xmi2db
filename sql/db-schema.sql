@@ -3,13 +3,13 @@
 --
 
 --
--- Name: xplan_uml; Type: SCHEMA; Schema: -; Owner: pgadmin
+-- Name: schema_name; Type: SCHEMA; Schema: -; Owner: pgadmin
 --
 
-CREATE SCHEMA xplan_uml;
+CREATE SCHEMA schema_name;
 
 
-ALTER SCHEMA xplan_uml OWNER TO pgadmin;
+ALTER SCHEMA schema_name OWNER TO pgadmin;
 
 
 
@@ -19,7 +19,7 @@ SET standard_conforming_strings = on;
 SET check_function_bodies = false;
 SET client_min_messages = warning;
 
-SET search_path = xplan_uml, pg_catalog;
+SET search_path = schema_name, pg_catalog;
 
 SET default_tablespace = '';
 
@@ -28,7 +28,7 @@ SET default_with_oids = false;
 
 
 --
--- Name: association_classes; Type: TABLE; Schema: xplan_uml; Owner: pgadmin; Tablespace: 
+-- Name: association_classes; Type: TABLE; Schema: schema_name; Owner: pgadmin; Tablespace: 
 --
 
 CREATE TABLE association_classes (
@@ -46,10 +46,10 @@ CREATE TABLE association_classes (
 );
 
 
-ALTER TABLE xplan_uml.association_classes OWNER TO pgadmin;
+ALTER TABLE schema_name.association_classes OWNER TO pgadmin;
 
 --
--- Name: association_classes_testid_seq; Type: SEQUENCE; Schema: xplan_uml; Owner: pgadmin
+-- Name: association_classes_testid_seq; Type: SEQUENCE; Schema: schema_name; Owner: pgadmin
 --
 
 CREATE SEQUENCE association_classes_testid_seq
@@ -60,24 +60,24 @@ CREATE SEQUENCE association_classes_testid_seq
     CACHE 1;
 
 
-ALTER TABLE xplan_uml.association_classes_testid_seq OWNER TO pgadmin;
+ALTER TABLE schema_name.association_classes_testid_seq OWNER TO pgadmin;
 
 --
--- Name: association_classes_testid_seq; Type: SEQUENCE OWNED BY; Schema: xplan_uml; Owner: pgadmin
+-- Name: association_classes_testid_seq; Type: SEQUENCE OWNED BY; Schema: schema_name; Owner: pgadmin
 --
 
 ALTER SEQUENCE association_classes_testid_seq OWNED BY association_classes.id;
 
 
 --
--- Name: id; Type: DEFAULT; Schema: xplan_uml; Owner: pgadmin
+-- Name: id; Type: DEFAULT; Schema: schema_name; Owner: pgadmin
 --
 
 ALTER TABLE ONLY association_classes ALTER COLUMN id SET DEFAULT nextval('association_classes_testid_seq'::regclass);
 
 
 --
--- Name: association_classes_pkey; Type: CONSTRAINT; Schema: xplan_uml; Owner: pgadmin; Tablespace: 
+-- Name: association_classes_pkey; Type: CONSTRAINT; Schema: schema_name; Owner: pgadmin; Tablespace: 
 --
 
 ALTER TABLE ONLY association_classes
@@ -85,7 +85,7 @@ ALTER TABLE ONLY association_classes
 
 
 --
--- Name: association_ends; Type: TABLE; Schema: xplan_uml; Owner: pgadmin; Tablespace: 
+-- Name: association_ends; Type: TABLE; Schema: xplan_argotest; Owner: pgadmin; Tablespace: 
 --
 
 CREATE TABLE association_ends (
@@ -107,10 +107,10 @@ CREATE TABLE association_ends (
 );
 
 
-ALTER TABLE xplan_uml.association_ends OWNER TO pgadmin;
+ALTER TABLE xplan_argotest.association_ends OWNER TO pgadmin;
 
 --
--- Name: association_ends_id_seq; Type: SEQUENCE; Schema: xplan_uml; Owner: pgadmin
+-- Name: association_ends_id_seq; Type: SEQUENCE; Schema: xplan_argotest; Owner: pgadmin
 --
 
 CREATE SEQUENCE association_ends_id_seq
@@ -121,31 +121,31 @@ CREATE SEQUENCE association_ends_id_seq
     CACHE 1;
 
 
-ALTER TABLE xplan_uml.association_ends_id_seq OWNER TO pgadmin;
+ALTER TABLE xplan_argotest.association_ends_id_seq OWNER TO pgadmin;
 
 --
--- Name: association_ends_id_seq; Type: SEQUENCE OWNED BY; Schema: xplan_uml; Owner: pgadmin
+-- Name: association_ends_id_seq; Type: SEQUENCE OWNED BY; Schema: xplan_argotest; Owner: pgadmin
 --
 
 ALTER SEQUENCE association_ends_id_seq OWNED BY association_ends.id;
 
 
 --
--- Name: id; Type: DEFAULT; Schema: xplan_uml; Owner: pgadmin
+-- Name: id; Type: DEFAULT; Schema: xplan_argotest; Owner: pgadmin
 --
 
 ALTER TABLE ONLY association_ends ALTER COLUMN id SET DEFAULT nextval('association_ends_id_seq'::regclass);
 
 
 --
--- Name: association_ends_pkey; Type: CONSTRAINT; Schema: xplan_uml; Owner: pgadmin; Tablespace: 
+-- Name: association_ends_pkey; Type: CONSTRAINT; Schema: xplan_argotest; Owner: pgadmin; Tablespace: 
 --
 
 ALTER TABLE ONLY association_ends
     ADD CONSTRAINT association_ends_pkey PRIMARY KEY (id);
 
 --
--- Name: class_generalizations; Type: TABLE; Schema: xplan_uml; Owner: pgadmin; Tablespace: 
+-- Name: class_generalizations; Type: TABLE; Schema: xplan_argotest; Owner: pgadmin; Tablespace: 
 --
 
 CREATE TABLE class_generalizations (
@@ -162,10 +162,10 @@ CREATE TABLE class_generalizations (
 );
 
 
-ALTER TABLE xplan_uml.class_generalizations OWNER TO pgadmin;
+ALTER TABLE xplan_argotest.class_generalizations OWNER TO pgadmin;
 
 --
--- Name: class_generalizations_id_seq; Type: SEQUENCE; Schema: xplan_uml; Owner: pgadmin
+-- Name: class_generalizations_id_seq; Type: SEQUENCE; Schema: xplan_argotest; Owner: pgadmin
 --
 
 CREATE SEQUENCE class_generalizations_id_seq
@@ -176,31 +176,31 @@ CREATE SEQUENCE class_generalizations_id_seq
     CACHE 1;
 
 
-ALTER TABLE xplan_uml.class_generalizations_id_seq OWNER TO pgadmin;
+ALTER TABLE xplan_argotest.class_generalizations_id_seq OWNER TO pgadmin;
 
 --
--- Name: class_generalizations_id_seq; Type: SEQUENCE OWNED BY; Schema: xplan_uml; Owner: pgadmin
+-- Name: class_generalizations_id_seq; Type: SEQUENCE OWNED BY; Schema: xplan_argotest; Owner: pgadmin
 --
 
 ALTER SEQUENCE class_generalizations_id_seq OWNED BY class_generalizations.id;
 
 
 --
--- Name: id; Type: DEFAULT; Schema: xplan_uml; Owner: pgadmin
+-- Name: id; Type: DEFAULT; Schema: xplan_argotest; Owner: pgadmin
 --
 
 ALTER TABLE ONLY class_generalizations ALTER COLUMN id SET DEFAULT nextval('class_generalizations_id_seq'::regclass);
 
 
 --
--- Name: class_generalizations_id_key; Type: CONSTRAINT; Schema: xplan_uml; Owner: pgadmin; Tablespace: 
+-- Name: class_generalizations_id_key; Type: CONSTRAINT; Schema: xplan_argotest; Owner: pgadmin; Tablespace: 
 --
 
 ALTER TABLE ONLY class_generalizations
     ADD CONSTRAINT class_generalizations_id_key UNIQUE (id);
 
 --
--- Name: datatypes; Type: TABLE; Schema: xplan_uml; Owner: pgadmin; Tablespace: 
+-- Name: datatypes; Type: TABLE; Schema: xplan_argotest; Owner: pgadmin; Tablespace: 
 --
 
 CREATE TABLE datatypes (
@@ -216,10 +216,10 @@ CREATE TABLE datatypes (
 );
 
 
-ALTER TABLE xplan_uml.datatypes OWNER TO pgadmin;
+ALTER TABLE xplan_argotest.datatypes OWNER TO pgadmin;
 
 --
--- Name: datatypes_id_seq; Type: SEQUENCE; Schema: xplan_uml; Owner: pgadmin
+-- Name: datatypes_id_seq; Type: SEQUENCE; Schema: xplan_argotest; Owner: pgadmin
 --
 
 CREATE SEQUENCE datatypes_id_seq
@@ -230,31 +230,31 @@ CREATE SEQUENCE datatypes_id_seq
     CACHE 1;
 
 
-ALTER TABLE xplan_uml.datatypes_id_seq OWNER TO pgadmin;
+ALTER TABLE xplan_argotest.datatypes_id_seq OWNER TO pgadmin;
 
 --
--- Name: datatypes_id_seq; Type: SEQUENCE OWNED BY; Schema: xplan_uml; Owner: pgadmin
+-- Name: datatypes_id_seq; Type: SEQUENCE OWNED BY; Schema: xplan_argotest; Owner: pgadmin
 --
 
 ALTER SEQUENCE datatypes_id_seq OWNED BY datatypes.id;
 
 
 --
--- Name: id; Type: DEFAULT; Schema: xplan_uml; Owner: pgadmin
+-- Name: id; Type: DEFAULT; Schema: xplan_argotest; Owner: pgadmin
 --
 
 ALTER TABLE ONLY datatypes ALTER COLUMN id SET DEFAULT nextval('datatypes_id_seq'::regclass);
 
 
 --
--- Name: datatypes_pkey; Type: CONSTRAINT; Schema: xplan_uml; Owner: pgadmin; Tablespace: 
+-- Name: datatypes_pkey; Type: CONSTRAINT; Schema: xplan_argotest; Owner: pgadmin; Tablespace: 
 --
 
 ALTER TABLE ONLY datatypes
     ADD CONSTRAINT datatypes_pkey PRIMARY KEY (id);
 
 --
--- Name: packages; Type: TABLE; Schema: xplan_uml; Owner: pgadmin; Tablespace: 
+-- Name: packages; Type: TABLE; Schema: xplan_argotest; Owner: pgadmin; Tablespace: 
 --
 
 CREATE TABLE packages (
@@ -274,10 +274,10 @@ CREATE TABLE packages (
 );
 
 
-ALTER TABLE xplan_uml.packages OWNER TO pgadmin;
+ALTER TABLE xplan_argotest.packages OWNER TO pgadmin;
 
 --
--- Name: packages_id_seq; Type: SEQUENCE; Schema: xplan_uml; Owner: pgadmin
+-- Name: packages_id_seq; Type: SEQUENCE; Schema: xplan_argotest; Owner: pgadmin
 --
 
 CREATE SEQUENCE packages_id_seq
@@ -288,31 +288,31 @@ CREATE SEQUENCE packages_id_seq
     CACHE 1;
 
 
-ALTER TABLE xplan_uml.packages_id_seq OWNER TO pgadmin;
+ALTER TABLE xplan_argotest.packages_id_seq OWNER TO pgadmin;
 
 --
--- Name: packages_id_seq; Type: SEQUENCE OWNED BY; Schema: xplan_uml; Owner: pgadmin
+-- Name: packages_id_seq; Type: SEQUENCE OWNED BY; Schema: xplan_argotest; Owner: pgadmin
 --
 
 ALTER SEQUENCE packages_id_seq OWNED BY packages.id;
 
 
 --
--- Name: id; Type: DEFAULT; Schema: xplan_uml; Owner: pgadmin
+-- Name: id; Type: DEFAULT; Schema: xplan_argotest; Owner: pgadmin
 --
 
 ALTER TABLE ONLY packages ALTER COLUMN id SET DEFAULT nextval('packages_id_seq'::regclass);
 
 
 --
--- Name: packages_pkey; Type: CONSTRAINT; Schema: xplan_uml; Owner: pgadmin; Tablespace: 
+-- Name: packages_pkey; Type: CONSTRAINT; Schema: xplan_argotest; Owner: pgadmin; Tablespace: 
 --
 
 ALTER TABLE ONLY packages
     ADD CONSTRAINT packages_pkey PRIMARY KEY (id);
 
 --
--- Name: stereotypes; Type: TABLE; Schema: xplan_uml; Owner: pgadmin; Tablespace: 
+-- Name: stereotypes; Type: TABLE; Schema: xplan_argotest; Owner: pgadmin; Tablespace: 
 --
 
 CREATE TABLE stereotypes (
@@ -331,10 +331,10 @@ CREATE TABLE stereotypes (
 );
 
 
-ALTER TABLE xplan_uml.stereotypes OWNER TO pgadmin;
+ALTER TABLE xplan_argotest.stereotypes OWNER TO pgadmin;
 
 --
--- Name: stereotypes_id_seq; Type: SEQUENCE; Schema: xplan_uml; Owner: pgadmin
+-- Name: stereotypes_id_seq; Type: SEQUENCE; Schema: xplan_argotest; Owner: pgadmin
 --
 
 CREATE SEQUENCE stereotypes_id_seq
@@ -345,31 +345,31 @@ CREATE SEQUENCE stereotypes_id_seq
     CACHE 1;
 
 
-ALTER TABLE xplan_uml.stereotypes_id_seq OWNER TO pgadmin;
+ALTER TABLE xplan_argotest.stereotypes_id_seq OWNER TO pgadmin;
 
 --
--- Name: stereotypes_id_seq; Type: SEQUENCE OWNED BY; Schema: xplan_uml; Owner: pgadmin
+-- Name: stereotypes_id_seq; Type: SEQUENCE OWNED BY; Schema: xplan_argotest; Owner: pgadmin
 --
 
 ALTER SEQUENCE stereotypes_id_seq OWNED BY stereotypes.id;
 
 
 --
--- Name: id; Type: DEFAULT; Schema: xplan_uml; Owner: pgadmin
+-- Name: id; Type: DEFAULT; Schema: xplan_argotest; Owner: pgadmin
 --
 
 ALTER TABLE ONLY stereotypes ALTER COLUMN id SET DEFAULT nextval('stereotypes_id_seq'::regclass);
 
 
 --
--- Name: stereotypes_id_key; Type: CONSTRAINT; Schema: xplan_uml; Owner: pgadmin; Tablespace: 
+-- Name: stereotypes_id_key; Type: CONSTRAINT; Schema: xplan_argotest; Owner: pgadmin; Tablespace: 
 --
 
 ALTER TABLE ONLY stereotypes
     ADD CONSTRAINT stereotypes_id_key UNIQUE (id);
 
 --
--- Name: tagdefinitions; Type: TABLE; Schema: xplan_uml; Owner: pgadmin; Tablespace: 
+-- Name: tagdefinitions; Type: TABLE; Schema: xplan_argotest; Owner: pgadmin; Tablespace: 
 --
 
 CREATE TABLE tagdefinitions (
@@ -383,10 +383,10 @@ CREATE TABLE tagdefinitions (
 );
 
 
-ALTER TABLE xplan_uml.tagdefinitions OWNER TO pgadmin;
+ALTER TABLE xplan_argotest.tagdefinitions OWNER TO pgadmin;
 
 --
--- Name: tagdefinitions_id_seq; Type: SEQUENCE; Schema: xplan_uml; Owner: pgadmin
+-- Name: tagdefinitions_id_seq; Type: SEQUENCE; Schema: xplan_argotest; Owner: pgadmin
 --
 
 CREATE SEQUENCE tagdefinitions_id_seq
@@ -397,31 +397,31 @@ CREATE SEQUENCE tagdefinitions_id_seq
     CACHE 1;
 
 
-ALTER TABLE xplan_uml.tagdefinitions_id_seq OWNER TO pgadmin;
+ALTER TABLE xplan_argotest.tagdefinitions_id_seq OWNER TO pgadmin;
 
 --
--- Name: tagdefinitions_id_seq; Type: SEQUENCE OWNED BY; Schema: xplan_uml; Owner: pgadmin
+-- Name: tagdefinitions_id_seq; Type: SEQUENCE OWNED BY; Schema: xplan_argotest; Owner: pgadmin
 --
 
 ALTER SEQUENCE tagdefinitions_id_seq OWNED BY tagdefinitions.id;
 
 
 --
--- Name: id; Type: DEFAULT; Schema: xplan_uml; Owner: pgadmin
+-- Name: id; Type: DEFAULT; Schema: xplan_argotest; Owner: pgadmin
 --
 
 ALTER TABLE ONLY tagdefinitions ALTER COLUMN id SET DEFAULT nextval('tagdefinitions_id_seq'::regclass);
 
 
 --
--- Name: tagdefinitions_pkey; Type: CONSTRAINT; Schema: xplan_uml; Owner: pgadmin; Tablespace: 
+-- Name: tagdefinitions_pkey; Type: CONSTRAINT; Schema: xplan_argotest; Owner: pgadmin; Tablespace: 
 --
 
 ALTER TABLE ONLY tagdefinitions
     ADD CONSTRAINT tagdefinitions_pkey PRIMARY KEY (id);
 
 --
--- Name: taggedvalues; Type: TABLE; Schema: xplan_uml; Owner: pgadmin; Tablespace: 
+-- Name: taggedvalues; Type: TABLE; Schema: xplan_argotest; Owner: pgadmin; Tablespace: 
 --
 
 CREATE TABLE taggedvalues (
@@ -436,10 +436,10 @@ CREATE TABLE taggedvalues (
 );
 
 
-ALTER TABLE xplan_uml.taggedvalues OWNER TO pgadmin;
+ALTER TABLE xplan_argotest.taggedvalues OWNER TO pgadmin;
 
 --
--- Name: taggedvalues_id_seq; Type: SEQUENCE; Schema: xplan_uml; Owner: pgadmin
+-- Name: taggedvalues_id_seq; Type: SEQUENCE; Schema: xplan_argotest; Owner: pgadmin
 --
 
 CREATE SEQUENCE taggedvalues_id_seq
@@ -450,31 +450,31 @@ CREATE SEQUENCE taggedvalues_id_seq
     CACHE 1;
 
 
-ALTER TABLE xplan_uml.taggedvalues_id_seq OWNER TO pgadmin;
+ALTER TABLE xplan_argotest.taggedvalues_id_seq OWNER TO pgadmin;
 
 --
--- Name: taggedvalues_id_seq; Type: SEQUENCE OWNED BY; Schema: xplan_uml; Owner: pgadmin
+-- Name: taggedvalues_id_seq; Type: SEQUENCE OWNED BY; Schema: xplan_argotest; Owner: pgadmin
 --
 
 ALTER SEQUENCE taggedvalues_id_seq OWNED BY taggedvalues.id;
 
 
 --
--- Name: id; Type: DEFAULT; Schema: xplan_uml; Owner: pgadmin
+-- Name: id; Type: DEFAULT; Schema: xplan_argotest; Owner: pgadmin
 --
 
 ALTER TABLE ONLY taggedvalues ALTER COLUMN id SET DEFAULT nextval('taggedvalues_id_seq'::regclass);
 
 
 --
--- Name: taggedvalues_pkey; Type: CONSTRAINT; Schema: xplan_uml; Owner: pgadmin; Tablespace: 
+-- Name: taggedvalues_pkey; Type: CONSTRAINT; Schema: xplan_argotest; Owner: pgadmin; Tablespace: 
 --
 
 ALTER TABLE ONLY taggedvalues
     ADD CONSTRAINT taggedvalues_pkey PRIMARY KEY (id);
 
 --
--- Name: uml_attributes; Type: TABLE; Schema: xplan_uml; Owner: pgadmin; Tablespace: 
+-- Name: uml_attributes; Type: TABLE; Schema: xplan_argotest; Owner: pgadmin; Tablespace: 
 --
 
 CREATE TABLE uml_attributes (
@@ -502,10 +502,10 @@ CREATE TABLE uml_attributes (
 );
 
 
-ALTER TABLE xplan_uml.uml_attributes OWNER TO pgadmin;
+ALTER TABLE xplan_argotest.uml_attributes OWNER TO pgadmin;
 
 --
--- Name: uml_attributes_id_seq; Type: SEQUENCE; Schema: xplan_uml; Owner: pgadmin
+-- Name: uml_attributes_id_seq; Type: SEQUENCE; Schema: xplan_argotest; Owner: pgadmin
 --
 
 CREATE SEQUENCE uml_attributes_id_seq
@@ -516,31 +516,31 @@ CREATE SEQUENCE uml_attributes_id_seq
     CACHE 1;
 
 
-ALTER TABLE xplan_uml.uml_attributes_id_seq OWNER TO pgadmin;
+ALTER TABLE xplan_argotest.uml_attributes_id_seq OWNER TO pgadmin;
 
 --
--- Name: uml_attributes_id_seq; Type: SEQUENCE OWNED BY; Schema: xplan_uml; Owner: pgadmin
+-- Name: uml_attributes_id_seq; Type: SEQUENCE OWNED BY; Schema: xplan_argotest; Owner: pgadmin
 --
 
 ALTER SEQUENCE uml_attributes_id_seq OWNED BY uml_attributes.id;
 
 
 --
--- Name: id; Type: DEFAULT; Schema: xplan_uml; Owner: pgadmin
+-- Name: id; Type: DEFAULT; Schema: xplan_argotest; Owner: pgadmin
 --
 
 ALTER TABLE ONLY uml_attributes ALTER COLUMN id SET DEFAULT nextval('uml_attributes_id_seq'::regclass);
 
 
 --
--- Name: uml_attributes_id_key; Type: CONSTRAINT; Schema: xplan_uml; Owner: pgadmin; Tablespace: 
+-- Name: uml_attributes_id_key; Type: CONSTRAINT; Schema: xplan_argotest; Owner: pgadmin; Tablespace: 
 --
 
 ALTER TABLE ONLY uml_attributes
     ADD CONSTRAINT uml_attributes_id_key UNIQUE (id);
 
 --
--- Name: uml_classes; Type: TABLE; Schema: xplan_uml; Owner: pgadmin; Tablespace: 
+-- Name: uml_classes; Type: TABLE; Schema: xplan_argotest; Owner: pgadmin; Tablespace: 
 --
 
 CREATE TABLE uml_classes (
@@ -562,10 +562,10 @@ CREATE TABLE uml_classes (
 );
 
 
-ALTER TABLE xplan_uml.uml_classes OWNER TO pgadmin;
+ALTER TABLE xplan_argotest.uml_classes OWNER TO pgadmin;
 
 --
--- Name: uml_classes_id2_seq; Type: SEQUENCE; Schema: xplan_uml; Owner: pgadmin
+-- Name: uml_classes_id2_seq; Type: SEQUENCE; Schema: xplan_argotest; Owner: pgadmin
 --
 
 CREATE SEQUENCE uml_classes_id2_seq
@@ -576,24 +576,24 @@ CREATE SEQUENCE uml_classes_id2_seq
     CACHE 1;
 
 
-ALTER TABLE xplan_uml.uml_classes_id2_seq OWNER TO pgadmin;
+ALTER TABLE xplan_argotest.uml_classes_id2_seq OWNER TO pgadmin;
 
 --
--- Name: uml_classes_id2_seq; Type: SEQUENCE OWNED BY; Schema: xplan_uml; Owner: pgadmin
+-- Name: uml_classes_id2_seq; Type: SEQUENCE OWNED BY; Schema: xplan_argotest; Owner: pgadmin
 --
 
 ALTER SEQUENCE uml_classes_id2_seq OWNED BY uml_classes.id;
 
 
 --
--- Name: id; Type: DEFAULT; Schema: xplan_uml; Owner: pgadmin
+-- Name: id; Type: DEFAULT; Schema: xplan_argotest; Owner: pgadmin
 --
 
 ALTER TABLE ONLY uml_classes ALTER COLUMN id SET DEFAULT nextval('uml_classes_id2_seq'::regclass);
 
 
 --
--- Name: uml_classes_pkey; Type: CONSTRAINT; Schema: xplan_uml; Owner: pgadmin; Tablespace: 
+-- Name: uml_classes_pkey; Type: CONSTRAINT; Schema: xplan_argotest; Owner: pgadmin; Tablespace: 
 --
 
 ALTER TABLE ONLY uml_classes
