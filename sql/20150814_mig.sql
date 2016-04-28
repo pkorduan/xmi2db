@@ -3,7 +3,7 @@
 --
 
 --
--- Name: comments; Type: TABLE; Schema: xplan_uml; Owner: pgadmin; Tablespace: 
+-- Name: comments; Type: TABLE; Schema: schema_name; Owner: pgadmin; Tablespace: 
 --
 
 CREATE TABLE comments (
@@ -18,10 +18,10 @@ CREATE TABLE comments (
 );
 
 
-ALTER TABLE xplan_uml.comments OWNER TO pgadmin;
+ALTER TABLE schema_name.comments OWNER TO pgadmin;
 
 --
--- Name: comments_id_seq; Type: SEQUENCE; Schema: xplan_uml; Owner: pgadmin
+-- Name: comments_id_seq; Type: SEQUENCE; Schema: schema_name; Owner: pgadmin
 --
 
 CREATE SEQUENCE comments_id_seq
@@ -32,24 +32,24 @@ CREATE SEQUENCE comments_id_seq
     CACHE 1;
 
 
-ALTER TABLE xplan_uml.comments_id_seq OWNER TO pgadmin;
+ALTER TABLE schema_name.comments_id_seq OWNER TO pgadmin;
 
 --
--- Name: comments_id_seq; Type: SEQUENCE OWNED BY; Schema: xplan_uml; Owner: pgadmin
+-- Name: comments_id_seq; Type: SEQUENCE OWNED BY; Schema: schema_name; Owner: pgadmin
 --
 
 ALTER SEQUENCE comments_id_seq OWNED BY comments.id;
 
 
 --
--- Name: id; Type: DEFAULT; Schema: xplan_uml; Owner: pgadmin
+-- Name: id; Type: DEFAULT; Schema: schema_name; Owner: pgadmin
 --
 
 ALTER TABLE ONLY comments ALTER COLUMN id SET DEFAULT nextval('comments_id_seq'::regclass);
 
 
 --
--- Name: comments_pkey; Type: CONSTRAINT; Schema: xplan_uml; Owner: pgadmin; Tablespace: 
+-- Name: comments_pkey; Type: CONSTRAINT; Schema: schema_name; Owner: pgadmin; Tablespace: 
 --
 
 ALTER TABLE ONLY comments

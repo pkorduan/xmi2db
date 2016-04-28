@@ -3,7 +3,7 @@
 --
 
 --
--- Name: _uml_schema_name_; Type: SCHEMA; Schema: -; Owner: pgadmin
+-- Name: schema_name; Type: SCHEMA; Schema: -; Owner: pgadmin
 --
 
 CREATE SCHEMA _uml_schema_name_;
