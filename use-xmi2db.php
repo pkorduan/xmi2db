@@ -86,7 +86,7 @@ else {
   echo "Schema NICHT vorhanden<br>";
 
   #Load SQL dump file and replace "schema_name" placeholder with desired schema name
-  $sql_dump = file_get_contents('sql/uml-schema_base.sql');
+  $sql_dump = file_get_contents('sql/db-schema.sql');
   # Replace default schema name with selected
   $sql_dump = str_replace('_uml_schema_name_', $_REQUEST['schema'], $sql_dump);
   pg_query($db_conn, $sql_dump);
