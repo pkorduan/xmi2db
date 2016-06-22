@@ -42,7 +42,7 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
 		output('<br><b>CodeList: ' . $enumeration['name'] . '</b> (' . $enumeration['xmi_id'] . ')');
 		$sql .= createCodeListTable($code_list);
 	}
-	
+
 	# Lade n:m Associations
 	$associations = getAssociations();
 	foreach($associations AS $association) {
@@ -198,6 +198,33 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
 		return $result;
 	}
 
+	# Lade 1:n AssociationEnds for classes
+	function getAssociationEnds($class) {
+		global $db_conn;
+		$sql = "
+			SELECT
+				ca.name,
+				b.id,
+				b.name,
+				b.multiplicity_range_lower,
+				b.multiplicity_range_upper,
+				a.id,
+				a.name,
+				a.multiplicity_range_lower,
+				a.multiplicity_range_upper,
+				cb.name
+			FROM
+				" . UML_SCHEMA . ".uml_classes ca join
+				" . UML_SCHEMA . ".association_ends a ON (ca.xmi_id = a.participant) join
+				" . UML_SCHEMA . ".association_ends b on (a.assoc_id = b.assoc_id) JOIN
+				" . UML_SCHEMA . ".uml_classes cb ON (cb.xmi_id = b.participant)
+			WHERE
+				a.id != b.id
+				AND NOT (b.multiplicity_range_upper = '-1' AND a.multiplicity_range_upper = '-1')
+				AND ca.name = '" . $class['name'] . '
+		";
+	}
+
 	function getAssociations() {
 		global $db_conn;
 		$sql = "
@@ -344,7 +371,10 @@ COMMENT ON COLUMN " . strtolower($class_name) . "." . $attribute_name . " IS '" 
 	';
 			$sql .= createAttributeDefinition($attribute);
 		}
-		
+
+		# lade navigierbare Assoziationsenden von 1:n Assoziationen
+		$assoziation_ends = getAssociationEnds($class);
+
 		$sql .= '
 	CONSTRAINT ' . $table . '_pkey PRIMARY KEY (gml_id)
 )';
