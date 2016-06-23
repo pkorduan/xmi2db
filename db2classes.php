@@ -1,4 +1,6 @@
 <?php
+	$a = "abc";
+	$tabNameAssoc = array();
 echo '<!DOCTYPE html>
 <html lang="de">
   <head>
@@ -35,9 +37,9 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
   # Lade CodeLists
   $code_lists = getCodeLists();
 
-  # Für alle Enumerations
+  # Für alle CodeLists //Fixed, was: $enumeration['name'] etc.
   foreach($code_lists AS $code_list) {
-    output('<br><b>CodeList: ' . $enumeration['name'] . '</b> (' . $enumeration['xmi_id'] . ')');
+    output('<br><b>CodeList: ' . $code_list['name'] . '</b> (' . $code_list['xmi_id'] . ')');
     $sql .= createCodeListTable($code_list);
   }
   
@@ -60,11 +62,15 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
   echo $sql;
 ?></pre>
 <?php
+	//global $a;
   /*****************************************************************************
   * Funktionen
   ******************************************************************************/
   function output($text) {
-    if (DEBUG) {
+    global $a;
+	//global $tabNameAssoc;
+	//array_push($tabNameAssoc, $a."def");
+	if (DEBUG) {
       echo '<br>' . $text;
     }
   }
@@ -84,13 +90,14 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
         " . UML_SCHEMA . ".stereotypes s ON c.stereotype_id = s.xmi_id
       WHERE
         general_id = '-1' AND
-        s.name = 'FeatureType' AND
+        s.name LIKE '%eatureType' AND
         p.name IN (" . PACKAGES . ")
     ";
     output('<b>Get TopClasses: </b><br>');
     output('<pre>' . $sql . '</pre>');
+	//Fixed: 'pg_query(): Query failed: ERROR: invalid byte sequence for encoding "UTF8"'
     $result = pg_fetch_all(
-      pg_query($db_conn, $sql)
+      pg_query($db_conn, utf8_encode($sql))
     );
     if ($result == false) $result = array();
     return $result;
@@ -115,7 +122,8 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
     output('<b>Get SubClasses</b>');
     output('<pre>' . $sql . '</pre>');
     $result = pg_fetch_all(
-      pg_query($db_conn, $sql)
+	//Fixed: 'pg_query(): Query failed: ERROR: invalid byte sequence for encoding "UTF8"'
+      pg_query($db_conn, utf8_encode($sql))
     );
     if ($result == false) $result = array();
     return $result;
@@ -138,7 +146,8 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
     output('<b>Get Enumerations</b>');
     output('<pre>' . $sql . '</pre>');
     $result = pg_fetch_all(
-      pg_query($db_conn, $sql)
+	//Fixed: 'pg_query(): Query failed: ERROR: invalid byte sequence for encoding "UTF8"'
+      pg_query($db_conn, utf8_encode($sql))
     );
     if ($result == false) $result = array();
     return $result;
@@ -155,13 +164,14 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
         " . UML_SCHEMA . ".uml_classes c ON p.id = c.package_id LEFT JOIN
         " . UML_SCHEMA . ".stereotypes s ON c.stereotype_id = s.xmi_id
       WHERE
-        lower(s.name) = 'codelist' AND
+        s.name LIKE '%odeList' AND
         p.name IN (" . PACKAGES . ")
     ";
     output('<b>Get CodeList</b>');
     output('<pre>' . $sql . '</pre>');
     $result = pg_fetch_all(
-      pg_query($db_conn, $sql)
+	//Fixed: 'pg_query(): Query failed: ERROR: invalid byte sequence for encoding "UTF8"'
+      pg_query($db_conn, utf8_encode($sql))
     );
     if ($result == false) $result = array();
     return $result;
@@ -241,7 +251,8 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
     output('<b>Get Associations: </b>');
     output('<pre>' . $sql . '</pre>');
     $result = pg_fetch_all(
-      pg_query($db_conn, $sql)
+	//Fixed: 'pg_query(): Query failed: ERROR: invalid byte sequence for encoding "UTF8"'
+      pg_query($db_conn, utf8_encode($sql))
     );
     if ($result == false) $result = array();
     return $result;
@@ -250,12 +261,17 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
   function createDataType($datatype, $classifier_stereotype, $multiplicity) {
     $sql = '';
     if ($datatype != '') {
+		//Fixed: more datatypes
       switch (true) {
         case (strtolower($datatype) == 'characterstring'):
           $sql = 'character varying';
           break;
-        case (strtolower($datatype) == 'date'):
-          $sql = 'date';
+		case in_array(strtolower($datatype), array(
+			'date',
+			'datetime',
+			'TM_Duration'
+		)):
+		  $sql = 'date';
           break;
         case in_array(strtolower($datatype), array(
             'integer',
@@ -272,21 +288,52 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
             'decimal',
             'volume',
             'area',
-            'tm_duration'
+            'tm_duration',
+			'real',
+			'distance'
           )):
           $sql = 'double precision';
+          break;
+		case in_array($datatype, array(
+            'GM_Point',
+            'DirectPosition'
+          )):
+          $sql = 'geometry(POINT)';
+          break;
+		case ($datatype == 'GM_Curve'):
+          $sql = 'geometry(LINESTRING)';
+          break;
+		case ($datatype == 'GM_MultiCurve'):
+          $sql = 'geometry(MULTILINESTRING)';
+          break;
+		case ($datatype == 'GM_MultiPoint'):
+          $sql = 'geometry(MULTIPOINT)';
+          break;
+		case ($datatype == 'GM_MultiSurface'):
+          $sql = 'geometry(MULTIPOLYGON)';
+          break;
+		case ($datatype == 'GM_Surface'):
+          $sql = 'geometry(POLYGON)';
+          break;
+		case ($datatype == 'GM_Object'):
+          $sql = 'geometry';
           break;
       }
     }
     else {
       switch ($classifier_stereotype) {
+	  //Fixed: Cases etc. for AAA
         case 'Enumeration':
+		case 'enumeration':
+		case 'enum':
           $sql = 'character varying';
           break;
         case 'CodeList':
+		case 'codeList':
           $sql = 'integer';
           break;
         case 'DataType':
+		case 'dataType':
           $sql = 'uuid';
           break;
         case 'Union':
@@ -326,8 +373,10 @@ COMMENT ON COLUMN " . strtolower($class_name) . "." . $attribute_name . " IS '" 
   function createClassTables($superClass, $class) {
     # Erzeuge Create Table Statement
     $table = strtolower($class['name']);
+	
 
     $sql = "CREATE TABLE IF NOT EXISTS " . $table . " (";
+	if (strlen($table)>63) $sql .= 'Tab Name zu lang xyz ';
     if ($superClass == null) {
       $sql .= "
   gml_id uuid NOT NULL DEFAULT uuid_generate_v1mc(),";
@@ -386,29 +435,25 @@ COMMENT ON TABLE " . $table . " IS 'Tabelle " . $class['name'];
   }
 
   function createEnumerationTable($class) {
+	//Fixed: Table identifier max length is 63 (with "_pkey" only 58!)
     $table = strtolower($class['name']);
-    # Erzeuge Create Table Statement
-    $sql = "
-CREATE TABLE IF NOT EXISTS " . $table . " (
-  wert integer,
-  beschreibung character varying,
-  CONSTRAINT " . $table . "_pkey PRIMARY KEY (wert)
-);
-COMMENT ON TABLE " . $table . " IS 'Aufzählung " . $class['name'] . "';
-";
+	$table_orig = $table;
+	if (strlen($table)>58) $table = substr($table, 0, 58);
+	$isInt = false;
+
     # lade Values
     $values = getAttributes($class);
     if (empty($values)) return $sql;
 
     $i = 0;
-    $sql .= "
+    $sqlValues = "
 INSERT INTO " . $table . " (wert, beschreibung)
 VALUES
 ";
     # für jeden Value erzeuge Datenzeile
     for($i=0; $i < count($values); $i++) {
       if ($i > 0)
-        $sql .= ",
+        $sqlValues .= ",
 ";
       $value = $values[$i];
       if ($value['initialvalue_body'] == '') {
@@ -420,11 +465,46 @@ VALUES
       }
       else
         $wert = str_replace(array('`', '´', '+'), '', $value['initialvalue_body']);
-      $sql .= "  (" . trim($wert) . ", '" . trim($value['name']) . "')";
+	  //Fixed for non-integer values
+	  if (gettype($wert) == "integer") {
+		$isInt = true;
+		$sqlValues .= "  (" . trim($wert) . ", '" . trim($value['name']) . "')";
+		}
+	  else $sqlValues .= "  ('" . trim($wert) . "', '" . trim($value['name']) . "')";
     };
-    $sql .= ";
-";
+    $sqlValues .= ";\n";
 
+	# Erzeuge Create Table Statement
+	$sqlBegin = "";
+	//Fixed for non-integer values
+	
+	if ($isInt) {
+		$sqlBegin = "
+CREATE TABLE IF NOT EXISTS " . $table . " (
+  wert integer,
+  beschreibung character varying,
+  CONSTRAINT " . $table . "_pkey PRIMARY KEY (wert)
+);
+COMMENT ON TABLE " . $table . " IS 'Aufzählung " . $class['name'] . "';
+";}
+	else {
+		$sqlBegin = "
+CREATE TABLE IF NOT EXISTS " . $table . " (
+  wert character varying,
+  beschreibung character varying,
+  CONSTRAINT " . $table . "_pkey PRIMARY KEY (wert)
+);
+COMMENT ON TABLE " . $table . " IS 'Aufzählung " . $class['name'] . "';
+";}
+
+	//Fixed: Table identifier max length is 63 (with "_pkey" only 58!)
+	$sql = $sqlBegin . $sqlValues;
+	if (strlen($table_orig)>58) $sql .= "
+ALTER TABLE " . $table . " ADD COLUMN " . $table . " character varying(255);
+COMMENT ON COLUMN " . $table .".". $table ."
+IS '" . $table_orig . 
+"';
+";
     output('<pre>' . $sql . '</pre>');
     return $sql;
   }
@@ -449,19 +529,66 @@ COMMENT ON TABLE " . $table . " IS 'Code Liste " . $class['name'] . "';
   }
 
   function createAssociationTable($association) {
+  //Fixed: Table identifier max length is 63
     $table = strtolower($association['a_class'] . '2' . $association['b_class']);
+	$table_orig = $table;
+	if (strlen($table)>63) $table = substr($table, 0, 63);
+	//Fixed: Check if table already exists (e.g. aa_reo double assoc results in two 'AA_REO2AA_REO' tables)
+	global $tabNameAssoc;
+	foreach ($tabNameAssoc as $tabname) {
+		if ($table==$tabname) {
+			$last = substr($table, -1);
+			if (intval($last)!=0) $table = substr($table, 0, strlen($table)-1).(intval($last)+1);
+			else $table = $table.'2';
+		}
+	}
+	array_push($tabNameAssoc, $table);
+    //Fixed for self-associations (e.g. aa_reo)
+	if ($association['a_class'] == $association['b_class']) {
+		$sql = "
+CREATE TABLE IF NOT EXISTS " . $table . " (
+  " . strtolower($association['a_class']) . "1_gml_id integer,
+  " . strtolower($association['b_class']) . "2_gml_id integer
+);
+COMMENT ON TABlE " . $table . " IS 'Association " . $association['a_class'] . '2' . $association['b_class'] . "';";
+	}
+	else {
     $sql = "
 CREATE TABLE IF NOT EXISTS " . $table . " (
   " . strtolower($association['a_class']) . "_gml_id integer,
   " . strtolower($association['b_class']) . "_gml_id integer
 );
-COMMENT ON TABlE " . $table . " IS 'Association " . $association['a_class'] . '2' . $association['b_class'] . "';";
-    if ($association['a_rel'] != '')
+COMMENT ON TABLE " . $table . " IS 'Association " . $association['a_class'] . '2' . $association['b_class'] . "';";
+	}
+    if ($association['a_rel'] != '') {
+		//Fixed for self-associations (e.g. aa_reo)
+	    if ($association['a_class'] == $association['b_class']) {
       $sql .= "
-COMMENT ON COLUMN " . $table . "." . strtolower($association['a_class']) . "_gml_id IS '" . $association['a_rel'] ."';";
-    if ($association['b_rel'] != '')
+COMMENT ON COLUMN " . $table . "." . strtolower($association['a_class']) . "1_gml_id IS '" . $association['a_rel'] ."';";
+		}
+		else {
       $sql .= "
+COMMENT ON COLUMN " . $table . "." . strtolower($association['a_class']) . "_gml_id IS '" . $association['a_rel'] ."';";		
+		}
+	}
+    if ($association['b_rel'] != '') {
+		if ($association['a_class'] == $association['b_class']) {
+		//Fixed for self-associations (e.g. aa_reo)
+      $sql .= "
+COMMENT ON COLUMN " . $table . "." . strtolower($association['b_class']) . "2_gml_id IS '" . $association['b_rel'] ."';";
+		}
+		else{
+	  $sql .= "
 COMMENT ON COLUMN " . $table . "." . strtolower($association['b_class']) . "_gml_id IS '" . $association['b_rel'] ."';";
+		}
+	}
+	//Fixed: Table identifier max length is 63
+	if (strlen($table_orig)>58) $sql .= "
+ALTER TABLE " . $table . " ADD COLUMN " . $table . " character varying(255);
+COMMENT ON COLUMN " . $table .".". $table ."
+IS '" . $table_orig . 
+"';
+";
     output($sql);
     return $sql;
   }
