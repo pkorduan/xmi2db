@@ -1,5 +1,4 @@
 <?php
-	$a = "abc";
 	$tabNameAssoc = array();
 echo '<!DOCTYPE html>
 <html lang="de">
@@ -68,8 +67,6 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
   ******************************************************************************/
   function output($text) {
     global $a;
-	//global $tabNameAssoc;
-	//array_push($tabNameAssoc, $a."def");
 	if (DEBUG) {
       echo '<br>' . $text;
     }
@@ -288,7 +285,6 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
             'decimal',
             'volume',
             'area',
-            'tm_duration',
 			'real',
 			'distance'
           )):
@@ -376,7 +372,6 @@ COMMENT ON COLUMN " . strtolower($class_name) . "." . $attribute_name . " IS '" 
 	
 
     $sql = "CREATE TABLE IF NOT EXISTS " . $table . " (";
-	if (strlen($table)>63) $sql .= 'Tab Name zu lang xyz ';
     if ($superClass == null) {
       $sql .= "
   gml_id uuid NOT NULL DEFAULT uuid_generate_v1mc(),";
@@ -387,6 +382,7 @@ COMMENT ON COLUMN " . strtolower($class_name) . "." . $attribute_name . " IS '" 
 
     # für jedes Attribut erzeuge Attributzeilen
     foreach($attributes AS $i => $attribute) {
+		output('<pre>Achtung! Attribut: ' . $attribute['name'] . ' Datentyp: ' . $attribute['datatype'] . ' Stereotyp: ' . $attribute['classifier'] . ' Art: ' . $attribute['classifier_stereotype'] . '</pre>');
       $sql .= '
   ';
       $sql .= createAttributeDefinition($attribute);
@@ -409,12 +405,23 @@ COMMENT ON TABLE " . $table . " IS 'Tabelle " . $class['name'];
     $sql .= "';";
     # für jedes Attribut erzeuge Kommentar, wenn der type ein
     # Datentyp ist
+	//Fixed: Was not doing anything for DataTypes, only Stereotypes so far. Now for DataTypes as well.
     foreach($attributes AS $i => $attribute) {
-      if ($attribute['classifier'] != '')
+	  	if ($attribute['datatype']!=='' && $attribute['classifier_stereotype']!='DataType' && strpos($attribute['datatype'], '_')) $attribute['classifier_stereotype'] = 'DataType (complex)';
+		if ($attribute['classifier_stereotype']=='DataType') $attribute['classifier_stereotype'] = 'DataType (Classifier)';
+		#output('<pre>Achtung! Attribut: ' . $attribute['name'] . ' Datentyp: ' . $attribute['datatype'] . ' Stereotyp: ' . $attribute['classifier'] . ' Art: ' . $attribute['classifier_stereotype'] . '</pre>');
+	  if ($attribute['classifier'] != '')
         $sql .= createAttributeComment(
           $class['name'],
           $attribute['name'],
           $attribute['classifier'], 
+          $attribute['classifier_stereotype']
+        );
+	  else if ($attribute['datatype'] != '' && strpos($attribute['datatype'], '_'))//Leave out 'Boolean' etc.
+        $sql .= createAttributeComment(
+          $class['name'],
+          $attribute['name'],
+          $attribute['datatype'], 
           $attribute['classifier_stereotype']
         );
     }
