@@ -199,30 +199,39 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
 	}
 
 	# Lade 1:n AssociationEnds for classes
-	function getAssociationEnds($class) {
+	function getSingleAssociationEnds($class) {
 		global $db_conn;
 		$sql = "
 			SELECT
-				ca.name,
-				b.id,
-				b.name,
-				b.multiplicity_range_lower,
-				b.multiplicity_range_upper,
-				a.id,
-				a.name,
-				a.multiplicity_range_lower,
-				a.multiplicity_range_upper,
-				cb.name
+				ca.name a_class_name,
+				b.id b_id,
+				b.name b_name,
+				b.multiplicity_range_lower b_multiplicity_range_lower,
+				b.multiplicity_range_upper b_multiplicity_range_upper,
+				a.id a_id,
+				a.name a_name,
+				a.multiplicity_range_lower a_multiplicity_range_lower,
+				a.multiplicity_range_upper a_multiplicity_range_upper,
+				cb.name b_class_name,
+				sb.name b_class_stereotype
 			FROM
-				" . UML_SCHEMA . ".uml_classes ca join
-				" . UML_SCHEMA . ".association_ends a ON (ca.xmi_id = a.participant) join
-				" . UML_SCHEMA . ".association_ends b on (a.assoc_id = b.assoc_id) JOIN
-				" . UML_SCHEMA . ".uml_classes cb ON (cb.xmi_id = b.participant)
+				" . UML_SCHEMA . ".uml_classes ca JOIN
+				" . UML_SCHEMA . ".association_ends a ON (ca.xmi_id = a.participant) JOIN
+				" . UML_SCHEMA . ".association_ends b ON (a.assoc_id = b.assoc_id) JOIN
+				" . UML_SCHEMA . ".uml_classes cb ON (cb.xmi_id = b.participant) JOIN
+				" . UML_SCHEMA . ".stereotypes sb ON (cb.stereotype = sb.xmi_id)
 			WHERE
 				a.id != b.id
 				AND NOT (b.multiplicity_range_upper = '-1' AND a.multiplicity_range_upper = '-1')
-				AND ca.name = '" . $class['name'] . '
+				AND ca.name = '" . $class['name'] . "'
 		";
+		output('<b>Get 1:n Association Ends: </b>');
+		output('<pre>' . $sql . '</pre>');
+		$result = pg_fetch_all(
+			pg_query($db_conn, $sql)
+		);
+		if ($result == false) $result = array();
+		return $result;
 	}
 
 	function getAssociations() {
@@ -365,7 +374,7 @@ COMMENT ON COLUMN " . strtolower($class_name) . "." . $attribute_name . " IS '" 
 		# lade Attribute
 		$attributes = getAttributes($class);
 
-		# für jedes Attribut erzeuge Attributzeilen
+		# für jedes Attribut erzeuge Attributzeile
 		foreach($attributes AS $i => $attribute) {
 			$sql .= '
 	';
@@ -373,7 +382,25 @@ COMMENT ON COLUMN " . strtolower($class_name) . "." . $attribute_name . " IS '" 
 		}
 
 		# lade navigierbare Assoziationsenden von 1:n Assoziationen
-		$assoziation_ends = getAssociationEnds($class);
+		$association_ends = getSingleAssociationEnds($class);
+
+		# für jede Assoziation erzeuge ein Attributzeile und kommentarzeile
+		foreach($association_ends AS $i => $association_end) {
+			$sql .= '
+	';
+			# Belege Attributwerte an Hand der Infos aus $association_end und $class
+			$attribute = [];
+			$attribute['name'] = $association_end['name'];
+			$attribute['datatype'] = 'characterstring'; # Weil da immer xlink Texte reinkommen
+			$attribute['classifier_stereotype'] = ''; # Attributtyp schon durch datatype definiert
+			# getSingleAssociationEnds liefert nur Associations mit upper 1 auf der linken Seite 
+			$attribute['multiplicity_range_upper'] = $association_end['b_multiplicity_range_upper'];
+			$attribute['initialvalue_body'] = ''; # keine default Werte für AssociationEnds
+			$attribute['classifier'] = $association_end['b_class_name'];
+			$attribute['classifier'] = $association_end['b_class_stereotype'];
+			$attributes[] = $attribute;
+			$sql .= createAttributeDefinition();
+		}
 
 		$sql .= '
 	CONSTRAINT ' . $table . '_pkey PRIMARY KEY (gml_id)
