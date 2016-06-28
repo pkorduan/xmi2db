@@ -18,8 +18,6 @@ CREATE TABLE comments (
 );
 
 
-ALTER TABLE schema_name.comments OWNER TO pgadmin;
-
 --
 -- Name: comments_id_seq; Type: SEQUENCE; Schema: schema_name; Owner: pgadmin
 --
@@ -30,9 +28,6 @@ CREATE SEQUENCE comments_id_seq
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
-ALTER TABLE schema_name.comments_id_seq OWNER TO pgadmin;
 
 --
 -- Name: comments_id_seq; Type: SEQUENCE OWNED BY; Schema: schema_name; Owner: pgadmin

@@ -20,9 +20,6 @@ CREATE OR REPLACE VIEW schema_name.classes_attributes AS
     schema_name.uml_attributes
   WHERE uml_classes.id = uml_attributes.uml_class_id;
 
-ALTER TABLE schema_name.classes_attributes
-  OWNER TO pgadmin;
-  
 -- View: schema_name.classes_attributes_types
 
 -- DROP VIEW schema_name.classes_attributes_types;
@@ -43,9 +40,6 @@ CREATE OR REPLACE VIEW schema_name.classes_attributes_types AS
      LEFT JOIN schema_name.datatypes t2 ON t1.attribute_datatype::text = t2.xmi_id::text
      LEFT JOIN schema_name.uml_classes t3 ON t1.attribute_classifier::text = t3.xmi_id::text;
 
-ALTER TABLE schema_name.classes_attributes_types
-  OWNER TO pgadmin;
-
 -- View: schema_name.class_children
 
 -- DROP VIEW schema_name.class_children;
@@ -55,9 +49,6 @@ CREATE OR REPLACE VIEW schema_name.class_children AS
     class_generalizations.child_id
    FROM schema_name.uml_classes
      LEFT JOIN schema_name.class_generalizations ON class_generalizations.parent_id::text = uml_classes.xmi_id::text;
-
-ALTER TABLE schema_name.class_children
-  OWNER TO pgadmin;
 
 -- View: schema_name.classes_comments
 
@@ -86,9 +77,6 @@ CREATE OR REPLACE VIEW schema_name.classes_comments AS
     uml_classes.general_id
    FROM schema_name.uml_classes
      LEFT JOIN schema_name.comments ON comments.class_id::text = uml_classes.xmi_id::text;
-
-ALTER TABLE schema_name.classes_comments
-  OWNER TO pgadmin;
   
 -- View: schema_name.generalizations
 
@@ -102,9 +90,6 @@ CREATE OR REPLACE VIEW schema_name.generalizations AS
     classes_comments.body AS comment
    FROM schema_name.classes_comments
      LEFT JOIN schema_name.class_children ON class_children.child_id::text = classes_comments.xmi_id::text;
-
-ALTER TABLE schema_name.generalizations
-  OWNER TO pgadmin;
 
 -- View: schema_name.classes_attributes_types_gen
 
@@ -127,9 +112,6 @@ CREATE OR REPLACE VIEW schema_name.classes_attributes_types_gen AS
     classes_attributes_types.attribute_classifier
    FROM schema_name.classes_attributes_types
      LEFT JOIN schema_name.generalizations ON classes_attributes_types.class_xmi_id::text = generalizations.child_id::text;
-
-ALTER TABLE schema_name.classes_attributes_types_gen
-  OWNER TO pgadmin;
 
 -- View: schema_name."packages_parent-name"
 
@@ -186,10 +168,6 @@ CREATE OR REPLACE VIEW schema_name."packages_parent-name" AS
      LEFT JOIN schema_name.packages parent ON parent.id = pc.parent_package_id
   ORDER BY pc.id;
 
-ALTER TABLE schema_name."packages_parent-name"
-  OWNER TO pgadmin;
-
-
 -- View: schema_name.full_model
 
 -- DROP VIEW schema_name.full_model;
@@ -207,6 +185,3 @@ CREATE OR REPLACE VIEW schema_name.full_model AS
     schema_name."packages_parent-name"
   WHERE classes_attributes_types_gen.package_id = "packages_parent-name".id
   ORDER BY "packages_parent-name".name, classes_attributes_types_gen.class_name;
-
-ALTER TABLE schema_name.full_model
-  OWNER TO pgadmin;
