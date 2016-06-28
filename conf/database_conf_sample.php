@@ -5,9 +5,14 @@
   $db_pass = "passwd"; // Kennwort
   $db_name = "dbname"; // Name der Datenbank
   $db_conn  = pg_connect("host=".$db_server." dbname=".$db_name." user=".$db_user." password=".$db_pass)  or exit ("Es konnte keine Verbindung zum Datenbankserver hergestellt werden.");
-  define('UML_SCHEMA', 'xplan_uml');
-  define('CLASSES_SCHEMA', 'gml_classes');
-  $packages[] = 'Basisklassen';
+  define('UML_SCHEMA', 'aaa_uml');
+  define('CLASSES_SCHEMA', 'aaa_classes');
+	define('WITH_UUID_OSSP', false);
+	
+	$packages = array();
+	
+# Packages of XPlanung Schema
+#  $packages[] = 'Basisklassen';
 #  $packages[] = 'Bebauungsplan';
 #  $packages[] = 'BP_Aufschuettung_Abgrabung_Bodenschaetze';
 #  $packages[] = 'BP__Basisobjekte';
@@ -41,13 +46,13 @@
 #  $packages[] = 'LP__Raster';
 #  $packages[] = 'LP__SchutzgebieteObjekte';
 #  $packages[] = 'LP__Sonstiges';
-  $packages[] = 'Raumordnungsplan';
-  $packages[] = 'RP__Basisobjekte';
-  $packages[] = 'RP_Freiraumstruktur';
-  $packages[] = 'RP_Infrastruktur';
-  $packages[] = 'RP_Raster';
-  $packages[] = 'RP_Siedlungsstruktur';
-  $packages[] = 'RP_Sonstiges';
+#  $packages[] = 'Raumordnungsplan';
+#  $packages[] = 'RP__Basisobjekte';
+#  $packages[] = 'RP_Freiraumstruktur';
+#  $packages[] = 'RP_Infrastruktur';
+#  $packages[] = 'RP_Raster';
+#  $packages[] = 'RP_Siedlungsstruktur';
+#  $packages[] = 'RP_Sonstiges';
 #  $packages[] = 'SO_Basisobjekte';
 #  $packages[] = 'SO_NachrichtlicheUebernahmen';
 #  $packages[] = 'SonstigePlanwerke';
@@ -55,9 +60,83 @@
 #  $packages[] = 'SO_Schutzgebiete';
 #  $packages[] = 'SO_SonstigeGebiete';
 #  $packages[] = 'SO_Sonstiges';
-  $packages[] = 'XP_Basisobjekte';
-  $packages[] = 'XP_Enumerationen';
-  $packages[] = 'XP_Praesentationsobjekte';
-  $packages[] = 'XP_Raster';
+#  $packages[] = 'XP_Basisobjekte';
+#  $packages[] = 'XP_Enumerationen';
+#  $packages[] = 'XP_Praesentationsobjekte';
+#  $packages[] = 'XP_Raster';
+
+# Packages of AAA Schema
+	$packages[] = 'AAA Basisschema';
+	$packages[] = 'AAA_Basisklassen';
+	$packages[] = 'AAA_GemeinsameGeometrie';
+	$packages[] = 'AAA_Nutzerprofile';
+	$packages[] = 'AAA_Operationen';
+	$packages[] = 'AAA_Praesentationsobjekte';
+	$packages[] = 'AAA_Praesentationsobjekte 3D';
+	$packages[] = 'AAA_Projektsteuerung';
+	$packages[] = 'AAA_Punktmengenobjekte';
+	$packages[] = 'AAA_Spatial Schema';
+	$packages[] = 'AAA_Spatial Schema 3D';
+	$packages[] = 'AAA_Unabhaengige Geometrie';
+	$packages[] = 'AAA_Unabhaengige Geometrie 3D';
+	$packages[] = 'Codelisten';
+	$packages[] = 'AFIS-ALKIS-ATKIS Fachschema';
+	$packages[] = 'Bauwerke, Einrichtungen und sonstige Angaben';
+	$packages[] = 'Bauwerke und Einrichtungen in Siedlungsflächen';
+	$packages[] = 'Bauwerke, Anlagen und Einrichtungen für den Verkehr';
+	$packages[] = 'Besondere Angaben zum Gewässer';
+	$packages[] = 'Besondere Angaben zum Verkehr';
+	$packages[] = 'Besondere Anlagen auf Siedlungsflächen';
+	$packages[] = 'Besondere Eigenschaften von Gewässern';
+	$packages[] = 'Besondere Vegetationsmerkmale';
+	$packages[] = 'Eigentümer';
+	$packages[] = 'Personen- und Bestandsdaten';
+	$packages[] = 'Flurstücke, Lage, Punkte';
+	$packages[] = 'Angaben zu Festpunkten der Landesvermessung';
+	$packages[] = 'Angaben zum Flurstück';
+	$packages[] = 'Angaben zum Netzpunkt';
+	$packages[] = 'Angaben zum Punktort';
+	$packages[] = 'Angaben zur Historie';
+	$packages[] = 'Angaben zur Lage';
+	$packages[] = 'Angaben zur Reservierung';
+	$packages[] = 'Fortführungsnachweis';
+	$packages[] = 'Gebäude';
+	$packages[] = 'Angaben zum Gebäude';
+	$packages[] = 'Gesetzliche Festlegungen, Gebietseinheiten, Kataloge';
+	$packages[] = 'Administrative Gebietseinheiten';
+	$packages[] = 'Bodenschätzung, Bewertung';
+	$packages[] = 'Geographische Gebietseinheiten';
+	$packages[] = 'Kataloge';
+	$packages[] = 'Öffentlich-rechtliche und sonstige Festlegungen';
+	$packages[] = 'Migration';
+	$packages[] = 'Migrationsobjekte';
+	$packages[] = 'Nutzerprofile';
+	$packages[] = 'Angaben zu Nutzerprofilen';
+	$packages[] = 'Relief';
+	$packages[] = 'Primäres DGM';
+	$packages[] = 'Reliefformen';
+	$packages[] = 'Sekundäres DGM';
+	$packages[] = 'Tatsächliche Nutzung';
+	$packages[] = 'Gewässer';
+	$packages[] = 'Siedlung';
+	$packages[] = 'Vegetation';
+	$packages[] = 'Verkehr';
+	$packages[] = 'NAS-Operationen';
+	$packages[] = 'AFIS-ALKIS-ATKIS-Ausgabekatalog';
+	$packages[] = 'AFIS-ALKIS-ATKIS-Ausgaben';
+	$packages[] = 'AFIS-Einzelpunktnachweise';
+	$packages[] = 'AFIS-Punktlisten';
+	$packages[] = 'ALKIS-Ausgaben';
+	$packages[] = 'Komplexe Datentypen für Ausgaben';
+	$packages[] = 'ALKIS-Auswertungen';
+	$packages[] = 'Angaben im Kopf der Ausgaben';
+	$packages[] = 'Externe Datentypen';
+	$packages[] = 'Flurstücksangaben';
+	$packages[] = 'Fortführungsfälle';
+	$packages[] = 'Gebäudeangaben';
+	$packages[] = 'Personen- und Bestandsangaben';
+	$packages[] = 'Punktangaben';
+	$packages[] = 'Reservierungen';
+
   define('PACKAGES', "'" . implode("','", $packages) . "'");
 ?>

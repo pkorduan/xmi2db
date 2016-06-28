@@ -15,6 +15,11 @@ echo '<!DOCTYPE html>
 DROP SCHEMA ' . CLASSES_SCHEMA . ' CASCADE;
 CREATE SCHEMA ' . CLASSES_SCHEMA . ';
 ';
+	if (WITH_UUID_OSSP) {
+		$sql .= '
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp"';
+	}
+
   # Lade oberste Klassen, die von keinen anderen abgeleitet wurden
   $topClasses = getTopClasses();
   
@@ -43,6 +48,7 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
   }
   
 	# Lade n:m Associations
+	$associations = getAssociations();
   foreach($associations AS $association) {
     $text = '<br><b>Association: ' . $association['assoc_id'] . '</b><br>' .
       $association['a_class'] . ' hat ' . $association['a_num'] . ' ' . $association['b_class'] . ' über ' . $association['a_rel'] . '<br>';
@@ -64,9 +70,8 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
   * Funktionen
   ******************************************************************************/
   function output($text) {
-    global $a;
-	if (DEBUG) {
-      echo '<br>' . $text;
+		if (DEBUG) {
+	      echo $text;
     }
   }
   /**
@@ -405,30 +410,44 @@ COMMENT ON COLUMN " . strtolower($class_name) . "." . $attribute_name . " IS '" 
     $table = strtolower($class['name']);
     $sql = "CREATE TABLE IF NOT EXISTS " . $table . " (";
     if ($superClass == null) {
-      $sql .= "
+
+			if (WITH_UUID_OSSP) {
+				$sql .= "
   gml_id uuid NOT NULL DEFAULT uuid_generate_v1mc(),";
+			}
+			else {
+				$sql .= "
+	gml_id text,";
+			}
     }
 
     # lade Attribute
     $attributes = getAttributes($class);
 
+		output('<table border="1"><tr><th>Attribut</th><th>Datentyp</th><th>Stereotyp</th><th>Art</th></tr>');
+
     # für jedes Attribut erzeuge Attributzeilen
     foreach($attributes AS $i => $attribute) {
-		output('<pre>Achtung! Attribut: ' . $attribute['name'] . ' Datentyp: ' . $attribute['datatype'] . ' Stereotyp: ' . $attribute['classifier'] . ' Art: ' . $attribute['classifier_stereotype'] . '</pre>');
+			output('<tr><td>' . $attribute['name'] . '</td><td>' . $attribute['datatype'] . '</td><td>' . $attribute['classifier'] . '</td><td>' . $attribute['classifier_stereotype'] . '</td></tr>');
       $sql .= '
   ';
       $sql .= createAttributeDefinition($attribute);
     }
+		output('</table><p>');
 
 		# lade navigierbare Assoziationsenden von 1:n Assoziationen
 		$association_ends = getSingleAssociationEnds($class);
+
+		output('<table border="1"><tr><th>Class</th><th>Assoc</th><th>Multiplicity</th><th>Class name</th><th>Stereotyp</th></tr>');
+
 		# für jede Assoziation erzeuge ein Attributzeile und kommentarzeile
 		foreach($association_ends AS $i => $association_end) {
+			output('<tr><td>' . $class['name'] . '</td><td>' . $association_end['b_name'] . '</td><td>' . (($association_end['b_multiplicity_range_upper'] == '-1') ? '*' : $association_end['b_multiplicity_range_upper'])  . '</td><td>' . $association_end['b_class_name'] . '</td><td>' . $association_end['b_class_stereotype'] . '</td></tr>');
 			$sql .= '
 	';
 			# Belege Attributwerte an Hand der Infos aus $association_end und $class
-			$attribute = [];
-			$attribute['name'] = $association_end['name'];
+			$attribute = array();
+			$attribute['name'] = $association_end['b_name'];
 			$attribute['datatype'] = 'characterstring'; # Weil da immer xlink Texte reinkommen
 			$attribute['classifier_stereotype'] = ''; # Attributtyp schon durch datatype definiert
 			# getSingleAssociationEnds liefert nur Associations mit upper 1 auf der linken Seite 
@@ -437,8 +456,10 @@ COMMENT ON COLUMN " . strtolower($class_name) . "." . $attribute_name . " IS '" 
 			$attribute['classifier'] = $association_end['b_class_name'];
 			$attribute['classifier'] = $association_end['b_class_stereotype'];
 			$attributes[] = $attribute;
-			$sql .= createAttributeDefinition();
+			$sql .= createAttributeDefinition($attribute);
 		}
+		output('</table><p>');
+
     $sql .= '
   CONSTRAINT ' . $table . '_pkey PRIMARY KEY (gml_id)
 )';
