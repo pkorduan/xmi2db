@@ -219,7 +219,7 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
 				" . UML_SCHEMA . ".association_ends a ON (ca.xmi_id = a.participant) JOIN
 				" . UML_SCHEMA . ".association_ends b ON (a.assoc_id = b.assoc_id) JOIN
 				" . UML_SCHEMA . ".uml_classes cb ON (cb.xmi_id = b.participant) JOIN
-				" . UML_SCHEMA . ".stereotypes sb ON (cb.stereotype = sb.xmi_id)
+				" . UML_SCHEMA . ".stereotypes sb ON (cb.stereotype_id = sb.xmi_id)
 			WHERE
 				a.id != b.id
 				AND NOT (b.multiplicity_range_upper = '-1' AND a.multiplicity_range_upper = '-1')
