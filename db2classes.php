@@ -206,8 +206,8 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp"';
     return $result;
   }
 
-	# Lade 1:n AssociationEnds for classes
-	function getSingleAssociationEnds($class) {
+	# Lade AssociationEnds for classes
+	function getAssociationEnds($class) {
 		global $db_conn;
 		$sql = "
 			SELECT
@@ -220,17 +220,14 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp"';
 				a.name a_name,
 				a.multiplicity_range_lower a_multiplicity_range_lower,
 				a.multiplicity_range_upper a_multiplicity_range_upper,
-				cb.name b_class_name,
-				sb.name b_class_stereotype
+				cb.name b_class_name
 			FROM
 				" . UML_SCHEMA . ".uml_classes ca JOIN
 				" . UML_SCHEMA . ".association_ends a ON (ca.xmi_id = a.participant) JOIN
 				" . UML_SCHEMA . ".association_ends b ON (a.assoc_id = b.assoc_id) JOIN
-				" . UML_SCHEMA . ".uml_classes cb ON (cb.xmi_id = b.participant) JOIN
-				" . UML_SCHEMA . ".stereotypes sb ON (cb.stereotype_id = sb.xmi_id)
+				" . UML_SCHEMA . ".uml_classes cb ON (cb.xmi_id = b.participant)
 			WHERE
 				a.id != b.id
-				AND NOT (b.multiplicity_range_upper = '-1' AND a.multiplicity_range_upper = '-1')
 				AND ca.name = '" . $class['name'] . "'
 		";
 		output('<b>Get 1:n Association Ends: </b>');
@@ -436,25 +433,23 @@ COMMENT ON COLUMN " . strtolower($class_name) . "." . $attribute_name . " IS '" 
 		output('</table><p>');
 
 		# lade navigierbare Assoziationsenden von 1:n Assoziationen
-		$association_ends = getSingleAssociationEnds($class);
+		$association_ends = getAssociationEnds($class);
 
 		output('<table border="1"><tr><th>Class</th><th>Assoc</th><th>Multiplicity</th><th>Class name</th><th>Stereotyp</th></tr>');
 
 		# für jede Assoziation erzeuge ein Attributzeile und kommentarzeile
 		foreach($association_ends AS $i => $association_end) {
-			output('<tr><td>' . $class['name'] . '</td><td>' . $association_end['b_name'] . '</td><td>' . (($association_end['b_multiplicity_range_upper'] == '-1') ? '*' : $association_end['b_multiplicity_range_upper'])  . '</td><td>' . $association_end['b_class_name'] . '</td><td>' . $association_end['b_class_stereotype'] . '</td></tr>');
+			output('<tr><td>' . $class['name'] . '</td><td>' . $association_end['b_name'] . '</td><td>' . $association_end['b_multiplicity_range_lower'] . ' oder ' . (($association_end['b_multiplicity_range_upper'] == '-1') ? 'n' : $association_end['b_multiplicity_range_upper'])  . '</td><td>' . $association_end['b_class_name'] . '</td><td>' . $association_end['b_class_stereotype'] . '</td></tr>');
 			$sql .= '
 	';
 			# Belege Attributwerte an Hand der Infos aus $association_end und $class
 			$attribute = array();
 			$attribute['name'] = $association_end['b_name'];
-			$attribute['datatype'] = 'characterstring'; # Weil da immer xlink Texte reinkommen
-			$attribute['classifier_stereotype'] = ''; # Attributtyp schon durch datatype definiert
-			# getSingleAssociationEnds liefert nur Associations mit upper 1 auf der linken Seite 
+			$attribute['datatype'] = $association_end['b_class_name']; 
+			$attribute['classifier_stereotype'] = ''; # classifier von assoziationen sind komplexe typen
 			$attribute['multiplicity_range_upper'] = $association_end['b_multiplicity_range_upper'];
 			$attribute['initialvalue_body'] = ''; # keine default Werte für AssociationEnds
 			$attribute['classifier'] = $association_end['b_class_name'];
-			$attribute['classifier'] = $association_end['b_class_stereotype'];
 			$attributes[] = $attribute;
 			$sql .= createAttributeDefinition($attribute);
 		}
