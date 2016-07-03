@@ -1,4 +1,7 @@
 <?php
+	include('classes/table.php');
+	include('classes/attribute.php');
+	include('classes/value.php');
 	$tabNameAssoc = array();
 	$log_sql = '';
 echo '<!DOCTYPE html>
@@ -7,9 +10,9 @@ echo '<!DOCTYPE html>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 	</head>
 	<body>';
-	/*****************************************************************************
-	* 
-	******************************************************************************/
+	#*****************************************************************************
+	# 
+	#*****************************************************************************
 	include( dirname(__FILE__) . "/conf/database_conf.php");
 
 	$sql = 'SET search_path = ' . CLASSES_SCHEMA . ', public;
@@ -21,72 +24,69 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp"';
 	}
 
-	execSql($sql);
-	$sql = '';
+	#**************
+	# Enumerations
+	#**************
+	# Erzeuge Enummerations
+	foreach(getEnumerations() AS $enumeration) {
+		$sql .= createEnumerationTable($enumeration) . "\n";
+	}
+	output('<br><hr><br>');
 
-	/***********
-	* DataTypes
-	************/
+	#***********
+	# CodeLists
+	#***********
+	# Lade CodeLists
+	foreach(getCodeLists() AS $code_list) {
+		$sql .= createCodeListTable($code_list);
+	}
+	output('<br><hr><br>');
+	/*
+	#***********
+	# DataTypes
+	#***********#
+	$dataTypes = array();
 	# Lade oberste Klassen vom Typ DataType
-	$topDataTypes = getTopClasses('DataType');
+	$topDataTypes = getTopUmlClasses('DataType');
 
 	# Für alle oberen Datentypen
 	foreach($topDataTypes as $topDataType) {
 		output('<br><b>TopDataType: ' . $topDataType['name'] . '</b> (' . $topDataType['xmi_id'] . ')');
-		$sql .= createClassTables('DataType', null, $topDataType);
+		$sql .= createComplexDataTypes('DataType', $topDataType);
+		array_push($dataTypes, $topDataType['name']);
 	}
+	output('<br><hr><br>');
 
-	/***********
-	* Unions
-	************/
+	#***********
+	# Unions
+	#***********
 	# Lade oberste Klassen vom Typ Union
-	$topDataTypes = getTopClasses('Union');
+	$topDataTypes = getTopUmlClasses('Union');
 
 	# Für alle oberen Unions
 	foreach($topDataTypes as $topDataType) {
 		output('<br><b>TopUnionType: ' . $topDataType['name'] . '</b> (' . $topDataType['xmi_id'] . ')');
-		$sql .= createClassTables('Union', null, $topDataType);
+		$sql .= createComplexDataTypes('Union', $topDataType);
+		array_push($dataTypes, $topDataType['name']);
 	}
+	output('<br><hr><br>');
 
-	/**************
-	* FeatureTypes
-	***************/
+	#**************
+	# FeatureTypes
+	#**************
 	# Lade oberste Klassen vom Typ FeatureType, die von keinen anderen abgeleitet wurden
-	$topClasses = getTopClasses('FeatureType');
+	$topClasses = getTopUmlClasses('FeatureType');
 	
 	# Für alle oberen Klassen
 	foreach($topClasses as $topClass) {
 		output('<br><b>TopKlasse: ' . $topClass['name'] . '</b> (' . $topClass['xmi_id'] . ')');
-		$sql .= createClassTables('FeatureType', null, $topClass);
+		$sql .= createFeatureTypeTables('FeatureType', null, $topClass);
 	}
+	output('<br><hr><br>');
 
-	/**************
-	* Enumerations
-	***************/
-	# Lade Enummerations
-	$enumerations = getEnumerations();
-
-	# Für alle Enumerations
-	foreach($enumerations AS $enumeration) {
-		output('<br><b>Enumeration: ' . $enumeration['name'] . '</b> (' . $enumeration['xmi_id'] . ')');
-		$sql .= createEnumerationTable($enumeration);
-	}
-
-	/***********
-	* CodeLists
-	************/
-	# Lade CodeLists
-	$code_lists = getCodeLists();
-
-	# Für alle CodeLists //Fixed, was: $enumeration['name'] etc.
-	foreach($code_lists AS $code_list) {
-		output('<br><b>CodeList: ' . $code_list['name'] . '</b> (' . $code_list['xmi_id'] . ')');
-		$sql .= createCodeListTable($code_list);
-	}
-	
-	/******************
-	* n:m Associations
-	*******************/
+	#******************
+	# n:m Associations
+	#******************
 	# Lade n:m Associations
 	$associations = getAssociations();
 	foreach($associations AS $association) {
@@ -102,9 +102,11 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp"';
 		output($text);
 	}
 	output('<br>Ende Debug Ausgabe<br><hr><br>');
-	execSql($sql);
+
+	#execSql($sql);
+	*/
 ?><pre><?php
-	echo $log_sql;
+	echo $sql;
 ?></pre>
 <?php
 	/*****************************************************************************
@@ -125,22 +127,22 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp"';
 	/**
 	* Lade alle Generalisierungen, die selber nicht von anderen abgeleitet sind
 	**/
-	function getTopClasses($stereotype) {
+	function getTopUmlClasses($stereotype) {
 		global $db_conn;
 		$sql = "
-			SELECT
-				c.id,
-				c.xmi_id,
-				c.name
-			FROM
-				" . UML_SCHEMA . ".packages p LEFT JOIN
-				" . UML_SCHEMA . ".uml_classes c ON p.id = c.package_id LEFT JOIN
-				" . UML_SCHEMA . ".stereotypes s ON c.stereotype_id = s.xmi_id
-			WHERE
-				general_id = '-1' AND
-				lower(s.name) LIKE '" . strtolower($stereotype) . "' AND
-				p.name IN (" . PACKAGES . ")
-		";
+SELECT
+	c.id,
+	c.xmi_id,
+	c.name
+FROM
+	" . UML_SCHEMA . ".packages p LEFT JOIN
+	" . UML_SCHEMA . ".uml_classes c ON p.id = c.package_id LEFT JOIN
+	" . UML_SCHEMA . ".stereotypes s ON c.stereotype_id = s.xmi_id
+WHERE
+	general_id = '-1' AND
+	lower(s.name) LIKE '" . strtolower($stereotype) . "' AND
+	p.name IN (" . PACKAGES . ")
+";
 		output('<b>Get Top' . $stereotype . 's: </b><br>');
 		output('<pre>' . $sql . '</pre>');
 	//Fixed: 'pg_query(): Query failed: ERROR: invalid byte sequence for encoding "UTF8"'
@@ -151,26 +153,25 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp"';
 		return $result;
 	}
 
-	function getSubClasses($stereotype, $class) {
+	function getSubUmlClasses($stereotype, $class) {
 		global $db_conn;
 		$sql = "
-			SELECT
-				c.id,
-				c.xmi_id,
-				c.name
-			FROM
-				" . UML_SCHEMA . ".class_generalizations g LEFT JOIN
-				" . UML_SCHEMA . ".uml_classes p ON g.parent_id = p.xmi_id JOIN
-				" . UML_SCHEMA . ".uml_classes c ON g.child_id = c.xmi_id LEFT JOIN
-				" . UML_SCHEMA . ".packages pa ON c.package_id = pa.id
-			WHERE
-				p.xmi_id = '" . $class['xmi_id'] . "' AND
-				pa.name IN (" . PACKAGES . ")
-		";
+SELECT
+	c.id,
+	c.xmi_id,
+	c.name
+FROM
+	" . UML_SCHEMA . ".class_generalizations g LEFT JOIN
+	" . UML_SCHEMA . ".uml_classes p ON g.parent_id = p.xmi_id JOIN
+	" . UML_SCHEMA . ".uml_classes c ON g.child_id = c.xmi_id LEFT JOIN
+	" . UML_SCHEMA . ".packages pa ON c.package_id = pa.id
+WHERE
+	p.xmi_id = '" . $class['xmi_id'] . "' AND
+	pa.name IN (" . PACKAGES . ")
+";
 		output('<b>Get SubClasses</b>');
 		output('<pre>' . $sql . '</pre>');
 		$result = pg_fetch_all(
-	//Fixed: 'pg_query(): Query failed: ERROR: invalid byte sequence for encoding "UTF8"'
 			pg_query($db_conn, $sql)
 		);
 		if ($result == false) $result = array();
@@ -187,17 +188,18 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp"';
 	function getEnumerations() {
 		global $db_conn;
 		$sql = "
-			SELECT
-				c.id,
-				c.name
-			FROM
-				" . UML_SCHEMA . ".packages p LEFT JOIN
-				" . UML_SCHEMA . ".uml_classes c ON p.id = c.package_id LEFT JOIN
-				" . UML_SCHEMA . ".stereotypes s ON c.stereotype_id = s.xmi_id
-			WHERE
-				lower(s.name) = 'enumeration' AND
-				p.name IN (" . PACKAGES . ")
-		";
+SELECT
+	c.id,
+	c.xmi_id,
+	c.name
+FROM
+	" . UML_SCHEMA . ".packages p LEFT JOIN
+	" . UML_SCHEMA . ".uml_classes c ON p.id = c.package_id LEFT JOIN
+	" . UML_SCHEMA . ".stereotypes s ON c.stereotype_id = s.xmi_id
+WHERE
+	lower(s.name) = 'enumeration' AND
+	p.name IN (" . PACKAGES . ")
+";
 		output('<b>Get Enumerations</b>');
 		output('<pre>' . $sql . '</pre>');
 		$result = pg_fetch_all(
@@ -211,17 +213,18 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp"';
 	function getCodeLists() {
 		global $db_conn;
 		$sql = "
-			SELECT
-				c.id,
-				c.name
-			FROM
-				" . UML_SCHEMA . ".packages p LEFT JOIN
-				" . UML_SCHEMA . ".uml_classes c ON p.id = c.package_id LEFT JOIN
-				" . UML_SCHEMA . ".stereotypes s ON c.stereotype_id = s.xmi_id
-			WHERE
-				s.name LIKE '%odeList' AND
-				p.name IN (" . PACKAGES . ")
-		";
+SELECT
+	c.id,
+	c.name,
+	c.xmi_id
+FROM
+	" . UML_SCHEMA . ".packages p LEFT JOIN
+	" . UML_SCHEMA . ".uml_classes c ON p.id = c.package_id LEFT JOIN
+	" . UML_SCHEMA . ".stereotypes s ON c.stereotype_id = s.xmi_id
+WHERE
+	s.name LIKE '%odeList' AND
+	p.name IN (" . PACKAGES . ")
+";
 		output('<b>Get CodeList</b>');
 		output('<pre>' . $sql . '</pre>');
 		$result = pg_fetch_all(
@@ -236,37 +239,37 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp"';
 		global $db_conn;
 
 		$sql = "
-			SELECT
-				a.name AS name,
-				CASE
-					WHEN d.name IS NULL THEN cc.name
-					ELSE d.name
-				END AS datatype, 
-				CASE
-					WHEN d.name IS NULL THEN cs.name
-					ELSE ds.name
-				END AS stereotype,
-				CASE
-					WHEN d.name IS NULL THEN CASE
-						WHEN cs.name IS NULL THEN NULL
-						ELSE 'UML-Classifier'
-					END
-					ELSE 'UML-DataType'
-				END AS attribute_type,
-				a.multiplicity_range_lower::integer,
-				a.multiplicity_range_upper,
-				a.initialvalue_body
-			FROM
-				" . UML_SCHEMA . ".uml_classes c JOIN 
-				" . UML_SCHEMA . ".uml_attributes a ON c.id = a.uml_class_id LEFT JOIN
-				" . UML_SCHEMA . ".datatypes d ON a.datatype = d.xmi_id LEFT JOIN
-				" . UML_SCHEMA . ".uml_classes dc ON d.name = dc.name LEFT JOIN
-				" . UML_SCHEMA . ".stereotypes ds ON dc.stereotype_id = ds.xmi_id Left JOIN
-				" . UML_SCHEMA . ".uml_classes cc ON a.classifier = cc.xmi_id LEFT JOIN
-				" . UML_SCHEMA . ".stereotypes cs ON cc.stereotype_id = cs.xmi_id
-			WHERE
-				uml_class_id = " . $class['id'] . "
-		";
+SELECT
+	a.name AS name,
+	CASE
+		WHEN d.name IS NULL THEN cc.name
+		ELSE d.name
+	END AS datatype, 
+	CASE
+		WHEN d.name IS NULL THEN cs.name
+		ELSE ds.name
+	END AS stereotype,
+	CASE
+		WHEN d.name IS NULL THEN CASE
+			WHEN cs.name IS NULL THEN NULL
+			ELSE 'UML-Classifier'
+		END
+		ELSE 'UML-DataType'
+	END AS attribute_type,
+	a.multiplicity_range_lower::integer,
+	a.multiplicity_range_upper,
+	a.initialvalue_body
+FROM
+	" . UML_SCHEMA . ".uml_classes c JOIN 
+	" . UML_SCHEMA . ".uml_attributes a ON c.id = a.uml_class_id LEFT JOIN
+	" . UML_SCHEMA . ".datatypes d ON a.datatype = d.xmi_id LEFT JOIN
+	" . UML_SCHEMA . ".uml_classes dc ON d.name = dc.name LEFT JOIN
+	" . UML_SCHEMA . ".stereotypes ds ON dc.stereotype_id = ds.xmi_id Left JOIN
+	" . UML_SCHEMA . ".uml_classes cc ON a.classifier = cc.xmi_id LEFT JOIN
+	" . UML_SCHEMA . ".stereotypes cs ON cc.stereotype_id = cs.xmi_id
+WHERE
+	uml_class_id = " . $class['id'] . "
+";
 		output('<br><b>Get Attributes: </b>');
 		output('<pre>' . $sql . '</pre>');
 		$result = pg_fetch_all(
@@ -361,8 +364,8 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp"';
 		return $result;
 	}
 
-	function createDataType($datatype, $stereotype, $multiplicity) {
-		#output('<br>CreateDataType with datatype: ' . $datatype . ' and stereotype: ' . $stereotype);
+	function createAttributeType($datatype, $stereotype, $multiplicity) {
+		#output('<br>createAttributeType with datatype: ' . $datatype . ' and stereotype: ' . $stereotype);
 		$sql = '';
 
 		if (in_array($stereotype, array(
@@ -504,29 +507,23 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp"';
 		return $typeExists;
 	}
 
-	function createComplexDataType($datatype) {
-		global $complexDataTypesSql;
-		$sql = "
-CREATE TYPE " . $datatype . " AS (";
-		if (WITH_UUID_OSSP) {
-			$sql .= "
-	gml_id uuid NOT NULL DEFAULT uuid_generate_v1mc()";
+	function createAttributes($attributes) {
+		outputAttributeHtml($attributes);
+		$sql = '';
+		foreach($attributes AS $attribute) {
+			if ($sql != '') {
+				$sql .= ',
+	';
+			}
+			$sql .= createAttributeDefinition($attribute);
 		}
-		else {
-			$sql .= "
-	gml_id text";
-		}
-		$sql .= "
-);
-";
-		output('<br>Erzeuge komplexen Datentyp <b>' . $datatype . '</b>');
-		execSql($sql);
+		return $sql;
 	}
 
 	function createAttributeDefinition($attribute) {
-		$sql = $attribute['name'];
+		$sql = strtolower($attribute['name']);
 		
-		$sql .= ' ' . createDataType(
+		$sql .= ' ' . createAttributeType(
 			strtolower($attribute['datatype']),
 			strtolower($attribute['stereotype']),
 			$attribute['multiplicity_range_upper']
@@ -535,7 +532,6 @@ CREATE TYPE " . $datatype . " AS (";
 			$sql .= ' NOT NULL';
 		if ($attribute['initialvalue_body'] != '')
 			$sql .= " DEFAULT '" . trim(str_replace('{frozen}', '', $attribute['initialvalue_body'])) . "'";
-		$sql .= ',';
 		return $sql;
 	}
 
@@ -550,6 +546,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 			$attribute['multiplicity_range_lower'],
 			$attribute['multiplicity_range_upper']
 		);
+		$sql .= "';";
 		return $sql;
 	}
 
@@ -566,56 +563,71 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		return $text;
 	}
 
-	function createClassTables($stereotype, $superClass, $class) {
+	function createComplexDataTypes($stereotype, $class) {
+		global $dataTypes;
+		output('<br>Erzeuge komplexen Datentyp <b>' . $datatype . '</b>');
+		$datatype = strtolower($class['name']);
+		$attributes = getAttributes($class);
+		$sql = "
+DO $$
+BEGIN
+IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = '" . $datatype . "') THEN
+CREATE TYPE " . $datatype . " AS (
+	" . createAttributes($attributes) . "
+);
+END IF;
+END$$;";
+
+		foreach($attributes AS $attribute) {
+			$sql .= createAttributeComment($class, $attribute);
+		}
+
+		output('<pre>' . $sql . '</pre>');
+		
+		# lade abgeleitete Klassen
+		$subClasses = getSubUmlClasses($stereotype, $class);
+		$dataTypes = array_merge($dataTypes, $subClasses);
+
+		# Für alle abgeleiteten Klassen
+		foreach($subClasses as $subClass) {
+			if (!in_array($subClass['name'], $dataTypes)) {
+				output('<br><b>Sub' . $stereotype . ': ' . $subClass['name'] . '</b> (' . $subClass['xmi_id'] . ') id: ' . $subClass['id']);
+				$sql .= createComplexDataTypes($stereotype, $subClass);
+				array_push($dataTypes, $subClass['name']);
+			}
+		}
+
+		return $sql;
+	}
+
+	function createFeatureTypeTables($stereotype, $superClass, $class) {
 		# Erzeuge Create Table Statement
 		$table = strtolower($class['name']);
-		$sql = "CREATE TABLE IF NOT EXISTS " . $table . " (
+		$sql = "
+CREATE TABLE IF NOT EXISTS " . $table . " (
 	";
 
 		$table_id = ($stereotype == 'FeatureType') ? 'gml_id' : 'id';
 
-		# Erzeuge gml_id nur für FeatureType Superklassen
+		# Erzeuge attribute gml_id nur wenn FeatureType eine SuperKlasse ist
 		if ($superClass == null) {
-			if ($stereotype == 'FeatureType') {
-				if (WITH_UUID_OSSP) {
-					$sql .= $table_id ." uuid NOT NULL DEFAULT uuid_generate_v1mc(),";
-				}
-				else {
-					$sql .= $table_id . " text,";
-				}
+			if (WITH_UUID_OSSP) {
+				$sql .= $table_id ." uuid NOT NULL DEFAULT uuid_generate_v1mc(),";
 			}
 			else {
-				$sql .= $table_id . " serial,";
+				$sql .= $table_id . " text,";
 			}
 		}
 
-		# lade Attribute
+		# lade Attribute des FeatureTypes
 		$attributes = getAttributes($class);
+		outputAttributeHtml($attributes);
 
-		$html = '<table border="1"><tr><th>Attribut</th><th>Datentyp</th><th>Stereotyp</th><th>Attributtyp</th><th>Multiplizität</th><th>Default</th></tr>';
-
-		# für jedes Attribut erzeuge Attributzeilen
 		foreach($attributes AS $i => $attribute) {
-			$html .= '<tr><td>' . $attribute['name'] . '</td><td>' .
-							$attribute['datatype'] . '</td><td>' .
-							$attribute['stereotype'] . '</td><td>' .
-							$attribute['attribut_type'] . '</td><td>' .
-							createMultiplicityText(
-								$attribute['multiplicity_range_lower'],
-								$attribute['multiplicity_range_upper']
-							) . '</td><td>' .
-							$attribute['initialvalue_body'] . '</td></tr>';
-			$sql .= '
+			if ($i > '0')
+				$sql .= ',
 	';
 			$sql .= createAttributeDefinition($attribute);
-		}
-		$html .= '</table><p>';
-
-		if (empty($attributes)) {
-			output('Keine Attribute gefunden.');
-		}
-		else {
-			output($html);
 		}
 
 		# lade navigierbare Assoziationsenden von 1:n Assoziationen
@@ -625,6 +637,8 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 
 		# für jede Assoziation erzeuge ein Attributzeile und kommentarzeile
 		foreach($association_ends AS $i => $association_end) {
+				$sql .= ',
+	';
 			$html .= '<tr><td>' .
 				$class['name'] . '</td><td>' .
 				$association_end['b_name'] . '</td><td>' .
@@ -632,8 +646,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 					$association_end['b_multiplicity_range_lower'],
 					$association_end['b_multiplicity_range_upper']
 				)	. '</td><td>' . $association_end['b_class_name'] . '</td><td>' . strtolower($association_end['b_class_name']) . '</td></tr>';
-			$sql .= '
-	';
+
 			# Belege Attributwerte an Hand der Infos aus $association_end und $class
 			$attribute = array();
 			$attribute['name'] = $association_end['b_name'];
@@ -654,8 +667,8 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		}
 
 		$sql .= '
-	CONSTRAINT ' . $table . '_pkey PRIMARY KEY (' . $table_id . ')
 )';
+
 		if ($superClass != null) {
 			# leite von superClass ab
 			$sql .= '
@@ -663,6 +676,9 @@ INHERITS ('. strtolower($superClass['name']) . ')';
 			$sql .= '
 WITH OIDS';
 		}
+		$sql .= ';
+ALTER TABLE ' . $table . '
+	ADD CONSTRAINT ' . $table . '_pkey PRIMARY KEY(' . $table_id . ');';
 		$sql .= ";
 COMMENT ON TABLE " . $table . " IS 'Tabelle " . $class['name'];
 		if ($superClass != null)
@@ -678,96 +694,88 @@ COMMENT ON TABLE " . $table . " IS 'Tabelle " . $class['name'];
 		output('<pre>' . $sql . '</pre>');
 		
 		# lade abgeleitete Klassen
-		$subClasses = getSubClasses($stereotype, $class);
+		$subClasses = getSubUmlClasses($stereotype, $class);
 		# Für alle abgeleiteten Klassen
 		foreach($subClasses as $subClass) {
 			output('<br><b>Sub' . $stereotype . ': ' . $subClass['name'] . '</b> (' . $subClass['xmi_id'] . ')');
-			$sql .= createClassTables($stereotype, $class, $subClass);
+			$sql .= createFeatureTypeTables($stereotype, $class, $subClass);
 		}
 
 		return $sql;
 	}
 
 	function createEnumerationTable($class) {
-		//Fixed: Table identifier max length is 63 (with "_pkey" only 58!)
-		$table = strtolower($class['name']);
-		$table_orig = $table;
-		if (strlen($table)>58) $table = substr($table, 0, 58);
-		$isInt = false;
+		output('<br><b>Create Enumeration: ' . $class['name'] . '</b> (' . $class['xmi_id'] . ')');
 
-		# lade Values
-		$values = getAttributes($class);
-		if (empty($values)) return $sql;
+		$table = new Table($class['name']);
 
-		$i = 0;
-		$sqlValues = "
-INSERT INTO " . $table . " (wert, beschreibung)
-VALUES
-";
-		# für jeden Value erzeuge Datenzeile
-		for($i=0; $i < count($values); $i++) {
-			if ($i > 0)
-				$sqlValues .= ",
-";
-			$value = $values[$i];
-			if ($value['initialvalue_body'] == '') {
-				$parts = explode('=', $value['name']);
-				if (trim($parts[1]) == '' )
-					$wert = $i;
+		# definiere Attribute
+		$attribute = new Attribute('wert', 'character varying');
+		$table->addAttribute($attribute);
+		$attribute = new Attribute('beschreibung', 'character varying');
+		$table->addAttribute($attribute);
+
+		# definiere Primärschlüssel
+		$table->primaryKey = 'wert';
+
+		# definiere Values
+		$values =	getAttributes($class);
+		$table->values = array_map(
+			function($value, $index) {
+				if ($value['initialvalue_body'] == '') {
+					$parts = explode('=', $value['name']);
+					if (trim($parts[1]) == '' )
+						$wert = $index;
+					else
+						$wert = $parts[1];
+				}
 				else
-					$wert = $parts[1];
-			}
-			else
-				$wert = str_replace(array('`', '´', '+'), '', $value['initialvalue_body']);
-			//Fixed for non-integer values
-			if (gettype($wert) == "integer") {
-				$isInt = true;
-				$sqlValues .= "	(" . trim($wert) . ", '" . trim($value['name']) . "')";
-			}
-			else
-				$sqlValues .= "	('" . trim($wert) . "', '" . trim($value['name']) . "')";
-		};
-		$sqlValues .= ";\n";
-
-		# Erzeuge Create Table Statement
-		$sqlBegin = "";
-		//Fixed for non-integer values
-	
-		if ($isInt) {
-			$sqlBegin = "
-CREATE TABLE IF NOT EXISTS " . $table . " (
-	wert integer,
-	beschreibung character varying,
-	CONSTRAINT " . $table . "_pkey PRIMARY KEY (wert)
-);
-COMMENT ON TABLE " . $table . " IS 'Aufzählung " . $class['name'] . "';
-";
-		}
-		else {
-			$sqlBegin = "
-CREATE TABLE IF NOT EXISTS " . $table . " (
-	wert character varying,
-	beschreibung character varying,
-	CONSTRAINT " . $table . "_pkey PRIMARY KEY (wert)
-);
-COMMENT ON TABLE " . $table . " IS 'Aufzählung " . $class['name'] . "';
-";
-		}
-
-		//Fixed: Table identifier max length is 63 (with "_pkey" only 58!)
-		$sql = $sqlBegin . $sqlValues;
-		if (strlen($table_orig)>58) $sql .= "
-ALTER TABLE " . $table . " ADD COLUMN " . $table . " character varying(255);
-COMMENT ON COLUMN " . $table .".". $table ."
-IS '" . $table_orig . 
-"';
-";
+					$wert = str_replace(array('`', '´', '+'), '', $value['initialvalue_body']);
+				return new Value(
+					array(
+						$wert,
+						trim($value['name'])
+					)
+				);
+			},
+			$values,
+			range(1, count($values))
+		);
+		$sql = $table->asSql();
 		output('<pre>' . $sql . '</pre>');
 		return $sql;
 	}
 
-	function createCodeListTable($class) {
+	function createCodeListTable($code_list) {
+		output('<br><b>CodeList: ' . $code_list['name'] . '</b> (' . $code_list['xmi_id'] . ')');
+
+		$table = new Table($code_list['name']);
+
+		# definiere Attribute
+		$attribute = new Attribute('id', 'integer');
+		$table->addAttribute($attribute);
+		$attribute = new Attribute('name', 'character varying');
+		$table->addAttribute($attribute);
+		$attribute = new Attribute('status', 'character varying');
+		$table->addAttribute($attribute);
+		$attribute = new Attribute('definition', 'text');
+		$table->addAttribute($attribute);
+		$attribute = new Attribute('additional_information', 'text');
+		$table->addAttribute($attribute);
+
+		# definiere Primärschlüssel
+		$table->primaryKey = 'id';
+
+		# definiere Commentare
+		$table->addComment('UML-Typ: Code Liste');
+
+		$sql = $table->asSql();
+		output('<pre>' . $sql . '</pre>');
+
+		return $sql;
+/*		
 		$table = strtolower($class['name']);
+
 		# Erzeuge Create Table Statement
 		$sql = "
 CREATE TABLE IF NOT EXISTS " . $table . " (
@@ -783,6 +791,7 @@ COMMENT ON TABLE " . $table . " IS 'Code Liste " . $class['name'] . "';
 ";
 		output('<pre>' . $sql . '</pre>');
 		return $sql;		
+*/
 	}
 
 	function createAssociationTable($association) {
@@ -849,6 +858,34 @@ IS '" . $table_orig .
 		output($sql);
 		return $sql;
 	}
-echo '</body>
+
+	function outputAttributeHtml($attributes) {
+		$html = '<table border="1"><tr><th>Attribut</th><th>Datentyp</th><th>Stereotyp</th><th>Attributtyp</th><th>Multiplizität</th><th>Default</th></tr>';
+
+		# für jedes Attribut erzeuge Attributzeilen
+		foreach($attributes AS $i => $attribute) {
+			$html .= '<tr><td>' . $attribute['name'] . '</td><td>' .
+							$attribute['datatype'] . '</td><td>' .
+							$attribute['stereotype'] . '</td><td>' .
+							$attribute['attribut_type'] . '</td><td>' .
+							createMultiplicityText(
+								$attribute['multiplicity_range_lower'],
+								$attribute['multiplicity_range_upper']
+							) . '</td><td>' .
+							$attribute['initialvalue_body'] . '</td></tr>';
+			$sql .= '
+	';
+		}
+		$html .= '</table><p>';
+
+		if (empty($attributes)) {
+			output('Keine Attribute gefunden.');
+		}
+		else {
+			output($html);
+		}
+	}
+
+echo '	</body>
 </html>';
 ?>
