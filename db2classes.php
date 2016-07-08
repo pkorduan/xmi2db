@@ -177,6 +177,12 @@ CREATE SCHEMA ' . CLASSES_SCHEMA . ';
   function getAttributes($class) {
     global $db_conn;
 
+	/*Problematisch mit Classifiern statt Datatypes (dann datatype leer, besser mit Doppeljoin auf Datatypes, ähnlich zu dem hier:
+	SELECT uml_attributes.name, types1.name, types2.name FROM aaa_uml.uml_attributes
+LEFT JOIN aaa_uml.datatypes as types1 ON uml_attributes.datatype = types1.xmi_id
+LEFT JOIN aaa_uml.datatypes as types2 ON uml_attributes.classifier = types2.xmi_id
+WHERE uml_attributes.uml_class_id = 235
+*/
     $sql = "
       SELECT
         a.name,
@@ -382,7 +388,6 @@ COMMENT ON COLUMN " . strtolower($class_name) . "." . $attribute_name . " IS '" 
 
     # für jedes Attribut erzeuge Attributzeilen
     foreach($attributes AS $i => $attribute) {
-		output('<pre>Achtung! Attribut: ' . $attribute['name'] . ' Datentyp: ' . $attribute['datatype'] . ' Stereotyp: ' . $attribute['classifier'] . ' Art: ' . $attribute['classifier_stereotype'] . '</pre>');
       $sql .= '
   ';
       $sql .= createAttributeDefinition($attribute);

@@ -1,9 +1,9 @@
 <?php
   define('DEBUG', false);
   $db_server = "localhost"; // Hostname
-  $db_user = "pguser"; // Benutzername
-  $db_pass = "passwd"; // Kennwort
-  $db_name = "dbname"; // Name der Datenbank
+  $db_user = "pgadmin"; // Benutzername
+  $db_pass = "PaGeMin2"; // Kennwort
+  $db_name = "moro"; // Name der Datenbank
   $db_conn  = pg_connect("host=".$db_server." dbname=".$db_name." user=".$db_user." password=".$db_pass)  or exit ("Es konnte keine Verbindung zum Datenbankserver hergestellt werden.");
   define('UML_SCHEMA', 'xplan_uml');
   define('CLASSES_SCHEMA', 'gml_classes');
@@ -60,4 +60,20 @@
   $packages[] = 'XP_Praesentationsobjekte';
   $packages[] = 'XP_Raster';
   define('PACKAGES', "'" . implode("','", $packages) . "'");
+  
+  $classesOut[] = '';
+  #$classesOut[] = 'AX_Flurstueck';
+  #$classesOut[] = 'AX_BenutzergruppeMitZugriffskontrolle';
+  #$classesOut[] = 'AX_Gebaeude';
+  #$classesOut[] = 'AX_Gebiet_Verwaltungsgemeinschaft';
+  #$classesOut[] = 'AX_MarkanterGelaendepunkt';
+  #$classesOut[] = 'AA_Objekt';
+  #$classesOut[] = 'AX_HistorischesFlurstueckOhneRaumbezug';
+  #$classesOut[] = 'AX_Verwaltungsgemeinschaft';
+  #$classesOut[] = 'AX_Schleuse';
+  
+  $attributesOut[] = '';
+  #$attributesOut[] = 'gemarkung';
+  #$attributesOut[] = 'gemeindezugehoerigkeit';
+  #$attributesOut[] = 'qualitaetsangaben';
 ?>
