@@ -1,12 +1,14 @@
 <?php
-  define('DEBUG', false);
-  $db_server = "localhost"; // Hostname
-  $db_user = "pguser"; // Benutzername
-  $db_pass = "passwd"; // Kennwort
-  $db_name = "dbname"; // Name der Datenbank
-  $db_conn  = pg_connect("host=".$db_server." dbname=".$db_name." user=".$db_user." password=".$db_pass)  or exit ("Es konnte keine Verbindung zum Datenbankserver hergestellt werden.");
-  define('UML_SCHEMA', 'aaa_uml');
-  define('CLASSES_SCHEMA', 'aaa_classes');
+	error_reporting(E_ALL & ~E_NOTICE);
+	define('LOGLEVEL', 0);
+	define('PG_HOST', 'localhost'); // Hostname
+	define('PG_DBNAME', 'postgres'); // Name der Datenbank
+	define('PG_USER', 'postgres'); // Benutzername
+	define('PG_PASSWORD', 'postgres'); // Kennwort
+
+	define('UML_SCHEMA', 'aaa_uml');
+	define('CLASSES_SCHEMA', 'aaa_classes');
+
 	define('WITH_UUID_OSSP', false);
 	
 	$packages = array();
