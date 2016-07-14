@@ -14,6 +14,3 @@ CREATE OR REPLACE VIEW schema_name.classes_attributes AS
     uml_attributes.classifier AS attribute_classifier
    FROM schema_name.uml_classes
      LEFT JOIN schema_name.uml_attributes ON uml_attributes.uml_class_id = uml_classes.id;
-
-ALTER TABLE schema_name.classes_attributes
-  OWNER TO pgadmin;

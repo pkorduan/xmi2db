@@ -8,11 +8,6 @@
 
 CREATE SCHEMA _uml_schema_name_;
 
-
-ALTER SCHEMA _uml_schema_name_ OWNER TO pgadmin;
-
-
-
 SET statement_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = on;
@@ -45,9 +40,6 @@ CREATE TABLE association_classes (
     id integer NOT NULL
 );
 
-
-ALTER TABLE _uml_schema_name_.association_classes OWNER TO pgadmin;
-
 --
 -- Name: association_classes_testid_seq; Type: SEQUENCE; Schema: _uml_schema_name_; Owner: pgadmin
 --
@@ -58,9 +50,6 @@ CREATE SEQUENCE association_classes_testid_seq
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
-ALTER TABLE _uml_schema_name_.association_classes_testid_seq OWNER TO pgadmin;
 
 --
 -- Name: association_classes_testid_seq; Type: SEQUENCE OWNED BY; Schema: _uml_schema_name_; Owner: pgadmin
@@ -106,9 +95,6 @@ CREATE TABLE association_ends (
     participant character varying
 );
 
-
-ALTER TABLE _uml_schema_name_.association_ends OWNER TO pgadmin;
-
 --
 -- Name: association_ends_id_seq; Type: SEQUENCE; Schema: _uml_schema_name_; Owner: pgadmin
 --
@@ -119,9 +105,6 @@ CREATE SEQUENCE association_ends_id_seq
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
-ALTER TABLE _uml_schema_name_.association_ends_id_seq OWNER TO pgadmin;
 
 --
 -- Name: association_ends_id_seq; Type: SEQUENCE OWNED BY; Schema: _uml_schema_name_; Owner: pgadmin
@@ -161,9 +144,6 @@ CREATE TABLE class_generalizations (
     id integer NOT NULL
 );
 
-
-ALTER TABLE _uml_schema_name_.class_generalizations OWNER TO pgadmin;
-
 --
 -- Name: class_generalizations_id_seq; Type: SEQUENCE; Schema: _uml_schema_name_; Owner: pgadmin
 --
@@ -174,9 +154,6 @@ CREATE SEQUENCE class_generalizations_id_seq
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
-ALTER TABLE _uml_schema_name_.class_generalizations_id_seq OWNER TO pgadmin;
 
 --
 -- Name: class_generalizations_id_seq; Type: SEQUENCE OWNED BY; Schema: _uml_schema_name_; Owner: pgadmin
@@ -215,9 +192,6 @@ CREATE TABLE datatypes (
     updated_at timestamp without time zone
 );
 
-
-ALTER TABLE _uml_schema_name_.datatypes OWNER TO pgadmin;
-
 --
 -- Name: datatypes_id_seq; Type: SEQUENCE; Schema: _uml_schema_name_; Owner: pgadmin
 --
@@ -228,9 +202,6 @@ CREATE SEQUENCE datatypes_id_seq
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
-ALTER TABLE _uml_schema_name_.datatypes_id_seq OWNER TO pgadmin;
 
 --
 -- Name: datatypes_id_seq; Type: SEQUENCE OWNED BY; Schema: _uml_schema_name_; Owner: pgadmin
@@ -273,9 +244,6 @@ CREATE TABLE packages (
     stereotype_id character varying
 );
 
-
-ALTER TABLE _uml_schema_name_.packages OWNER TO pgadmin;
-
 --
 -- Name: packages_id_seq; Type: SEQUENCE; Schema: _uml_schema_name_; Owner: pgadmin
 --
@@ -286,9 +254,6 @@ CREATE SEQUENCE packages_id_seq
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
-ALTER TABLE _uml_schema_name_.packages_id_seq OWNER TO pgadmin;
 
 --
 -- Name: packages_id_seq; Type: SEQUENCE OWNED BY; Schema: _uml_schema_name_; Owner: pgadmin
@@ -330,9 +295,6 @@ CREATE TABLE stereotypes (
     id integer NOT NULL
 );
 
-
-ALTER TABLE _uml_schema_name_.stereotypes OWNER TO pgadmin;
-
 --
 -- Name: stereotypes_id_seq; Type: SEQUENCE; Schema: _uml_schema_name_; Owner: pgadmin
 --
@@ -343,9 +305,6 @@ CREATE SEQUENCE stereotypes_id_seq
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
-ALTER TABLE _uml_schema_name_.stereotypes_id_seq OWNER TO pgadmin;
 
 --
 -- Name: stereotypes_id_seq; Type: SEQUENCE OWNED BY; Schema: _uml_schema_name_; Owner: pgadmin
@@ -382,9 +341,6 @@ CREATE TABLE tagdefinitions (
     updated_at timestamp without time zone
 );
 
-
-ALTER TABLE _uml_schema_name_.tagdefinitions OWNER TO pgadmin;
-
 --
 -- Name: tagdefinitions_id_seq; Type: SEQUENCE; Schema: _uml_schema_name_; Owner: pgadmin
 --
@@ -395,9 +351,6 @@ CREATE SEQUENCE tagdefinitions_id_seq
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
-ALTER TABLE _uml_schema_name_.tagdefinitions_id_seq OWNER TO pgadmin;
 
 --
 -- Name: tagdefinitions_id_seq; Type: SEQUENCE OWNED BY; Schema: _uml_schema_name_; Owner: pgadmin
@@ -435,9 +388,6 @@ CREATE TABLE taggedvalues (
     class_id integer
 );
 
-
-ALTER TABLE _uml_schema_name_.taggedvalues OWNER TO pgadmin;
-
 --
 -- Name: taggedvalues_id_seq; Type: SEQUENCE; Schema: _uml_schema_name_; Owner: pgadmin
 --
@@ -448,9 +398,6 @@ CREATE SEQUENCE taggedvalues_id_seq
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
-ALTER TABLE _uml_schema_name_.taggedvalues_id_seq OWNER TO pgadmin;
 
 --
 -- Name: taggedvalues_id_seq; Type: SEQUENCE OWNED BY; Schema: _uml_schema_name_; Owner: pgadmin
@@ -501,9 +448,6 @@ CREATE TABLE uml_attributes (
     initialvalue_body character varying
 );
 
-
-ALTER TABLE _uml_schema_name_.uml_attributes OWNER TO pgadmin;
-
 --
 -- Name: uml_attributes_id_seq; Type: SEQUENCE; Schema: _uml_schema_name_; Owner: pgadmin
 --
@@ -514,9 +458,6 @@ CREATE SEQUENCE uml_attributes_id_seq
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
-ALTER TABLE _uml_schema_name_.uml_attributes_id_seq OWNER TO pgadmin;
 
 --
 -- Name: uml_attributes_id_seq; Type: SEQUENCE OWNED BY; Schema: _uml_schema_name_; Owner: pgadmin
@@ -561,9 +502,6 @@ CREATE TABLE uml_classes (
     general_id character varying
 );
 
-
-ALTER TABLE _uml_schema_name_.uml_classes OWNER TO pgadmin;
-
 --
 -- Name: uml_classes_id2_seq; Type: SEQUENCE; Schema: _uml_schema_name_; Owner: pgadmin
 --
@@ -574,9 +512,6 @@ CREATE SEQUENCE uml_classes_id2_seq
     NO MINVALUE
     NO MAXVALUE
     CACHE 1;
-
-
-ALTER TABLE _uml_schema_name_.uml_classes_id2_seq OWNER TO pgadmin;
 
 --
 -- Name: uml_classes_id2_seq; Type: SEQUENCE OWNED BY; Schema: _uml_schema_name_; Owner: pgadmin

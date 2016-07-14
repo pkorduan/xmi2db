@@ -1,0 +1,16 @@
+/**
+	PHP Asynchronous Loader - Pascoul
+	- complementary CSS file -
+	Long-running processes with user feedback
+	Requirements: PHP5, HTML 5 compatible browser
+	
+	@author: Christian Seip <christian.seip@gdi-service.de>
+*/
+
+#progress {
+	height: 100px;
+	width: 500px;
+	position:absolute;
+   top:0;
+   right:0;
+}

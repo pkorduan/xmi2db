@@ -19,9 +19,6 @@ CREATE OR REPLACE VIEW schema_name.classes_attributes_types AS
      LEFT JOIN schema_name.datatypes t4 ON t1.attribute_classifier::text = t4.xmi_id::text
      LEFT JOIN schema_name.uml_classes t3 ON t1.attribute_classifier::text = t3.xmi_id::text;
 
-ALTER TABLE schema_name.classes_attributes_types
-  OWNER TO pgadmin;
-
 -- View: schema_name.classes_attributes_types_gen
 
 -- DROP VIEW schema_name.classes_attributes_types_gen;
@@ -44,9 +41,6 @@ CREATE OR REPLACE VIEW schema_name.classes_attributes_types_gen AS
    FROM schema_name.classes_attributes_types
      LEFT JOIN schema_name.generalizations ON classes_attributes_types.class_xmi_id::text = generalizations.child_id::text;
 
-ALTER TABLE schema_name.classes_attributes_types_gen
-  OWNER TO pgadmin;
-  
 -- View: schema_name.full_model
 
 -- DROP VIEW schema_name.full_model;
@@ -65,9 +59,6 @@ CREATE OR REPLACE VIEW schema_name.full_model AS
   WHERE classes_attributes_types_gen.package_id = "packages_parent-name".id
   ORDER BY "packages_parent-name".name, classes_attributes_types_gen.class_name;
 
-ALTER TABLE schema_name.full_model
-  OWNER TO pgadmin;
-  
 -- View: schema_name.class_assoziations
 
 -- DROP VIEW schema_name.class_assoziations;
@@ -183,6 +174,3 @@ CREATE OR REPLACE VIEW schema_name.class_assoziations AS
    FROM assoc_ends assoc_ends(namea, assoc_id, visibilitya, aggregationa, isordereda, isnavigablea, multiplicity_range_lowera, multiplicity_range_uppera, targetscopea, changeabilitya, orderinga, participanta, nameb, assoc_id_1, visibilityb, aggregationb, isorderedb, isnavigableb, multiplicity_range_lowerb, multiplicity_range_upperb, targetscopeb, changeabilityb, orderingb, participantb)
      LEFT JOIN schema_name.uml_classes uc1 ON assoc_ends.participanta::text = uc1.xmi_id::text
      LEFT JOIN schema_name.uml_classes uc2 ON assoc_ends.participantb::text = uc2.xmi_id::text;
-
-ALTER TABLE schema_name.class_assoziations
-  OWNER TO pgadmin;
