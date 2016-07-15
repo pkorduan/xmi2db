@@ -5,8 +5,9 @@
 	include('classes/schema.php');
 	include('classes/table.php');
 	include('classes/attribute.php');
-	include('classes/value.php');
+	include('classes/values.php');
 	include('classes/datatype.php');
+	include('classes/enumtype.php');
 	$tabNameAssoc = array();
 	$log_sql = '';
 	$logger = new Logger(LOGLEVEL);
@@ -24,18 +25,21 @@ echo '<!DOCTYPE html>
 	$umlSchema = new Schema(UML_SCHEMA, $logger);
 	$umlSchema->openConnection(PG_HOST, PG_DBNAME, PG_USER, PG_PASSWORD);
 
-	#*********
-	# Schema
-	#*********
-	$classSchema = new Schema(CLASSES_SCHEMA, $logger);
-	$sql = $classSchema->asSql();
+	# Initialize the gmlSchema object
+	$gmlSchema = new Schema(CLASSES_SCHEMA, $logger);
+	$sql = $gmlSchema->asSql();
 
 	#**************
 	# Enumerations
 	#**************
 	# Erzeuge Enummerations
 	foreach($umlSchema->getEnumerations() AS $enumeration) {
-		$sql .= $umlSchema->createEnumerationTable($enumeration) . "\n";
+		$logger->log('<br><b>Create Enum Type: ' . $enumeration['name'] . '</b> (' . $enumeration['xmi_id'] . ')');
+		$enumType = new EnumType($enumeration['name'], $logger);
+		$enumType->setSchemas($umlSchema, $gmlSchema);
+		$enumType->setId($enumeration['id']);
+		$enumType->getValues($enumeration);
+		$sql .= $enumType->asSql() . "\n";
 	}
 	$umlSchema->logger->log('<br><hr><br>');
 
@@ -57,7 +61,7 @@ echo '<!DOCTYPE html>
 	# Für alle oberen Unions
 	foreach($topDataTypes as $topDataType) {
 		$umlSchema->logger->log('<br><b>Top UnionType: ' . $topDataType['name'] . '</b> (' . $topDataType['xmi_id'] . ')');
-		$umlSchema->createComplexDataTypes('Union', $topDataType);
+		$sql .= $umlSchema->createComplexDataTypes('Union', $topDataType);
 	}
 	$umlSchema->logger->log('<br><hr><br>');
 
@@ -109,7 +113,7 @@ echo '<!DOCTYPE html>
 */
 	$umlSchema->logger->log('<br>Ende Debug Ausgabe<br><hr><br>');
 
-	#execSql($sql);
+#	$classSchema->execSql($sql);
 
 ?><pre><?php
 	echo $sql;

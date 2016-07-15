@@ -24,9 +24,13 @@ class Schema {
 		return $this->dbConn;
 	}
 
+	function execSQL($sql) {
+		return pg_query($this->dbConn, $sql);
+	}
+
 	function asSql() {
 		$sql  = 'SET search_path = ' . $this->schemaName . ", public;\n";
-		$sql .= 'DROP SCHEMA ' . $this->schemaName . " CASCADE;\n";
+		$sql .= 'DROP SCHEMA IF EXISTS ' . $this->schemaName . " CASCADE;\n";
 		$sql .= 'CREATE SCHEMA ' . $this->schemaName . ";\n";
 		if (WITH_UUID_OSSP) {
 			$sql .= 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp"' . ";\n";
@@ -153,7 +157,7 @@ WHERE
 		$this->logger->log(' <textarea cols="5" rows="1">' . $sql . '</textarea>');
 		$result = pg_fetch_all(
 	//Fixed: 'pg_query(): Query failed: ERROR: invalid byte sequence for encoding "UTF8"'
-			pg_query($this->dbConn, $sql)
+			$this->execSql($sql)
 		);
 		if ($result == false) $result = array();
 		return $result;
@@ -177,7 +181,7 @@ WHERE
 		$this->logger->log('<pre>' . $sql . '</pre>');
 		$result = pg_fetch_all(
 	//Fixed: 'pg_query(): Query failed: ERROR: invalid byte sequence for encoding "UTF8"'
-			pg_query($this->dbConn, $sql)
+			$this->execSql($sql)
 		);
 		if ($result == false) $result = array();
 		return $result;
@@ -220,7 +224,7 @@ WHERE
 		$this->logger->log(' <textarea cols="5" rows="1">' . $sql . '</textarea>');
 
 		$result = pg_fetch_all(
-			pg_query($this->dbConn, $sql)
+			$this->execSql($sql)
 		);
 		if ($result == false) $result = array();
 		return $result;
@@ -229,30 +233,31 @@ WHERE
 	# Lade AssociationEnds for classes
 	function getAssociationEnds($class) {
 		$sql = "
-			SELECT
-				ca.name a_class_name,
-				b.id b_id,
-				b.name b_name,
-				b.multiplicity_range_lower b_multiplicity_range_lower,
-				b.multiplicity_range_upper b_multiplicity_range_upper,
-				a.id a_id,
-				a.name a_name,
-				a.multiplicity_range_lower a_multiplicity_range_lower,
-				a.multiplicity_range_upper a_multiplicity_range_upper,
-				cb.name b_class_name
-			FROM
-				" . $this->schemaName . ".uml_classes ca JOIN
-				" . $this->schemaName . ".association_ends a ON (ca.xmi_id = a.participant) JOIN
-				" . $this->schemaName . ".association_ends b ON (a.assoc_id = b.assoc_id) JOIN
-				" . $this->schemaName . ".uml_classes cb ON (cb.xmi_id = b.participant)
-			WHERE
-				a.id != b.id
-				AND ca.name = '" . $class['name'] . "'
+SELECT
+	ca.name a_class_name,
+	b.id b_id,
+	b.name b_name,
+	b.multiplicity_range_lower b_multiplicity_range_lower,
+	b.multiplicity_range_upper b_multiplicity_range_upper,
+	a.id a_id,
+	a.name a_name,
+	a.multiplicity_range_lower a_multiplicity_range_lower,
+	a.multiplicity_range_upper a_multiplicity_range_upper,
+	cb.name b_class_name
+FROM
+	" . $this->schemaName . ".uml_classes ca JOIN
+	" . $this->schemaName . ".association_ends a ON (ca.xmi_id = a.participant) JOIN
+	" . $this->schemaName . ".association_ends b ON (a.assoc_id = b.assoc_id) JOIN
+	" . $this->schemaName . ".uml_classes cb ON (cb.xmi_id = b.participant)
+WHERE
+	a.id != b.id
+	AND ca.name = '" . $class['name'] . "'
+	AND b.\"isNavigable\"
 		";
 		$this->logger->log(' <br><b>Get 1:n Association Ends: </b>');
 		$this->logger->log(' <textarea cols="5" rows="1">' . $sql . '</textarea>');
 		$result = pg_fetch_all(
-			pg_query($this->dbConn, $sql)
+			$this->execSql($sql)
 		);
 		if ($result == false) $result = array();
 		return $result;
@@ -303,7 +308,7 @@ WHERE
 		$this->logger->log(' <textarea cols="5" rows="1">' . $sql . '</textarea>');
 		$result = pg_fetch_all(
 	//Fixed: 'pg_query(): Query failed: ERROR: invalid byte sequence for encoding "UTF8"'
-			pg_query($this->dbConn, $sql)
+			$this->execSql($sql)
 		);
 		if ($result == false) $result = array();
 		return $result;
@@ -509,6 +514,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 	}
 	
 	function createComplexDataTypes($stereotype, $class) {
+		
 		$sql = '';
 		$dataType = new DataType(strtolower($class['name']), $this->logger);
 		$dataType->setUmlSchema($this);
@@ -535,7 +541,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 				'codelist'
 			))) {
 				# Falls es den Datentyp des Attributes noch nicht gibt ...
-				if (!array_key_exists($dataTypeAttribute->type, $this->dataTypes)) {
+				if (!$this->dataTypeAllreadyExists($dataTypeAttribute->type, $this->dataTypes)) {
 					$class = $this->getClass($dataTypeAttribute->type);
 					# und falls es ein Datentyp ist, der in uml_classes existiert
 					if (!empty($class)) {
@@ -558,7 +564,6 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 			$this->logger->log('</li>');
 		}
 		$this->logger->log('</ul>');
-		
 		$sql .= $dataType->asSql();
 		$this->dataTypes[$dataType->name] = $dataType;
 
@@ -575,6 +580,18 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		$this->logger->log('<br><pre>' . $sql . '</pre>');
 
 		return $sql;
+	}
+
+	#
+	# return true if the datatype $type
+	# allready exists in the array of $existingTypes or
+	# the datatype contain the text 'geometry('
+	#
+	function dataTypeAllreadyExists($type, $existingTypes) {
+		return (
+					array_key_exists($dataTypeAttribute->type, $this->dataTypes)
+			OR	(strpos($dataTypeAttribute->type, 'geometry(') !== false)
+		) ? true : false;
 	}
 
 	function createFeatureTypeTables($stereotype, $superClass, $class) {
@@ -639,7 +656,7 @@ CREATE TABLE IF NOT EXISTS " . $table . " (
 		}
 		$html .= '</table><p>';
 		if (empty($association_ends)) {
-			$this->logger->log('Keine Assoziationen gefunden.');
+			$this->logger->log(' Keine Assoziationen gefunden.');
 		}
 		else {
 			$this->logger->log($html);
@@ -704,7 +721,7 @@ COMMENT ON TABLE " . $table . " IS 'Tabelle " . $class['name'];
 				if ($value['initialvalue_body'] == '') {
 					$parts = explode('=', $value['name']);
 					if (trim($parts[1]) == '' )
-						$wert = $index;
+						$wert = $parts[0];
 					else
 						$wert = $parts[1];
 				}

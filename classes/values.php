@@ -1,9 +1,13 @@
 <?php
-class Value {
+class Values {
 
-	function Value($values) {
-		$this->values = $values;
+	function __construct() {
 	}
+
+	function addValue($value) {
+		$this->values[] = $value;
+	}
+
 
 	function asSql() {
 		$sql = '(' .
@@ -11,30 +15,30 @@ class Value {
 				', ',
 				array_map(
 					function($value) {
-						switch (gettype($value)) {
+						switch (gettype($value['key'])) {
 							case 'string' :
 								switch (true) {
-									case (in_array(strtolower($value), array(
+									case (in_array(strtolower($value['key']), array(
 										'true',
 										't',
 										))) : 
 										$sql = "'true'";
 									break;
-									case (in_array(strtolower($value), array(
+									case (in_array(strtolower($value['key']), array(
 										'false',
 										'f',
 										))) :
 										$sql = "'false'";
 									break;
 									default:
-										$sql = "'" . $value . "'";
+										$sql = "'" . $value['key'] . "'";
 								}
 							break;
 							case 'boolean' :
-								$sql = ($value) ? "'true'" : "'false'";
+								$sql = ($value['key']) ? "'true'" : "'false'";
 							break;
 							default:
-								$sql = $value;
+								$sql = $value['key'];
 						}
 						return $sql;
 					},
