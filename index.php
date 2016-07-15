@@ -35,6 +35,12 @@
 
       window.location = 'use-xmi2db.php?truncate=' + truncate + '&file=' + file + '&schema=' + schema + '&basepackage=' + basepkg + '&argo=' + argo;
     }
+    function execDb2Classes() {
+      var umlSchema = document.getElementById("umlSchema").value,
+          gmlSchema = document.getElementById("gmlSchema").value;
+
+      window.location = 'db2classes.php?umlSchema=' + umlSchema + '&gmlSchema=' + gmlSchema;
+    }
   </script>
   <title>XPlanung XMI2DB Converter</title>
   <?php include('conf/database_conf.php'); ?>
@@ -78,8 +84,44 @@
       <label><input type="checkbox" id="argo">Argo Export mit ISO19136 Profil</label>
     </div>
     <div class="text-center" id="queryButton">
-    <!--<button type="submit" class="btn btn-primary btn-sm" id="queryNERC" onclick="document.location.href='use-xmi2db.php?truncate=1&file=xplanerweitert20150609.xmi&schema=xplan_argotest&basepackage=Raumordnungsplan_Kernmodell'"><span class="glyphicon glyphicon-ok"> </span> Suche passende Begriffe</button>-->
-    <button type="submit" class="btn btn-primary btn-sm" id="queryNERC" onclick="exefunction()"><span class="glyphicon glyphicon-ok"> </span> Fülle DB mit XMI Inhalten</button>
+    <!--<button type="submit" class="btn btn-primary btn-sm" id="queryNERC"
+      onclick="document.location.href='use-xmi2db.php?truncate=1&file=xplanerweitert20150609.xmi&
+      schema=xplan_argotest&basepackage=Raumordnungsplan_Kernmodell'">
+      <span class="glyphicon glyphicon-ok"> </span> Suche passende Begriffe</button>-->
+    <button type="submit" class="btn btn-primary btn-sm" id="queryNERC" onclick="exefunction()">
+      <span class="glyphicon glyphicon-ok"> </span> Fülle DB mit XMI Inhalten</button>
+    </div>
+  </div>
+  <div class="container">
+    <h3>db2classes</h4>
+    db2classes überträgt die mit xmi2db eingelesenen UML-Modell-Elemente, die in dem ausgewählten
+    UML-Schema enthalten sind, in das ausgewählte GML-Klassenschema.
+    Das GML-Klassenschema enthält nach dem Ausführen von db2classes im ausgewählten Schema je
+    <ul>
+      <li>eine leere Tabelle pro FeatureType</li>
+      <li>eine mit den Werten befüllte Tabelle pro CodeListe</li>
+      <li>einen nutzerdefinierten Postgres Datentyp pro UML DataType</li>
+      <li>eine Postgres Enum Datentyp pro UML Enumeration mit den Code-Werten der Listen</li>
+    </ul>
+  </div>
+  <div class="container">
+    <h4>UML-Schema</h4>
+    <i>Das Schema wird entsprechend der gewählten Konfiguration in der Datenbank
+      "<?php echo PG_DBNAME; ?>" angelegt.</i><br>
+    <input type="text" id="umlSchema" name="umlSchema" list="schemaName" size="50"/>
+    <datalist id="umlSchemaNamen">
+      <option value="xplan_uml" selected>xplan_uml</option>
+    </datalist>
+    <h4>GML-Klassenschema</h4>
+    <i>Das Schema wird entsprechend der gewählten Konfiguration in der Datenbank
+      "<?php echo PG_DBNAME; ?>" angelegt.</i><br>
+    <input type="text" id="gmlSchema" name="umlSchema" list="schemaName" size="50"/>
+    <datalist id="umlSchemaNamen">
+      <option value="xplan_classes" selected>xplan_classes</option>
+    </datalist>
+    
+    <div class="text-center" id="queryButton">
+    <button type="submit" class="btn btn-primary btn-sm" id="queryNERC" onclick="execDb2Classes()"><span class="glyphicon glyphicon-ok"> </span> Erzeuge GML-Klassenschema</button>
     </div>
   </div>
   </body>
