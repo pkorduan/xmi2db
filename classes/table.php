@@ -3,7 +3,7 @@ class Table {
 
 	function Table($name) {
 		$this->alias = $name;
-		$this->name = strtolower(substr($name, 0, 58));
+		$this->name = strtolower(substr($name, 0, PG_MAX_NAME_LENGTH));
 		$this->comments = array();
 		if ($this->name != $this->alias)
 			$this->comments[] = 'Alias: "' . $this->alias . '"';
@@ -11,7 +11,7 @@ class Table {
 		$this->primaryKey = '';
 		$this->inherits = '';
 		$this->withOids = true;
-		$this->values = array();
+		$this->values = new Data();
 	}
 
 	function addAttribute($attribute) {
@@ -25,10 +25,6 @@ class Table {
 			},
 			$this->attributes
 		);
-	}
-
-	function addValue($value) {
-		$this->values[] = $value;
 	}
 
 	function addComment($comment) {
@@ -70,11 +66,11 @@ CREATE TABLE IF NOT EXISTS " . $this->name . " (
 		# Ausgabe Tabellenkommentare
 		if (!empty($comments)) {
 			$sql .= "\nCOMMENT ON TABLE " . $this->name . " IS '" .
-				implode(', ', $this->comments) . "'";
+				implode(', ', $this->comments) . "';";
 		}
 
 		# Ausgabe Tabellen Values
-		if (!empty($this->values)) {
+		if (!empty($this->values->rows)) {
 			$sql .= "\nINSERT INTO " . $this->name . ' (' .
 				implode(
 					',',
@@ -86,14 +82,7 @@ CREATE TABLE IF NOT EXISTS " . $this->name . " (
 					)
 				) .
 			") VALUES \n";
-
-			$i = 0;
-			while ($i < count($this->values)) {
-				$sql .= $this->values[$i]->asSql();
-				$i++;
-				if ($i < count($this->values))
-					$sql .= ",\n";
-			}
+			$sql .= $this->values->asSql();
 			$sql .= ';';
 		}
 

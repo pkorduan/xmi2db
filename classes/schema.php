@@ -4,7 +4,12 @@ class Schema {
 	function Schema($name, $logger) {
 		$this->schemaName = $name;
 		$this->logger = $logger;
+		$this->unionTypes = array();
 		$this->dataTypes = array();
+		$this->enumerations = array();
+		$this->codeLists = array();
+		$this->featureTypes = array();
+		$this->unions = array();
 	}
 
 	function openConnection(
@@ -153,7 +158,7 @@ WHERE
 	lower(s.name) = 'enumeration' AND
 	p.name IN (" . PACKAGES . ")
 ";
-		$this->logger->log(' <b>Get Enumerations</b>');
+		$this->logger->log('<br><b>Get Enumerations</b>');
 		$this->logger->log(' <textarea cols="5" rows="1">' . $sql . '</textarea>');
 		$result = pg_fetch_all(
 	//Fixed: 'pg_query(): Query failed: ERROR: invalid byte sequence for encoding "UTF8"'
@@ -514,116 +519,131 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 	}
 	
 	function createComplexDataTypes($stereotype, $class) {
-		
+		$this->logger->log('<br><b>Create ' . $stereotype . ' ' . $class['name'] . '</b> (' . $class['xmi_id'] . ') id: ' . $class['id']);
 		$sql = '';
-		$dataType = new DataType(strtolower($class['name']), $this->logger);
-		$dataType->setUmlSchema($this);
-		$dataType->setId($class['id']);
-		$attributes = $dataType->getAttributes();
-		$this->logger->log('<ul>');
-		foreach($attributes AS $attribute) {
-			$this->logger->log('<li>');
-			# erzeuge Attributdefinition
-			$dataTypeAttribute = new Attribute(
-				$attribute['name'],
-				$this->createAttributeType(
-					strtolower($attribute['datatype']),
-					strtolower($attribute['stereotype']),
-					$attribute['multiplicity_range_upper']
-				)
-			);
-			$this->logger->log('<b>' . $attribute['name'] . '</b> type: <b>' . $dataTypeAttribute->type .'</b>');
-			$dataType->addAttribute($dataTypeAttribute);
+		$dataType = new DataType($class['name'], $stereotype, $this->logger);
+		if (!$this->stereoTypeAllreadyExists($dataType->name, $dataType->stereotype)) {
+			# union oder datentyp existiert noch nicht, jetzt erzeugen
+			$dataType->setUmlSchema($this);
+			$dataType->setId($class['id']);
+			$attributes = $dataType->getAttributes();
+			$this->logger->log('<ul>');
+			foreach($attributes AS $attribute) {
+				$this->logger->log('<li>');
+				# erzeuge Attributdefinition
+				$dataTypeAttribute = new Attribute(
+					$attribute['name'],
+					$attribute['datatype'],
+					$class['name']
+				);
+				$dataTypeAttribute->setStereoType($attribute['stereotype']);
+				$dataTypeAttribute->attribute_type = $attribute['attribute_type'];
+				$dataTypeAttribute->setMultiplicity($attribute['multiplicity_range_lower'], $attribute['multiplicity_range_upper']);
+				$this->logger->log('<b>' . $attribute['name'] . '</b> datatype: <b>' . $dataTypeAttribute->datatype .'</b> stereotype: <b>' . $dataTypeAttribute->stereotype . '</b>');
+				$dataType->addAttribute($dataTypeAttribute);
 
-			# Falls es keine codeliste oder enumeration ist ...
-			if (!in_array(strtolower($attribute['stereotype']), array(
-				'enumeration',
-				'codelist'
-			))) {
-				# Falls es den Datentyp des Attributes noch nicht gibt ...
-				if (!$this->dataTypeAllreadyExists($dataTypeAttribute->type, $this->dataTypes)) {
-					$class = $this->getClass($dataTypeAttribute->type);
-					# und falls es ein Datentyp ist, der in uml_classes existiert
+				# Falls Stereotype des Attributes eini union oder datatype ist und als uml class existiert erzeugen den Typ
+				if (in_array($dataTypeAttribute->stereotype,  array('union', 'datatype'))) {
+					# Prüfe ob der DataType über haupt einer ist
+					$class = $this->getClass($dataTypeAttribute->datatype_alias);
 					if (!empty($class)) {
-						# erzeuge diesen Datentyp und hänge in an die Liste der erzeugten Datentypen an.
+						# erzeuge diesen typ und hänge in an die Liste der erzeugten Datentypen an.
 						$sql .= $this->createComplexDataTypes('DataType', $class[0]);
 					}
 				}
+
+				$comment = '';
+				if (!empty($attribute['attribute_type']))
+					$comment .= $attribute['attribute_type'] . ': ' . $attribute['datatype'];
+				if (!empty($attribute['stereotype']))
+					$comment .= ' Stereotyp: ' . $attribute['stereotype'];
+				$comment .= ' ' . $this->createMultiplicityText(
+					$attribute['multiplicity_range_lower'],
+					$attribute['multiplicity_range_upper']
+				);
+				$dataType->addComment($comment);
+				$this->logger->log('</li>');
 			}
+			$this->logger->log('</ul>');
+			$sql .= $dataType->asSql();
 
-			$comment = '';
-			if (!empty($attribute['attribute_type']))
-				$comment .= $attribute['attribute_type'] . ': ' . $attribute['datatype'];
-			if (!empty($attribute['stereotype']))
-				$comment .= ' Stereotyp: ' . $attribute['stereotype'];
-			$comment .= ' ' . $this->createMultiplicityText(
-				$attribute['multiplicity_range_lower'],
-				$attribute['multiplicity_range_upper']
-			);
-			$dataType->addComment($comment);
-			$this->logger->log('</li>');
-		}
-		$this->logger->log('</ul>');
-		$sql .= $dataType->asSql();
-		$this->dataTypes[$dataType->name] = $dataType;
+			if ($stereotype == 'Union')
+				$this->unionTypes[$dataType->name] = $dataType;
+			if ($stereotype == 'DataType')
+				$this->dataTypes[$dataType->namea] = $dataType;
 
-		# lade abgeleitete Klassen
-		$subClasses = $this->getSubUmlClasses($stereotype, $class);
+			# lade abgeleitete Klassen
+			$subClasses = $this->getSubUmlClasses($stereotype, $class);
 
-		# Für alle abgeleiteten Klassen
-		foreach($subClasses as $subClass) {
-			if (!array_key_exists($subClass['name'], $this->dataTypes)) {
-				$this->logger->log('<br><b>Sub' . $stereotype . ': ' . $subClass['name'] . '</b> (' . $subClass['xmi_id'] . ') id: ' . $subClass['id']);
+			# Für alle abgeleiteten Klassen
+			foreach($subClasses as $subClass) {
 				$sql .= $this->createComplexDataTypes($stereotype, $subClass);
 			}
-		}
-		$this->logger->log('<br><pre>' . $sql . '</pre>');
+			$this->logger->log('<br><pre>' . $sql . '</pre>');
 
-		return $sql;
+			return $sql;
+		}
 	}
 
 	#
-	# return true if the datatype $type
+	# return true if the datatype of $attribute
 	# allready exists in the array of $existingTypes or
 	# the datatype contain the text 'geometry('
 	#
-	function dataTypeAllreadyExists($type, $existingTypes) {
+	function stereoTypeAllreadyExists($datatype, $stereotype) {
+		#	array_map(function($type) { echo ', ' . $type->name; }, $this->dataTypes);
+		if ($stereotype == 'union')
+			$typeList = $this->unionTypes;
+		if ($stereotype == 'datatype')
+			$typeList = $this->dataTypes;
 		return (
-					array_key_exists($dataTypeAttribute->type, $this->dataTypes)
-			OR	(strpos($dataTypeAttribute->type, 'geometry(') !== false)
+			array_key_exists($datatype, $typeList) OR
+			(strpos($datatype, 'geometry(') !== false)
 		) ? true : false;
 	}
 
 	function createFeatureTypeTables($stereotype, $superClass, $class) {
-		# Erzeuge Create Table Statement
-		$table = strtolower($class['name']);
-		$sql = "
-CREATE TABLE IF NOT EXISTS " . $table . " (
-	";
-
-		$table_id = ($stereotype == 'FeatureType') ? 'gml_id' : 'id';
-
-		# Erzeuge attribute gml_id nur wenn FeatureType eine SuperKlasse ist
+		$this->logger->log('<br><b>Create ' . $stereotype . ': ' . $class['name'] .' </b>');
+		# Erzeuge FeatueType
+		$featureType = new FeatureType($class['name'], $this->logger, $this);
+		$featureType->setId($class['id']);
 		if ($superClass == null) {
-			if (WITH_UUID_OSSP) {
-				$sql .= $table_id ." uuid NOT NULL DEFAULT uuid_generate_v1mc(),";
-			}
-			else {
-				$sql .= $table_id . " text,";
-			}
-			$sql .="\n	";
+			$featureType->primaryKey = 'gml_id';
+		}
+		else {
+			$featureType->set_inheritance($superClass['name']);
+			$this->logger->log(' abgeleitet von: <b>' . $superClass['name'] . '</b>');
 		}
 
-		# lade Attribute des FeatureTypes
-		$attributes = $this->getAttributes($class);
-		$this->outputAttributeHtml($attributes);
-
-		foreach($attributes AS $i => $attribute) {
-			if ($i > '0')
-				$sql .= ',
-	';
-			$sql .= $this->createAttributeDefinition($attribute);
+		foreach($featureType->getAttributes() AS $attribute) {
+			$featureTypeAttribute = new Attribute(
+				$attribute['name'],
+				$attribute['datatype'],
+				$class['name']
+			);
+			$featureTypeAttribute->setStereoType($attribute['stereotype']);
+			$featureTypeAttribute->attribute_type = $attribute['attribute_type'];
+			$featureTypeAttribute->setMultiplicity($attribute['multiplicity_range_lower'], $attribute['multiplicity_range_upper']);
+			$featureType->addAttribute($featureTypeAttribute);
 		}
+		$this->logger->log($featureType->attributesAsTable());
+
+		# lade navigierbare Assoziationsenden von 1:n Assoziationen
+		foreach($this->getAssociationEnds($class) AS $end) {
+			$associationEnd = new AssociationEnd(
+				$end['b_name'],
+				$end['a_class_name'],
+				$end['b_class_name'],
+				$this->logger
+			);
+			$associationEnd->stereotype = 'FeatureType';
+			$associationEnd->setMultiplicity($end['b_multiplicity_range_lower'], $end['b_multiplicity_range_upper']);
+			$featureType->addAssociationEnd($associationEnd);
+		}
+		$this->logger->log($featureType->associationsAsTable());
+
+		$sql = $featureType->asSql();
+/*
 
 		# lade navigierbare Assoziationsenden von 1:n Assoziationen
 		$association_ends = $this->getAssociationEnds($class);
@@ -632,6 +652,7 @@ CREATE TABLE IF NOT EXISTS " . $table . " (
 
 		# für jede Assoziation erzeuge ein Attributzeile und kommentarzeile
 		foreach($association_ends AS $i => $association_end) {
+			
 			if (!empty($attributes))
 				$sql .= ',
 	';
@@ -653,6 +674,17 @@ CREATE TABLE IF NOT EXISTS " . $table . " (
 			$attribute['initialvalue_body'] = ''; # keine default Werte für AssociationEnds
 			$attributes[] = $attribute;
 			$sql .= $this->createAttributeDefinition($attribute);
+
+			if (array_key_exists(Table::getName($association_end['b_name']), $this->featureTypes)) {
+				createFeatureTypeTables
+			}
+
+			$associationEnd = new AssociationEnd($association_end['b_name'], $this->logger);
+			$associationEnd->datatype = $association_end['b_class_name'];
+			$associationEnd->stereotype = 'FeatureType';
+			$
+			
+			$table->addAssociationEnd($associationEnd)
 		}
 		$html .= '</table><p>';
 		if (empty($association_ends)) {
@@ -669,23 +701,25 @@ CREATE TABLE IF NOT EXISTS " . $table . " (
 			# leite von superClass ab
 			$sql .= '
 INHERITS ('. strtolower($superClass['name']) . ')';
+		}
 			$sql .= '
 WITH OIDS';
-		}
 		$sql .= ';
-ALTER TABLE ' . $table . '
-	ADD CONSTRAINT ' . $table . '_pkey PRIMARY KEY(' . $table_id . ');';
+ALTER TABLE ' . $table->name . '
+	ADD CONSTRAINT ' . $table->name . '_pkey PRIMARY KEY(' . $table->primaryKey . ');';
 		$sql .= "
-COMMENT ON TABLE " . $table . " IS 'Tabelle " . $class['name'];
+COMMENT ON TABLE " . $table->name . " IS 'Tabelle für featureType " . $table->alias;
 		if ($superClass != null)
-			$sql .= " abgeleitet von " . $superClass['name'];
-		$sql .= "';";
+			$table->addComment(" abgeleitet von " . $superClass['name']);
+#		$sql .= "';";
 		# für jedes Attribut erzeuge Kommentar, wenn der type ein
 		# Datentyp ist
 		//Fixed: Was not doing anything for DataTypes, only Stereotypes so far. Now for DataTypes as well.
 		foreach($attributes AS $attribute) {
 			$sql .= $this->createAttributeComment($class, $attribute);
 		}
+
+*/
 
 		$this->logger->log('<pre>' . $sql . '</pre>');
 		
@@ -696,49 +730,6 @@ COMMENT ON TABLE " . $table . " IS 'Tabelle " . $class['name'];
 			$this->logger->log('<br><b>Sub' . $stereotype . ': ' . $subClass['name'] . '</b> (' . $subClass['xmi_id'] . ')');
 			$sql .= $this->createFeatureTypeTables($stereotype, $class, $subClass);
 		}
-
-		return $sql;
-	}
-
-	function createEnumerationTable($class) {
-		$this->logger->log('<br><b>Create Enumeration: ' . $class['name'] . '</b> (' . $class['xmi_id'] . ')');
-
-		$table = new Table($class['name']);
-
-		# definiere Attribute
-		$attribute = new Attribute('wert', 'character varying');
-		$table->addAttribute($attribute);
-		$attribute = new Attribute('beschreibung', 'character varying');
-		$table->addAttribute($attribute);
-
-		# definiere Primärschlüssel
-		$table->primaryKey = 'wert';
-
-		# definiere Values
-		$values =	$this->getAttributes($class);
-		$table->values = array_map(
-			function($value, $index) {
-				if ($value['initialvalue_body'] == '') {
-					$parts = explode('=', $value['name']);
-					if (trim($parts[1]) == '' )
-						$wert = $parts[0];
-					else
-						$wert = $parts[1];
-				}
-				else
-					$wert = str_replace(array('`', '´', '+'), '', $value['initialvalue_body']);
-				return new Value(
-					array(
-						$wert,
-						trim($value['name'])
-					)
-				);
-			},
-			$values,
-			range(1, count($values))
-		);
-		$sql = $table->asSql();
-		$this->logger->log('<pre>' . $sql . '</pre>');
 		return $sql;
 	}
 
@@ -845,7 +836,7 @@ COMMENT ON COLUMN " . $table . "." . strtolower($association['b_class']) . "_gml
 			}
 		}
 		//Fixed: Table identifier max length is 63
-		if (strlen($table_orig)>58) $sql .= "
+		if (strlen($table_orig) > PG_MAX_NAME_LENGTH) $sql .= "
 ALTER TABLE " . $table . " ADD COLUMN " . $table . " character varying(255);
 COMMENT ON COLUMN " . $table .".". $table ."
 IS '" . $table_orig . 

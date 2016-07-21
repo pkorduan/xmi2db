@@ -1,9 +1,11 @@
 <?php
 class DataType {
 
-	function DataType($name, $logger) {
+	function DataType($name, $stereotype, $logger) {
+		$this->name = strtolower(substr($name, 0, PG_MAX_NAME_LENGTH));
 		$this->alias = $name;
-		$this->name = strtolower(substr($name, 0, 58));
+		$this->stereotype = strtolower(substr($stereotype, 0, PG_MAX_NAME_LENGTH));
+		$this->stereotype_alias = $stereotype;
 		$this->comments = array();
 		if ($this->name != $this->alias)
 			$this->comments[] = 'Alias: "' . $this->alias . '"';
@@ -54,7 +56,7 @@ FROM
 WHERE
 	uml_class_id = " . $this->id . "
 ";
-		$this->logger->log(' <b>Get Attributes: </b>');
+		$this->logger->log('<br><b>Get Attributes: </b>');
 		$this->logger->log(' <textarea cols="5" rows="1">' . $sql . '</textarea>');
 
 		$result = pg_fetch_all(
@@ -91,7 +93,7 @@ END$$;";
 		# Ausgabe der Kommentare
 		if (!empty($comments)) {
 			$sql .= "\nCOMMENT ON DATATYPE " . $this->name . " IS '" .
-				implode(', ', $this->comments) . "'";
+				implode(', ', $this->comments) . "';";
 		}
 		return $sql;
 	}

@@ -5,9 +5,11 @@
 	include('classes/schema.php');
 	include('classes/table.php');
 	include('classes/attribute.php');
-	include('classes/values.php');
+	include('classes/data.php');
 	include('classes/datatype.php');
 	include('classes/enumtype.php');
+	include('classes/associationend.php');
+	include('classes/featuretype.php');
 	$tabNameAssoc = array();
 	$log_sql = '';
 	$logger = new Logger(LOGLEVEL);
@@ -34,14 +36,31 @@ echo '<!DOCTYPE html>
 	#**************
 	# Erzeuge Enummerations
 	foreach($umlSchema->getEnumerations() AS $enumeration) {
-		$logger->log('<br><b>Create Enum Type: ' . $enumeration['name'] . '</b> (' . $enumeration['xmi_id'] . ')');
+		$logger->log('<br><b>Create Enumeration: ' . $enumeration['name'] . '</b> (' . $enumeration['xmi_id'] . ')');
+
+		$table = new Table($enumeration['name']);
+
+		# definiere Attribute
+		$attribute = new Attribute('wert', 'character varying');
+		$table->addAttribute($attribute);
+		$attribute = new Attribute('beschreibung', 'character varying');
+		$table->addAttribute($attribute);
+
+		# definiere Primärschlüssel
+		$table->primaryKey = 'wert';
+
+		# read Values
 		$enumType = new EnumType($enumeration['name'], $logger);
 		$enumType->setSchemas($umlSchema, $gmlSchema);
 		$enumType->setId($enumeration['id']);
-		$enumType->getValues($enumeration);
-		$sql .= $enumType->asSql() . "\n";
+		$table->values = $enumType->getValues($enumeration);
+		$logger->log($table->values->asTable($table->attributes));
+
+		$tableSql = $table->asSql();
+		$logger->log('<pre>' . $tableSql . '</pre>');
+		$sql .= $tableSql;
 	}
-	$umlSchema->logger->log('<br><hr><br>');
+	$logger->log('<br><hr><br>');
 
 	#***********
 	# CodeLists
@@ -50,7 +69,7 @@ echo '<!DOCTYPE html>
 	foreach($umlSchema->getCodeLists() AS $code_list) {
 		$sql .= $umlSchema->createCodeListTable($code_list);
 	}
-	$umlSchema->logger->log('<br><hr><br>');
+	$logger->log('<br><hr><br>');
 
 	#***********
 	# Unions
@@ -63,11 +82,44 @@ echo '<!DOCTYPE html>
 		$umlSchema->logger->log('<br><b>Top UnionType: ' . $topDataType['name'] . '</b> (' . $topDataType['xmi_id'] . ')');
 		$sql .= $umlSchema->createComplexDataTypes('Union', $topDataType);
 	}
-	$umlSchema->logger->log('<br><hr><br>');
+	$logger->log('<br><hr><br>');
+
+	#********************************************
+	# Create DataTypes not definend in UML-Model
+	#********************************************
+	$dataType = new DataType('sc_crs', 'DataType', $logger);
+	$dataType->setUmlSchema($umlSchema);
+	$dataType->setId(0);
+
+	# create Attributes
+	$dataTypeAttribute = new Attribute(
+		'scope',
+		'CharacterString',
+		$dataType->name
+	);
+	$dataTypeAttribute->setStereoType('CharacterString');
+	$dataTypeAttribute->attribute_type = 'ISO 19136 GML Type';
+	$dataTypeAttribute->setMultiplicity('1', '-1');
+	$logger->log(
+		'<b>' . $dataTypeAttribute->name . '</b>
+		datatype: <b>' . $dataTypeAttribute->datatype .'</b>
+		stereotype: <b>' . $dataTypeAttribute->stereotype . '</b>'
+	);
+	$dataType->addAttribute($dataTypeAttribute);
+
+	# Create Comments
+	$comment  = $dataTypeAttribute->attribute_type . ': ' . $dataTypeAttribute->datatype;
+	$comment .= ' Stereotyp: ' . $dataTypeAttribute->stereotype;
+	$comment .= ' ' . $dataTypeAttribute->multiplicity;
+	$dataType->addComment($comment);
+
+	# Erzeuge SQL und registriere DataType in Liste
+	$sql .= $dataType->asSql();
+	$umlSchema->dataTypes[$dataType->namea] = $dataType;
 
 	#***********
 	# DataTypes
-	#***********#
+	#***********
 	$dataTypes = array();
 	# Lade oberste Klassen vom Typ DataType
 	$topDataTypes = $umlSchema->getTopUmlClasses('DataType');
@@ -75,9 +127,9 @@ echo '<!DOCTYPE html>
 	# Für alle oberen Datentypen
 	foreach($topDataTypes as $topDataType) {
 		$umlSchema->logger->log('<br><b>Top DataType: ' . $topDataType['name'] . '</b> (' . $topDataType['xmi_id'] . ')');
-		$sql .= $umlSchema->createComplexDataTypes($topDataType, $topDataType);
+		$sql .= $umlSchema->createComplexDataTypes('DataType', $topDataType);
 	}
-	$umlSchema->logger->log('<br><hr><br>');
+	$logger->log('<br><hr><br>');
 
 	#**************
 	# FeatureTypes
@@ -90,7 +142,7 @@ echo '<!DOCTYPE html>
 		$umlSchema->logger->log('<br><b>TopKlasse: ' . $topClass['name'] . '</b> (' . $topClass['xmi_id'] . ')');
 		$sql .= $umlSchema->createFeatureTypeTables('FeatureType', null, $topClass);
 	}
-	$umlSchema->logger->log('<br><hr><br>');
+	$logger->log('<br><hr><br>');
 
 	/*
 	#******************
@@ -111,7 +163,7 @@ echo '<!DOCTYPE html>
 		$umlSchema->logger->log($text);
 	}
 */
-	$umlSchema->logger->log('<br>Ende Debug Ausgabe<br><hr><br>');
+	$logger->log('<br>Ende Debug Ausgabe<br><hr><br>');
 
 #	$classSchema->execSql($sql);
 
@@ -119,16 +171,6 @@ echo '<!DOCTYPE html>
 	echo $sql;
 ?></pre>
 <?php
-	/*****************************************************************************
-	* Funktionen
-	******************************************************************************/
-	function execSql($sql) {
-		global $db_conn;
-		global $log_sql;
-		$log_sql .= $sql;
-		pg_query($db_conn, $sql);
-	}
-
 echo '	</body>
 </html>';
 ?>

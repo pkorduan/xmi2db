@@ -5,6 +5,7 @@
 	define('PG_DBNAME', 'postgres'); // Name der Datenbank
 	define('PG_USER', 'postgres'); // Benutzername
 	define('PG_PASSWORD', 'postgres'); // Kennwort
+	define('PG_MAX_NAME_LENGTH', 58); // Maximale Länge von Tabellen, Type und Attributnamen
 
 	define('UML_SCHEMA', 'aaa_uml');
 	define('CLASSES_SCHEMA', 'aaa_classes');
