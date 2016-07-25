@@ -67,7 +67,13 @@ COMMENT ON COLUMN " . $this->parent_name . "." . $this->name . " IS '";
 			switch (true) {
 				# text
 				case in_array($this->datatype, array(
-						''
+						'',
+						'featurecollection',
+						'li_lineage',
+						'sequence',
+						'dq_relativeinternalpositionalaccuracy',
+						'dq_absoluteexternalpositionalaccuracy',
+						'genericname'
 					)) :
 					$database_type = 'text';
 				break;
@@ -138,12 +144,28 @@ COMMENT ON COLUMN " . $this->parent_name . "." . $this->name . " IS '";
 					$database_type = 'geometry(LINESTRING)';
 				break;
 
+				case ($this->datatype == 'gm_compositecurve'):
+					$database_type = 'geometry(MULTILINESTRING)';
+				break;
+
 				case ($this->datatype == 'gm_multicurve'):
 					$database_type = 'geometry(MULTILINESTRING)';
 				break;
 
 				case ($this->datatype == 'gm_multipoint'):
 					$database_type = 'geometry(MULTIPOINT)';
+				break;
+
+				case ($this->datatype == 'gm_triangulatedsurface'):
+					$database_type = 'geometry(MULTIPOLYGON)';
+				break;
+
+				case ($this->datatype == 'gm_solid'):
+					$database_type = 'geometry(MULTIPOLYGON)';
+				break;
+
+				case ($this->datatype == 'gm_compositesolid'):
+					$database_type = 'geometry(MULTIPOLYGON)';
 				break;
 
 				case ($this->datatype == 'gm_multisurface'):

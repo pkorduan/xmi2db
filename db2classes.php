@@ -87,14 +87,17 @@ echo '<!DOCTYPE html>
 	#********************************************
 	# Create DataTypes not definend in UML-Model
 	#********************************************
+	
+	#*******************************
+	# SC_CRS
+	#*******************************
 	$dataType = new DataType('sc_crs', 'DataType', $logger);
 	$dataType->setUmlSchema($umlSchema);
 	$dataType->setId(0);
 
 	# create Attributes
 	$dataTypeAttribute = new Attribute(
-		'scope',
-		'CharacterString',
+		'scope','CharacterString',
 		$dataType->name
 	);
 	$dataTypeAttribute->setStereoType('CharacterString');
@@ -108,9 +111,68 @@ echo '<!DOCTYPE html>
 	$dataType->addAttribute($dataTypeAttribute);
 
 	# Create Comments
-	$comment  = $dataTypeAttribute->attribute_type . ': ' . $dataTypeAttribute->datatype;
-	$comment .= ' Stereotyp: ' . $dataTypeAttribute->stereotype;
+	$comment  = $dataTypeAttribute->attribute_type . ': ' . $dataTypeAttribute->name;
 	$comment .= ' ' . $dataTypeAttribute->multiplicity;
+	$dataType->addComment($comment);
+
+	# Erzeuge SQL und registriere DataType in Liste
+	$sql .= $dataType->asSql();
+	$umlSchema->dataTypes[$dataType->namea] = $dataType;
+
+	#*******************************
+	# doubleList
+	#*******************************
+	$dataType = new DataType('doubleList', 'DataType', $logger);
+	$dataType->setUmlSchema($umlSchema);
+	$dataType->setId(0);
+
+	# create Attributes
+	$dataTypeAttribute = new Attribute(
+		'list','Sequence',
+		$dataType->name
+	);
+	$dataTypeAttribute->setStereoType('Sequence');
+	$dataTypeAttribute->attribute_type = 'ISO 19136 GML Type';
+	$dataTypeAttribute->setMultiplicity('0', '1');
+	$logger->log(
+		'<b>' . $dataTypeAttribute->name . '</b>
+		datatype: <b>' . $dataTypeAttribute->datatype .'</b>
+		stereotype: <b>' . $dataTypeAttribute->stereotype . '</b>'
+	);
+	$dataType->addAttribute($dataTypeAttribute);
+
+	# Create Comments
+	$comment  = $dataTypeAttribute->attribute_type . ': ' . $dataTypeAttribute->name;
+	$dataType->addComment($comment);
+
+	# Erzeuge SQL und registriere DataType in Liste
+	$sql .= $dataType->asSql();
+	$umlSchema->dataTypes[$dataType->namea] = $dataType;
+
+	#*******************************
+	# Measure
+	#*******************************
+	$dataType = new DataType('Measure', 'DataType', $logger);
+	$dataType->setUmlSchema($umlSchema);
+	$dataType->setId(0);
+
+	# create Attributes
+	$dataTypeAttribute = new Attribute(
+		'value','Integer',
+		$dataType->name
+	);
+	$dataTypeAttribute->setStereoType('DataType');
+	$dataTypeAttribute->attribute_type = 'ISO 19136 GML Type';
+	$dataTypeAttribute->setMultiplicity('0', '1');
+	$logger->log(
+		'<b>' . $dataTypeAttribute->name . '</b>
+		datatype: <b>' . $dataTypeAttribute->datatype .'</b>
+		stereotype: <b>' . $dataTypeAttribute->stereotype . '</b>'
+	);
+	$dataType->addAttribute($dataTypeAttribute);
+
+	# Create Comments
+	$comment  = $dataTypeAttribute->attribute_type . ': ' . $dataTypeAttribute->name;
 	$dataType->addComment($comment);
 
 	# Erzeuge SQL und registriere DataType in Liste

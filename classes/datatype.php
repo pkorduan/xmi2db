@@ -91,8 +91,8 @@ END IF;
 END$$;";
 
 		# Ausgabe der Kommentare
-		if (!empty($comments)) {
-			$sql .= "\nCOMMENT ON DATATYPE " . $this->name . " IS '" .
+		if (!empty($this->comments)) {
+			$sql .= "\nCOMMENT ON TYPE " . $this->name . " IS '" .
 				implode(', ', $this->comments) . "';";
 		}
 		return $sql;
