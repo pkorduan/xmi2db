@@ -142,4 +142,20 @@
 	$packages[] = 'Reservierungen';
 
   define('PACKAGES', "'" . implode("','", $packages) . "'");
+  
+  $classesOut[] = '';
+  #$classesOut[] = 'AX_Flurstueck';
+  #$classesOut[] = 'AX_BenutzergruppeMitZugriffskontrolle';
+  #$classesOut[] = 'AX_Gebaeude';
+  #$classesOut[] = 'AX_Gebiet_Verwaltungsgemeinschaft';
+  #$classesOut[] = 'AX_MarkanterGelaendepunkt';
+  #$classesOut[] = 'AA_Objekt';
+  #$classesOut[] = 'AX_HistorischesFlurstueckOhneRaumbezug';
+  #$classesOut[] = 'AX_Verwaltungsgemeinschaft';
+  #$classesOut[] = 'AX_Schleuse';
+  
+  $attributesOut[] = '';
+  #$attributesOut[] = 'gemarkung';
+  #$attributesOut[] = 'gemeindezugehoerigkeit';
+  #$attributesOut[] = 'qualitaetsangaben';
 ?>
