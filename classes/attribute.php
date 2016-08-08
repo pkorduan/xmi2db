@@ -1,12 +1,17 @@
 <?php
 class Attribute {
 
-	function __construct($name, $datatype, $parent_name = '', $null = '', $default = '', $comment = '') {
+	function __construct($name, $datatype, $parent_name = '', $parent_type = '', $path = '', $null = '', $default = '', $comment = '') {
 		$this->alias = $name;
 		$this->name = strtolower(substr($name, 0, PG_MAX_NAME_LENGTH));
 		$this->brackets = '';
 		$this->parent_name = strtolower(substr($parent_name, 0, PG_MAX_NAME_LENGTH));
 		$this->parent_name_alias = $parent_name;
+		$this->parent_type = $parent_type;
+		$this->path = $path;
+		$path_parts = explode('|', $path);
+#		$this->flattened_name = strtolower($path_parts[1] . ((count($path_parts) > 2) ? '_' . end($path_parts) : ''));
+		$this->flattened_name = 'flattenedname';
 		$this->datatype = strtolower(substr($datatype, 0, PG_MAX_NAME_LENGTH));
 		$this->datatype_alias = $datatype;
 		$this->attribute_type = '';
@@ -199,6 +204,21 @@ COMMENT ON COLUMN " . $this->parent_name . "." . $this->name . " IS '";
 	function asSql() {
 		$sql = "	" .
 			$this->name . " " . $this->get_database_type() . $this->getBrackets();
+
+		# Ausgabe NOT NULL
+		if ($this->null != '')
+			$sql .= ' ' . $this->null;
+
+		# Ausgabe DEFAULT
+		if ($this->default != '')
+			$sql .= ' DEFAULT ' . $this->default;
+
+		return $sql;
+	}
+
+	function asFlattenedSql() {
+		$sql = "	" .
+			$this->flattened_name . " " . $this->get_database_type() . $this->getBrackets();
 
 		# Ausgabe NOT NULL
 		if ($this->null != '')

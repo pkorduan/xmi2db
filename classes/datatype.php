@@ -15,8 +15,9 @@ class DataType {
 		$this->logger = $logger;
 	}
 
-	function setUmlSchema($schema) {
-		$this->umlSchema = $schema;
+	function setSchemas($umlSchema, $gmlSchema) {
+		$this->umlSchema = $umlSchema;
+		$this->gmlSchema = $gmlSchema;
 	}
 
 	function setId($id) {
@@ -78,7 +79,16 @@ WHERE
 		$sql = "
 DO $$
 BEGIN
-IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = '" . $this->name . "') THEN
+IF NOT EXISTS (
+	SELECT
+		1
+	FROM
+		pg_type t JOIN
+		pg_namespace ns ON (t.typnamespace = ns.oid)
+	WHERE
+		t.typname = '" . $this->name . "'
+		AND ns.nspname = '" . $this->gmlSchema->schemaName . "'
+) THEN
 CREATE TYPE " . $this->name . " AS (
 " . implode(",\n", array_map(
 			function($attribute) {

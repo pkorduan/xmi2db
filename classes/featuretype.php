@@ -1,7 +1,7 @@
 <?php
 class FeatureType {
 
-	function __construct($name, $logger, $umlSchema) {
+	function __construct($name, $parent, $logger, $umlSchema) {
 		$this->alias = $name;
 		$this->name = $this->getName($name);
 		$this->comments = array();
@@ -10,8 +10,7 @@ class FeatureType {
 		$this->attributes = array();
 		$this->associationEnds = array();
 		$this->primaryKey = '';
-		$this->inherits = '';
-		$this->inherits_alias = '';
+		$this->parent = $parent;
 		$this->withOids = true;
 		$this->values = new Data();
 		$this->umlSchema = $umlSchema;
@@ -24,11 +23,6 @@ class FeatureType {
 
 	function setId($id) {
 		$this->id = $id;
-	}
-
-	function set_inheritance($inherits) {
-		$this->inherits = strtolower(substr($inherits, 0, PG_MAX_NAME_LENGTH));
-		$this->inherits_alias = $inherits;
 	}
 
 	function addAttribute($attribute) {
@@ -144,7 +138,7 @@ CREATE TABLE IF NOT EXISTS " . $this->name . " (
 ";
 
 		# Ausgabe id
-		if ($this->inherits == '') {
+		if ($this->parent == null) {
 			$part .= "\t" . $this->primaryKey;
 			if (WITH_UUID_OSSP) {
 				$part .= " uuid NOT NULL DEFAULT uuid_generate_v1mc(),";
@@ -188,8 +182,114 @@ CREATE TABLE IF NOT EXISTS " . $this->name . " (
 )';
 
 		# Ausgabe Vererbung
-		if ($this->inherits != '')
-			$sql .= ' INHERITS (' . $this->inherits . ')';
+		if ($this->parent != null)
+			$sql .= ' INHERITS (' . $this->parent->name . ')';
+
+		# Ausgabe WITH OIDS
+		if ($this->withOids)
+			$sql .= ' WITH OIDS';
+
+		$sql .= ';
+';	# Tabellenende
+
+		# Ausgabe Tabellenkommentare
+		if (!empty($this->comments)) {
+			$sql .= "\nCOMMENT ON TABLE " . $this->name . " IS '" .
+				implode(', ', $this->comments) . "';";
+		}
+
+		# Ausgabe Attributkommentare
+		foreach($this->attributes AS $attribute) {
+			$sql .= $attribute->getComment($this->name);
+		}
+
+		# Ausgabe Assoziationskommentare
+		foreach($this->associationEnds AS $associationEnd) {
+			$sql .= $associationEnd->getComment($this->name);
+		}
+
+		# Ausgabe Tabellen Values
+		if (!empty($this->values->rows)) {
+			$sql .= "\nINSERT INTO " . $this->name . ' (' .
+				implode(
+					',',
+					array_map(
+						function($attribute) {
+							return $attribute->name;
+						},
+						$this->attributes
+					)
+				) .
+			") VALUES \n";
+			$sql .= $this->values->asSql();
+			$sql .= ';';
+		}
+
+		return $sql;
+	}
+
+	function asFlattenedSql() {
+		$attribute_parts = array();
+		$sql = "
+CREATE TABLE IF NOT EXISTS " . $this->name . " (
+";
+		# Ausgabe id
+		$attribute_parts[] .= "\t" . $this->primaryKey . ' text';
+
+		if ($this->parent != null) {
+			# Ausgabe vererbter Attribute
+			$attribute_parts = array_merge(
+				$attribute_parts,
+				array_map(
+					function($attribute) {
+						return $attribute->asSql();
+					},
+					$this->parent->attributes
+				)
+			);
+			# Ausgabe vererbter Assoziationsenden
+			$attribute_parts = array_merge(
+				$attribute_parts,
+				array_map(
+					function($associationsEnd) {
+						return $associationsEnd->asSql();
+					},
+					$this->parent->associationEnds
+				)
+			);
+		}
+
+		# Ausgabe Attribute
+		$attribute_parts = array_merge(
+			$attribute_parts,
+			array_map(
+				function($attribute) {
+					return $attribute->asSql();
+				},
+				$this->attributes
+			)
+		);
+
+		# Ausgabe Assoziationsenden
+		$attribute_parts = array_merge(
+			$attribute_parts,
+			array_map(
+				function($associationsEnd) {
+					return $associationsEnd->asSql();
+				},
+				$this->associationEnds
+			)
+		);
+
+		# Ausgabe Primary Key
+		if ($this->primaryKey != '')
+			$attribute_parts[] = "CONSTRAINT " . $this->name . '_pkey PRIMARY KEY (' . $this->primaryKey . ')';
+
+		# Zusammenfügen der Attributteile
+		$sql .= implode(",\n", $attribute_parts);
+
+		$sql .= '
+)';
 
 		# Ausgabe WITH OIDS
 		if ($this->withOids)

@@ -9,6 +9,7 @@
 
 	define('UML_SCHEMA', 'aaa_uml');
 	define('CLASSES_SCHEMA', 'aaa_classes');
+	define('OGR_SCHEMA', 'aaa_ogr');
 
 	define('WITH_UUID_OSSP', false);
 	

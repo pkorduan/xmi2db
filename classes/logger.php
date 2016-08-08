@@ -5,7 +5,7 @@ class Logger {
 		$this->level = $level;
 		$this->text = '';
 		if ($level == 2) {
-			$this->file = fopen($filename, '+w');
+			$this->file = fopen($filename, 'w');
 		}
 	}
 
@@ -14,7 +14,12 @@ class Logger {
 		if ($this->level == 1)
 			echo $text;
 		if ($this->level == 2)
-			$this->file->write($text);
+			fwrite($this->file, $text);
+	}
+	
+	function close() {
+		if ($this->level == 2)
+			$this->file->close();
 	}
 }
 ?>

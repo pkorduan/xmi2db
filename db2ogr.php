@@ -3,6 +3,7 @@
 	include('classes/logger.php');
 	include('classes/databaseobject.php');
 	include('classes/schema.php');
+	include('classes/ogrschema.php');
 	include('classes/table.php');
 	include('classes/attribute.php');
 	include('classes/data.php');
@@ -28,9 +29,11 @@ echo '<!DOCTYPE html>
 	$umlSchema->openConnection(PG_HOST, PG_DBNAME, PG_USER, PG_PASSWORD);
 
 	# Initialize the gmlSchema object
-	$gmlSchema = new Schema(CLASSES_SCHEMA, $logger);
-	$sql = $gmlSchema->asSql();
+	$ogrSchema = new OgrSchema(OGR_SCHEMA, $logger);
+	$ogrSchema->umlSchema = $umlSchema;
+	$sql = $ogrSchema->asSql();
 
+	$umlSchema->logger->level = 0;
 	#**************
 	# Enumerations
 	#**************
@@ -82,6 +85,7 @@ echo '<!DOCTYPE html>
 	}
 	$logger->log('<br><hr><br>');
 
+	$umlSchema->logger->level = 1;
 	#**************
 	# FeatureTypes
 	#**************
@@ -90,30 +94,10 @@ echo '<!DOCTYPE html>
 	
 	# Für alle oberen Klassen
 	foreach($topClasses as $topClass) {
-		$umlSchema->logger->log('<br><b>TopKlasse: ' . $topClass['name'] . '</b> (' . $topClass['xmi_id'] . ')');
-		$sql .= $umlSchema->createFeatureTypeTables('FeatureType', null, $topClass);
+		$ogrSchema->logger->log('<br><b>TopKlasse: ' . $topClass['name'] . '</b> (' . $topClass['xmi_id'] . ')');
+		$sql .= $ogrSchema->createFeatureTypeTables('FeatureType', null, $topClass);
 	}
 	$logger->log('<br><hr><br>');
-
-	#******************
-	# n:m Associations
-	#******************
-	# Lade n:m Associations
-	$associations = $umlSchema->getAssociations();
-	foreach($associations AS $association) {
-		$text = '<br><b>Association: ' . $association['assoc_id'] . '</b><br>' .
-			$association['a_class'] . ' hat ' . $association['a_num'] . ' ' . $association['b_class'] . ' über ' . $association['a_rel'] . '<br>';
-		if ($association['b_rel'] != '')
-			$text .= $association['b_class'] . ' hat ' . $association['b_num'] . ' ' . $association['b_rel'];
-		if ($association['a_num'] == 'n' AND $association['b_num'] == 'n') {
-			$assoc_table = strtolower($association['a_class'] . '2' . $association['b_class']);
-			$text .= '<br>Lege n:m Tabelle ' . $assoc_table . ' an.';
-			$sql .= $umlSchema->createAssociationTable($association);
-		}
-		$umlSchema->logger->log($text);
-	}
-
-	$logger->log('<br>Ende Debug Ausgabe<br><hr><br>');
 
 #	$gmlSchema->execSql($sql);
 

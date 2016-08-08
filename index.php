@@ -123,6 +123,8 @@
     <div class="text-center" id="queryButton">
     <button type="submit" class="btn btn-primary btn-sm" id="queryNERC" onclick="execDb2Classes()"><span class="glyphicon glyphicon-ok"> </span> Erzeuge GML-Klassenschema</button>
     </div>
+    Listen
+    <ul><li><a href="listAttributes.php">Attribute</a></li><li><a href="listComplexTypes.php">komplexe Typen</a></li></ul>
   </div>
   </body>
 </html>

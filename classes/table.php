@@ -33,6 +33,7 @@ class Table {
 
 	function asSql() {
 		$sql = "
+
 CREATE TABLE IF NOT EXISTS " . $this->name . " (
 ";
 
@@ -60,8 +61,7 @@ CREATE TABLE IF NOT EXISTS " . $this->name . " (
 		if ($this->withOids)
 			$sql .= ' WITH OIDS';
 
-		$sql .= ';
-';	# Tabellenende
+		$sql .= ";\n";	# Tabellenende
 
 		# Ausgabe Tabellenkommentare
 		if (!empty($comments)) {
