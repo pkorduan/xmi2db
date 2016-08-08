@@ -4,7 +4,7 @@ $db_conn = pg_connect(
 	 "host=" . PG_HOST .
 	" dbname=" . PG_DBNAME .
 	" user=" . PG_USER .
-	" password=" . PG_PASSWOR
+	" password=" . PG_PASSWORD
 ) or exit (
 	 "Es konnte keine Verbindung zum Datenbankserver hergestellt werden."
 );
