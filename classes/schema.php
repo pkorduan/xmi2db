@@ -10,6 +10,7 @@ class Schema {
 		$this->codeLists = array();
 		$this->featureTypes = array();
 		$this->attributes = array();
+		$this->renameList = array();
 		$this->unions = array();
 	}
 
@@ -320,6 +321,30 @@ WHERE
 		return $result;
 	}
 
+	function getClassAttributes($class_name) {
+		$sql = "
+			SET search_path = " . $this->schemaName . ", public;
+			SELECT
+				c.class_name,
+				c.attribute_name,
+				c.attribute_datatype,
+				lower(c.attribute_stereotype) attribute_stereotype
+			FROM
+				" . $this->schemaName . ".classes_with_attributes c
+			WHERE
+				c.class_name like '" . $class_name . "'
+			ORDER by
+				c.class_name,
+				c.attribute_name
+		";
+		#echo '<br>' . $sql;
+		$result = pg_fetch_all(
+			pg_query($this->dbConn, $sql)
+		);
+		if ($result == false) $result = array();
+		return $result;
+	}
+
 	# Lade AssociationEnds for classes
 	function getAssociationEnds($class) {
 		$sql = "
@@ -623,8 +648,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 				$dataTypeAttribute = new Attribute(
 					$attribute['name'],
 					$attribute['datatype'],
-					$class['name'],
-					$dataType->stereotype,
+					$dataType,
 					$pathPart
 				);
 				$dataTypeAttribute->setStereoType($attribute['stereotype']);
@@ -717,8 +741,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 			$featureTypeAttribute = new Attribute(
 				$attribute['name'],
 				$attribute['datatype'],
-				$class['name'],
-				'featuretype',
+				$featureType,
 				$pathPart
 			);
 			$featureTypeAttribute->setStereoType($attribute['stereotype']);

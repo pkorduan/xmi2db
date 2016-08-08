@@ -9,7 +9,27 @@ class OgrSchema extends Schema {
 		$featureType->primaryKey = 'gml_id';
 		if ($parent != null)
 			$this->logger->log(' abgeleitet von: <b>' . $parent->alias . '</b>');
+		?>
+		<table><?php
+		foreach ($featureType->getFlattenedAttributes($featureType->alias, array()) AS $names) {
+			$attribute = new Attribute(
+				implode('_', $names),
+				'undefined',
+				$featureType
+			);
+			$short_name = $attribute->getFlattenedName($names);
+			echo '<tr>';
+			echo '<td>' . $attribute->alias . '</td><td>';
+			if (strlen($short_name) > 58)
+				echo '<u>' .  $short_name . '</u>';
+			else
+				echo $short_name;
+			echo '</td>';
+			echo '</tr>';
+		} ?>
+		</table><?php
 
+		/*
 		foreach($featureType->getAttributes() AS $attribute) {
 			if ($attributePath != '')
 				$pathPart = $attributPath . '|' . $class['name'] . '|' . $attribute['name'];
@@ -21,8 +41,7 @@ class OgrSchema extends Schema {
 			$featureTypeAttribute = new Attribute(
 				$attribute['name'],
 				$attribute['datatype'],
-				$class['name'],
-				'featuretype',
+				$featureType,
 				$pathPart
 			);
 			$featureTypeAttribute->setStereoType($attribute['stereotype']);
@@ -36,7 +55,7 @@ class OgrSchema extends Schema {
 				foreach($this->getAttributesFromComplexType($featureTypeAttribute->datatype, $featureTypeAttribute->stereotype) AS $complexeAttribute) {
 					$a = $complexeAttribute;
 					$this->logger->log('<br>' . $complexeAttribute->path . ' ' . $complexeAttribute->flattened_name);
-					$this->logger->log('<br>§1' . $a->flattened_name);
+					$this->logger->log('<br>' . $a->flattened_name);
 					$complexeAttribute->flattened_name = $complexeAttribute->flattened_name;
 					
 					$featureType->addAttribute($complexeAttribute);
@@ -49,6 +68,7 @@ class OgrSchema extends Schema {
 			}
 		}
 		$this->logger->log($featureType->attributesAsTable());
+		*/
 
 		# lade navigierbare Assoziationsenden von 1:n Assoziationen
 		foreach($this->umlSchema->getAssociationEnds($class) AS $end) {
@@ -70,11 +90,15 @@ class OgrSchema extends Schema {
 		
 		# lade abgeleitete Klassen
 		$subClasses = $this->umlSchema->getSubUmlClasses($stereotype, $class);
+
+		/*
 		# Für alle abgeleiteten Klassen
 		foreach($subClasses as $subClass) {
 			$this->logger->log('<br><b>Sub' . $stereotype . ': ' . $subClass['name'] . '</b> (' . $subClass['xmi_id'] . ')');
 			$sql .= $this->createFeatureTypeTables($stereotype, $featureType, $subClass);
 		}
+		*/
+
 		return $sql;
 	}
 

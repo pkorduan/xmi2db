@@ -34,6 +34,8 @@ echo '<!DOCTYPE html>
 	$sql = $ogrSchema->asSql();
 
 	$umlSchema->logger->level = 0;
+
+	/*
 	#**************
 	# Enumerations
 	#**************
@@ -84,7 +86,7 @@ echo '<!DOCTYPE html>
 		$sql .= $umlSchema->createComplexDataTypes('DataType', $topDataType, $gmlSchema);
 	}
 	$logger->log('<br><hr><br>');
-
+*/
 	$umlSchema->logger->level = 1;
 	#**************
 	# FeatureTypes

@@ -1,99 +1,81 @@
 <?php
-include('conf/database_conf.php');
-$db_conn = pg_connect(
-	 "host=" . PG_HOST .
-	" dbname=" . PG_DBNAME .
-	" user=" . PG_USER .
-	" password=" . PG_PASSWORD
-) or exit (
-	 "Es konnte keine Verbindung zum Datenbankserver hergestellt werden."
-);
+	include('conf/database_conf.php');
+	include('classes/logger.php');
+	include('classes/databaseobject.php');
+	include('classes/schema.php');
+	include('classes/ogrschema.php');
+	include('classes/table.php');
+	include('classes/attribute.php');
+	include('classes/data.php');
+	include('classes/datatype.php');
+	include('classes/enumtype.php');
+	include('classes/associationend.php');
+	include('classes/featuretype.php');
+	$tabNameAssoc = array();
+	$log_sql = '';
+	$logger = new Logger(LOGLEVEL);
 
-echo '<!DOCTYPE html>
-<html lang="de">
-	<head>
-		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	</head>
-	<body>';
-	$featureType = 'AX_Grundstueck_Bestandsnachweis'; ?>
-	<b><?php echo $featureType; ?></b>
-	<table><?php
-	foreach (getAttributes($featureType, array()) AS $attributes) {
-		$short_name = renameAttributeName($attributes);
-		echo '<tr>';
-		echo '<td>' . implode('_', $attributes) . '</td><td>';
-		if (strlen($short_name) > 58)
-			echo '<u>' .  $short_name . '</u>';
-		else
-			echo $short_name;
-		echo '</td>';
-		echo '</tr>';
-	} ?>
-</table>
-<?php
-/*****************************************************************************
-* Funktionen
-******************************************************************************/
-function renameAttributeName($name) {
-	$n = count($name);
-	$return_name = $name[0];
-	if ($n > 2) # füge den vorletzen hinzu wenn es mehr als zwei Namesteile sind
-		$return_name .= '_' . $name[$n-2];
-	if ($n > 1) # füge den letzten hinzu wenn es mehr als einer ist
-		$return_name .= '_' . $name[$n-1];
-	return $return_name;
-}
+	#*****************************************************************************
+	# 
+	#*****************************************************************************
 
+	# Initialize the umlSchema object
+	$umlSchema = new Schema(UML_SCHEMA, $logger);
+	$umlSchema->openConnection(PG_HOST, PG_DBNAME, PG_USER, PG_PASSWORD);
 
-function getAttributes($type, $path) {
-	$return_attributes = array();
-	$attributes = queryAttributes($type);
-	foreach ($attributes AS $attribute) {
-		$new_path = $path;
-		array_push($new_path, $attribute['attribute_name']);
-		if ($attribute['attribute_stereotype'] == 'datatype') {
-			foreach (getAttributes($attribute['attribute_datatype'], $new_path) AS $child_attribute) {
-				$return_attributes[] = $child_attribute;
-			}
+	# Initialize the gmlSchema object
+	$ogrSchema = new OgrSchema(OGR_SCHEMA, $logger);
+	$ogrSchema->umlSchema = $umlSchema;
+	$sql = $ogrSchema->asSql();
+
+	#**************
+	# FeatureTypes
+	#**************
+	# Lade oberste Klassen vom Typ FeatureType, die von keinen anderen abgeleitet wurden
+	$topClasses = $umlSchema->getTopUmlClasses('FeatureType');
+
+	# Für alle oberen Klassen
+	foreach($topClasses as $topClass) {
+		listFeatureTypesAttributes('FeatureType', null, $topClass);
+	}
+	header('Content-Type: application/json');
+	$json = '{';
+	foreach($ogrSchema->renameList AS $key => $value) {
+		$json .= "\n	\"{$key}\":\"{$value}\"";
+	}
+	$json .= "\n}";
+	echo $json;
+	$logger->log('<br><hr><br>');
+
+	function listFeatureTypesAttributes($stereotype, $parent, $class, $attributPath = '') {
+		global $logger, $umlSchema, $ogrSchema;
+
+		$logger->log('<br><b>Klasse: ' . $class['name'] . '</b> (' . $class['xmi_id'] . ')');
+
+		# Erzeuge FeatueType
+		$featureType = new FeatureType($class['name'], $parent, $logger, $umlSchema);
+		$featureType->setId($class['id']);
+		$featureType->primaryKey = 'gml_id';
+		if ($parent != null)
+			$logger->log(' abgeleitet von: <b>' . $parent->alias . '</b>');
+
+		$featureType->getAttributesUntilLeafs($featureType->alias, array());
+
+		$featureType->flattenAttributes();
+
+		# lade abgeleitete Klassen
+		$subClasses = $umlSchema->getSubUmlClasses($stereotype, $class);
+		if (empty($subClasses)) {
+			$featureType->unifyShortNames(1);
+			$ogrSchema->renameList = array_merge(
+				$ogrSchema->renameList,
+				$featureType->outputFlattenedAttributes()
+			);
 		}
-		else {
-			$return_attributes[] = $new_path;
+
+		foreach($subClasses as $subClass) {
+			listFeatureTypesAttributes($stereotype, $featureType, $subClass);
 		}
 	}
-	return $return_attributes;
-}
 
-function queryAttributes($class_name) {
-	$sql = "
-		SET search_path=aaa_uml, public;
-		SELeCT
-			c.class_name,
-			c.attribute_name,
-			c.attribute_datatype,
-			lower(c.attribute_stereotype) attribute_stereotype
-		FROM
-			" . UML_SCHEMA . ".classes_with_attributes c
-		WHERE
-			c.class_name like '" . $class_name . "'
-		ORDER by
-			c.class_name,
-			c.attribute_name
-";
-
-	$result = execSql($sql);
-	return $result;
-}
-
-function execSql($sql) {
-	global $db_conn;
-#	echo '<br>' . $sql;
-	$result = pg_fetch_all(
-		pg_query($db_conn, $sql)
-	);
-	if ($result == false) $result = array();
-	return $result;
-}
-
-echo '	</body>
-	</html>';
 ?>

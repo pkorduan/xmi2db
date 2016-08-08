@@ -8,6 +8,7 @@ class FeatureType {
 		if ($this->name != $this->alias)
 			$this->comments[] = 'Alias: "' . $this->alias . '"';
 		$this->attributes = array();
+		$this->attributes_until_leafs = array();
 		$this->associationEnds = array();
 		$this->primaryKey = '';
 		$this->parent = $parent;
@@ -27,6 +28,93 @@ class FeatureType {
 
 	function addAttribute($attribute) {
 		$this->attributes[] = $attribute;
+	}
+
+	function getAttributesUntilLeafs($type, $parts) {
+		$return_attributes = array();
+		$attributes = $this->umlSchema->getClassAttributes($type);
+		foreach ($attributes AS $attribute) {
+			if (!empty($attribute['attribute_name'])) {
+				if (empty($parts)) {
+					$parent = $this;
+				}
+				else {
+					$parent = new Datatype($attribute['class_name'], 'datatype', $this->logger);
+				}
+				$attributeObj = new Attribute(
+					$attribute['attribute_name'],
+					$attribute['attribute_datatype'],
+					$parent,
+					$parts
+				);
+				$attributeObj->setStereoType($attribute['attribute_stereotype']);
+				$new_path = $parts;
+				array_push($new_path, $attributeObj);
+				if (in_array(strtolower($attribute['attribute_stereotype']), array('datatype', 'union'))) {
+					foreach ($this->getAttributesUntilLeafs($attribute['attribute_datatype'], $new_path) AS $child_attribute) {
+						$return_attributes[] = $child_attribute;
+					}
+				}
+				else {
+					$return_attributes[] = $new_path;
+				}
+			}
+		}
+		$this->attributes_until_leafs = $return_attributes;
+		return $return_attributes;
+	}
+
+	function flattenAttributes() {
+		if ($this->parent != null AND !empty($this->parent->attributes)) {
+			foreach($this->parent->attributes AS $parent_attribute) {
+				$parent_attribute->parts[0]->parent->alias = $this->alias;
+				$parent_attribute->setNameFromParts();
+				$this->attributes[] = $parent_attribute;
+			}
+		}
+		foreach($this->attributes_until_leafs AS $attribute_parts) {
+			$attribute = end($attribute_parts);
+			$attribute->parts = $attribute_parts;
+			$attribute->setNameFromParts();
+			$this->attributes[] = $attribute;
+		}
+	}
+
+	function unifyShortNames($level) {
+		$multiple_occured = false;
+		foreach($this->attributes AS $a) {
+			$frequency = 0;
+			foreach($this->attributes AS $b) {
+				if ($a->short_name == $b->short_name) {
+					$frequency++;
+				}
+			}
+			$a->frequency = $frequency;
+			if ($frequency > 1) {
+				$multiple_occured = true;
+			}
+		}
+		if ($multiple_occured AND $level < 10) {
+			foreach($this->attributes AS $a) {
+				$n = count($a->parts) - $level - 1;
+				if ($a->frequency > 1 AND $n > -1) {
+					$this->logger->log('<br>Attribut: ' . $a->short_name);
+					$a->short_name = $a->parts[$n]->name . '_' . $a->short_name;
+					$this->logger->log(' umbenannt nach: ' . $a->short_name);
+				}
+			}
+			$this->unifyShortNames($level++);
+		}
+	}
+
+	function getFlattenedName() {
+		$n = count($this->attribute_names);
+		$return_name = $this->attribute_names[0]->name;
+		if ($n > 2) # füge den vorletzen hinzu wenn es mehr als zwei Namesteile sind
+			$return_name .= '_' . $this->attribute_names[$n-2]->name;
+		if ($n > 1) # füge den letzten hinzu wenn es mehr als einer ist
+			$return_name .= '_' . $this->attribute_names[$n-1]->name;
+		return $return_name;
 	}
 
 	function getAttributes() {
@@ -129,6 +217,38 @@ WHERE
 
 	function addComment($comment) {
 		$this->comments[] = $comment;
+	}
+
+	function outputFlattenedAttributes() {
+		$output = array();
+		$html = '';
+		if (empty($this->attributes))
+			$html .= '<br>keine Attribute';
+		else {
+			$html .= '<table>
+				<th>Pfad</th><th>Name</th><th>Kurzname</th>';
+				$num_attributes = 0;
+				foreach ($this->attributes AS $attribute) {
+					if ($attribute->short_name != end($attribute->parts)->name) {
+						# collect renamed attributes
+						$output[$attribute->path_name] = $attribute->short_name;
+					}
+					$html .= '<tr>';
+					$html .=  '<td>' . $attribute->path_name . '</td>';
+					$html .=  '<td>';
+					$html .=  $attribute->attributes_name;
+					if (strlen($attribute->attributes_name) > 58)
+						$html .=  '(*)';
+					$html .=  '</td>';
+					$html .=  '<td>';
+					$html .=  $attribute->short_name;
+					$html .=  '</td>';
+					$html .=  '</tr>';
+				}
+			$html .= '</table>';
+		}
+		$this->logger->log($html);
+		return $output;
 	}
 
 	function asSql() {

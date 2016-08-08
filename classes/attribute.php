@@ -1,17 +1,12 @@
 <?php
 class Attribute {
 
-	function __construct($name, $datatype, $parent_name = '', $parent_type = '', $path = '', $null = '', $default = '', $comment = '') {
+	function __construct($name, $datatype, $parent = '', $parts = '', $null = '', $default = '', $comment = '') {
 		$this->alias = $name;
-		$this->name = strtolower(substr($name, 0, PG_MAX_NAME_LENGTH));
+		$this->name = $this->getName($name);
 		$this->brackets = '';
-		$this->parent_name = strtolower(substr($parent_name, 0, PG_MAX_NAME_LENGTH));
-		$this->parent_name_alias = $parent_name;
-		$this->parent_type = $parent_type;
-		$this->path = $path;
-		$path_parts = explode('|', $path);
-#		$this->flattened_name = strtolower($path_parts[1] . ((count($path_parts) > 2) ? '_' . end($path_parts) : ''));
-		$this->flattened_name = 'flattenedname';
+		$this->parent = $parent;
+		$this->parts = parts;
 		$this->datatype = strtolower(substr($datatype, 0, PG_MAX_NAME_LENGTH));
 		$this->datatype_alias = $datatype;
 		$this->attribute_type = '';
@@ -28,11 +23,42 @@ class Attribute {
 		$this->null = $null;
 		$this->default = $default;
 		$this->comment = $comment;
+		$this->attributes_name = '';
+		$this->path_name = '';
+		$this->frequency = 0;
+	}
+
+	public static function getName($name) {
+		return strtolower(substr($name, 0, PG_MAX_NAME_LENGTH));
+	}
+
+	function setNameFromParts() {
+		$this->path_name = implode(
+			'_',
+			array_map(
+				function($part) {
+					return $part->parent->alias . '_' . $part->alias;
+				},
+				$this->parts
+			)
+		);
+
+		$this->attributes_name = implode(
+			'_',
+			array_map(
+				function($part) {
+					return $part->name;
+				},
+				$this->parts
+			)
+		);
+
+		$this->short_name = end($this->parts)->name;
 	}
 
 	function getComment() {
 		$sql = "
-COMMENT ON COLUMN " . $this->parent_name . "." . $this->name . " IS '";
+COMMENT ON COLUMN " . $this->parent->name . "." . $this->name . " IS '";
 		$sql .= trim($this->attribute_type . ' ' . $this->stereotype_alias . ' ' . $this->datatype_alias);
 		$sql .= ' ' . $this->multiplicity;
 		$sql .= "';";
