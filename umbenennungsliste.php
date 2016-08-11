@@ -38,6 +38,8 @@
 	foreach($topClasses as $topClass) {
 		listFeatureTypesAttributes('FeatureType', null, $topClass);
 	}
+	# Sortiere Ausgabeliste
+	ksort($ogrSchema->renameList);
 	header('Content-Type: application/json');
 	$json = '{';
 	foreach($ogrSchema->renameList AS $key => $value) {
