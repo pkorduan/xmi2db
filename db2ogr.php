@@ -27,21 +27,20 @@ echo '<!DOCTYPE html>
 	# Initialize the umlSchema object
 	$umlSchema = new Schema(UML_SCHEMA, $logger);
 	$umlSchema->openConnection(PG_HOST, PG_DBNAME, PG_USER, PG_PASSWORD);
+	$umlSchema->logger->level = 0;
+	$umlSchema->logger->debug = true;
 
 	# Initialize the gmlSchema object
 	$ogrSchema = new OgrSchema(OGR_SCHEMA, $logger);
 	$ogrSchema->umlSchema = $umlSchema;
 	$sql = $ogrSchema->asSql();
 
-	$umlSchema->logger->level = 0;
-
-	/*
 	#**************
 	# Enumerations
 	#**************
 	# Erzeuge Enummerations
 	foreach($umlSchema->getEnumerations() AS $enumeration) {
-		$sql .= $umlSchema->createEnumerationTable($enumeration, $gmlSchema);
+		$sql .= $umlSchema->createEnumerationTable($enumeration, $ogrSchema);
 	}
 	$logger->log('<br><hr><br>');
 
@@ -63,16 +62,16 @@ echo '<!DOCTYPE html>
 	# Für alle oberen Unions
 	foreach($topDataTypes as $topDataType) {
 		$umlSchema->logger->log('<br><b>Top UnionType: ' . $topDataType['name'] . '</b> (' . $topDataType['xmi_id'] . ')');
-		$sql .= $umlSchema->createComplexDataTypes('Union', $topDataType, $gmlSchema);
+		$sql .= $umlSchema->createComplexDataTypes('Union', $topDataType, $ogrSchema);
 	}
 	$logger->log('<br><hr><br>');
 
 	#********************************************
 	# Create DataTypes not definend in UML-Model
 	#********************************************
-	$sql .= $umlSchema->createExternalDataTypes($gmlSchema);
+	$sql .= $umlSchema->createExternalDataTypes($ogrSchema);
 	$logger->log('<br><hr><br>');
-
+	
 	#***********
 	# DataTypes
 	#***********
@@ -83,11 +82,10 @@ echo '<!DOCTYPE html>
 	# Für alle oberen Datentypen
 	foreach($topDataTypes as $topDataType) {
 		$umlSchema->logger->log('<br><b>Top DataType: ' . $topDataType['name'] . '</b> (' . $topDataType['xmi_id'] . ')');
-		$sql .= $umlSchema->createComplexDataTypes('DataType', $topDataType, $gmlSchema);
+		$sql .= $umlSchema->createComplexDataTypes('DataType', $topDataType, $ogrSchema);
 	}
 	$logger->log('<br><hr><br>');
-*/
-	$umlSchema->logger->level = 1;
+
 	#**************
 	# FeatureTypes
 	#**************

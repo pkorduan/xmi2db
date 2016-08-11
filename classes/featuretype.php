@@ -16,6 +16,7 @@ class FeatureType {
 		$this->values = new Data();
 		$this->umlSchema = $umlSchema;
 		$this->logger = $logger;
+		$this->stereotype = 'featuretype';
 	}
 
 	public static function getName($name) {
@@ -28,6 +29,22 @@ class FeatureType {
 
 	function addAttribute($attribute) {
 		$this->attributes[] = $attribute;
+	}
+
+	function setAssociationEnds($class) {
+		# lade navigierbare Assoziationsenden von 1:n Assoziationen
+		foreach($this->umlSchema->getAssociationEnds($class) AS $end) {
+			$associationEnd = new AssociationEnd(
+				$end['b_name'],
+				$end['a_class_name'],
+				$end['b_class_name'],
+				$this->logger
+			);
+			$associationEnd->stereotype = 'FeatureType';
+			$associationEnd->setMultiplicity($end['b_multiplicity_range_lower'], $end['b_multiplicity_range_upper']);
+			$this->addAssociationEnd($associationEnd);
+		}
+		$this->logger->log($this->associationsAsTable());
 	}
 
 	function getAttributesUntilLeafs($type, $parts) {
@@ -48,6 +65,7 @@ class FeatureType {
 					$parts
 				);
 				$attributeObj->setStereoType($attribute['attribute_stereotype']);
+				$attributeObj->setMultiplicity($attribute['multiplicity_range_lower'], $attribute['multiplicity_range_upper']);
 				$new_path = $parts;
 				array_push($new_path, $attributeObj);
 				if (in_array(strtolower($attribute['attribute_stereotype']), array('datatype', 'union'))) {
@@ -78,6 +96,26 @@ class FeatureType {
 			$attribute->setNameFromParts();
 			$this->attributes[] = $attribute;
 		}
+	}
+
+	function getParentsAttributes() {
+		if ($this->parent == null)
+			return array();
+		else
+			return array_merge(
+				$this->parent->attributes,
+				$this->parent->getParentsAttributes()
+			);
+	}
+
+	function getParentsAssociationEnds() {
+		if ($this->parent == null)
+			return array();
+		else
+			return array_merge(
+				$this->parent->associationEnds,
+				$this->parent->getParentsAssociationEnds()
+			);
 	}
 
 	function unifyShortNames($level) {
@@ -226,7 +264,7 @@ WHERE
 			$html .= '<br>keine Attribute';
 		else {
 			$html .= '<table>
-				<th>Pfad</th><th>Name</th><th>Kurzname</th>';
+				<th>Pfad</th><th>Name</th><th>Kurzname</th><th>Stereotype</th><th>UML-Datatype</th><th>Databasetype</th><th>Multipliziät</th>';
 				$num_attributes = 0;
 				foreach ($this->attributes AS $attribute) {
 					if ($attribute->short_name != end($attribute->parts)->name) {
@@ -242,6 +280,18 @@ WHERE
 					$html .=  '</td>';
 					$html .=  '<td>';
 					$html .=  $attribute->short_name;
+					$html .=  '</td>';
+					$html .=  '<td>';
+					$html .=  $attribute->stereotype;
+					$html .=  '</td>';
+					$html .=  '<td>';
+					$html .=  $attribute->datatype;
+					$html .=  '</td>';
+					$html .=  '<td>';
+					$html .=  $attribute->get_database_type();
+					$html .=  '</td>';
+					$html .=  '<td>';
+					$html .=  $attribute->multiplicity;
 					$html .=  '</td>';
 					$html .=  '</tr>';
 				}
@@ -351,22 +401,24 @@ CREATE TABLE IF NOT EXISTS " . $this->name . " (
 	function asFlattenedSql() {
 		$attribute_parts = array();
 		$sql = "
+
 CREATE TABLE IF NOT EXISTS " . $this->name . " (
 ";
 		# Ausgabe id
 		$attribute_parts[] .= "\t" . $this->primaryKey . ' text';
 
+		# Ausgabe Attribute
+		$attribute_parts = array_merge(
+			$attribute_parts,
+			array_map(
+				function($attribute) {
+					return $attribute->asFlattenedSql();
+				},
+				$this->attributes
+			)
+		);
+
 		if ($this->parent != null) {
-			# Ausgabe vererbter Attribute
-			$attribute_parts = array_merge(
-				$attribute_parts,
-				array_map(
-					function($attribute) {
-						return $attribute->asSql();
-					},
-					$this->parent->attributes
-				)
-			);
 			# Ausgabe vererbter Assoziationsenden
 			$attribute_parts = array_merge(
 				$attribute_parts,
@@ -374,21 +426,10 @@ CREATE TABLE IF NOT EXISTS " . $this->name . " (
 					function($associationsEnd) {
 						return $associationsEnd->asSql();
 					},
-					$this->parent->associationEnds
+					$this->getParentsAssociationEnds()
 				)
 			);
 		}
-
-		# Ausgabe Attribute
-		$attribute_parts = array_merge(
-			$attribute_parts,
-			array_map(
-				function($attribute) {
-					return $attribute->asSql();
-				},
-				$this->attributes
-			)
-		);
 
 		# Ausgabe Assoziationsenden
 		$attribute_parts = array_merge(
@@ -426,7 +467,7 @@ CREATE TABLE IF NOT EXISTS " . $this->name . " (
 
 		# Ausgabe Attributkommentare
 		foreach($this->attributes AS $attribute) {
-			$sql .= $attribute->getComment($this->name);
+			$sql .= $attribute->getFlattenedComment($this->name);
 		}
 
 		# Ausgabe Assoziationskommentare

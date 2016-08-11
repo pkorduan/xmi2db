@@ -56,10 +56,31 @@ class Attribute {
 		$this->short_name = end($this->parts)->name;
 	}
 
-	function getComment() {
+	function getComment($table_name) {
 		$sql = "
-COMMENT ON COLUMN " . $this->parent->name . "." . $this->name . " IS '";
-		$sql .= trim($this->attribute_type . ' ' . $this->stereotype_alias . ' ' . $this->datatype_alias);
+COMMENT ON COLUMN " . $table_name . "." . $this->name . " IS '";
+		$sql .= trim($this->name . ' ' . $this->stereotype_alias . ' ' . $this->datatype_alias);
+		$sql .= ' ' . $this->multiplicity;
+		$sql .= "';";
+		return $sql;
+	}
+
+	function getFlattenedComment($table_name) {
+		$parts = $this->parts;
+		$attribute_path = $parts[0]->alias;
+		array_shift($parts);
+		$attribute_path .= ' ' . implode(
+			'|',
+			array_map(
+				function($part) {
+					return $part->parent->alias . '|' . $part->alias;
+				},
+				$parts
+			)
+		);
+		$sql = "
+COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
+		$sql .= $attribute_path . ' ' . $this->stereotype_alias . ' ' . $this->datatype_alias;
 		$sql .= ' ' . $this->multiplicity;
 		$sql .= "';";
 		return $sql;
@@ -244,7 +265,7 @@ COMMENT ON COLUMN " . $this->parent->name . "." . $this->name . " IS '";
 
 	function asFlattenedSql() {
 		$sql = "	" .
-			$this->flattened_name . " " . $this->get_database_type() . $this->getBrackets();
+			$this->short_name . " " . $this->get_database_type() . $this->getBrackets();
 
 		# Ausgabe NOT NULL
 		if ($this->null != '')

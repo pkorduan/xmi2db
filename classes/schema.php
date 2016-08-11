@@ -155,8 +155,13 @@ FROM
 	" . $this->schemaName . ".packages pa ON c.package_id = pa.id
 WHERE
 	p.xmi_id = '" . $class['xmi_id'] . "' AND
-	pa.name IN (" . PACKAGES . ")
-";
+	pa.name IN (" . PACKAGES . ")";
+	
+#	if ($this->logger->debug) {
+#		$sql .= "
+#			AND c.name in ('AA_Objekt', 'AA_NREO', 'AA_Benutzer', 'AX_Benutzer');
+#		";
+#	}
 		$this->logger->log(' <br><b>Get SubClasses</b>');
 		$this->logger->log(' <textarea cols="5" rows="1">' . $sql . '</textarea>');
 		$result = pg_fetch_all(
@@ -328,7 +333,9 @@ WHERE
 				c.class_name,
 				c.attribute_name,
 				c.attribute_datatype,
-				lower(c.attribute_stereotype) attribute_stereotype
+				lower(c.attribute_stereotype) attribute_stereotype,
+				c.multiplicity_range_lower,
+				c.multiplicity_range_upper
 			FROM
 				" . $this->schemaName . ".classes_with_attributes c
 			WHERE
@@ -337,7 +344,10 @@ WHERE
 				c.class_name,
 				c.attribute_name
 		";
-		#echo '<br>' . $sql;
+
+		$this->logger->log('<br><b>Get Attributes for class: ' . $class_name . '</b>');
+		$this->logger->log(' <textarea cols="5" rows="1">' . $sql . '</textarea>');
+
 		$result = pg_fetch_all(
 			pg_query($this->dbConn, $sql)
 		);
@@ -369,7 +379,7 @@ WHERE
 	AND ca.name = '" . $class['name'] . "'
 	AND b.\"isNavigable\"
 		";
-		$this->logger->log(' <br><b>Get 1:n Association Ends: </b>');
+		$this->logger->log(' <br><b>Get 1:n Association Ends for Class: ' . $class['name'] . '</b>');
 		$this->logger->log(' <textarea cols="5" rows="1">' . $sql . '</textarea>');
 		$result = pg_fetch_all(
 			$this->execSql($sql)
@@ -628,13 +638,13 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		return $text;
 	}
 
-	function createComplexDataTypes($stereotype, $class, $gmlSchema, $attributPath = '') {
+	function createComplexDataTypes($stereotype, $class, $dbSchema, $attributPath = '') {
 		$this->logger->log('<br><b>Create ' . $stereotype . ' ' . $class['name'] . '</b> (' . $class['xmi_id'] . ') id: ' . $class['id']);
 		$sql = '';
 		$dataType = new DataType($class['name'], $stereotype, $this->logger);
 		if (!$this->stereoTypeAllreadyExists($dataType->name, $dataType->stereotype)) {
 			# union oder datentyp existiert noch nicht, jetzt erzeugen
-			$dataType->setSchemas($this, $gmlSchema);
+			$dataType->setSchemas($this, $dbSchema);
 			$dataType->setId($class['id']);
 			$attributes = $dataType->getAttributes();
 			$this->logger->log('<ul>');
@@ -664,7 +674,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 					$dataTypeClass = $this->getClass($dataTypeAttribute->datatype_alias);
 					if (!empty($dataTypeClass)) {
 						# erzeuge diesen typ und hänge in an die Liste der erzeugten Datentypen an.
-						$sql .= $this->createComplexDataTypes($dataTypeAttribute->stereotype, $dataTypeClass[0], $gmlSchema, $pathPart);
+						$sql .= $this->createComplexDataTypes($dataTypeAttribute->stereotype, $dataTypeClass[0], $dbSchema, $pathPart);
 					}
 				}
 
@@ -693,7 +703,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 
 			# Für alle abgeleiteten Klassen
 			foreach($subClasses as $subClass) {
-				$sql .= $this->createComplexDataTypes($stereotype, $subClass, $gmlSchema);
+				$sql .= $this->createComplexDataTypes($stereotype, $subClass, $dbSchema);
 			}
 			$this->logger->log('<br><pre>' . $sql . '</pre>');
 
@@ -780,7 +790,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		return $sql;
 	}
 
-	function createEnumerationTable($enumeration, $gmlSchema) {
+	function createEnumerationTable($enumeration, $dbSchema) {
 		$this->logger->log('<br><b>Create Enumeration: ' . $enumeration['name'] . '</b> (' . $enumeration['xmi_id'] . ')');
 
 		$table = new Table($enumeration['name']);
@@ -796,7 +806,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 
 		# read Values
 		$enumType = new EnumType($enumeration['name'], $this->logger);
-		$enumType->setSchemas($this, $gmlSchema);
+		$enumType->setSchemas($this, $dbSchema);
 
 		$enumType->setId($enumeration['id']);
 		$table->values = $enumType->getValues($enumeration);
@@ -920,14 +930,14 @@ IS '" . $table_orig .
 		return $sql;
 	}
 
-	function createExternalDataTypes($gmlSchema) {
+	function createExternalDataTypes($dbSchema) {
 		$this->logger->log('<b>Create external data types:</b>');
 		#*******************************
 		# SC_CRS
 		#*******************************
 		$dataType = new DataType('sc_crs', 'DataType', $this->logger);
 		$this->logger->log('<br><b>' . $dataType->name . '</b>');
-		$dataType->setSchemas($this, $gmlSchema);
+		$dataType->setSchemas($this, $dbSchema);
 		$dataType->setId(0);
 
 		# create Attributes
@@ -961,7 +971,7 @@ IS '" . $table_orig .
 		#*******************************
 		$dataType = new DataType('doubleList', 'DataType', $this->logger);
 		$this->logger->log('<br><b>' . $dataType->name . '</b>');
-		$dataType->setSchemas($this, $gmlSchema);
+		$dataType->setSchemas($this, $dbSchema);
 		$dataType->setId(0);
 
 		# create Attributes
@@ -994,7 +1004,7 @@ IS '" . $table_orig .
 		#*******************************
 		$dataType = new DataType('Measure', 'DataType', $this->logger);
 		$this->logger->log('<br><b>' . $dataType->name . '</b>');
-		$dataType->setSchemas($umlSchema, $gmlSchema);
+		$dataType->setSchemas($umlSchema, $dbSchema);
 		$dataType->setId(0);
 
 		# create Attributes
@@ -1058,16 +1068,16 @@ IS '" . $table_orig .
 		<th>Klasse</th>
 		<th>Attribut</th>
 		<th>Pfad</th>
-		<th>Flacher Name</th>
+		<th>Multiplizität</th>
 	</tr>';
 		foreach($this->attributes AS $attribute) {
 			$html .= '
 	<tr>
-		<td>' . $attribute->parent_type . '</td>
-		<td>' . $attribute->parent_name_alias . '</td>
+		<td>' . $attribute->parent->stereotype . '</td>
+		<td>' . $attribute->parent->name . '</td>
 		<td>' . $attribute->alias . '</td>
-		<td>' . $attribute->path . '</td>
-		<td>' . $attribute->flattened_name . '</td>
+		<td>' . $attribute->path_name . '</td>
+		<td>' . $attribute->multiplicity . '</td>
 	</tr>';
 		}
 		$html .= '

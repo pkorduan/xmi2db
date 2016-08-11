@@ -3,6 +3,46 @@ class OgrSchema extends Schema {
 
 	function createFeatureTypeTables($stereotype, $parent, $class, $attributPath = '') {
 		$this->logger->log('<br><b>Create ' . $stereotype . ': ' . $class['name'] .' </b>');
+#		$this->logger->log('<br><b>Klasse: ' . $class['name'] . '</b> (' . $class['xmi_id'] . ')');
+
+		# Erzeuge FeatueType
+		$featureType = new FeatureType($class['name'], $parent, $this->logger, $this->umlSchema);
+		$featureType->setId($class['id']);
+		$featureType->primaryKey = 'gml_id';
+		if ($parent != null)
+			$this->logger->log(' abgeleitet von: <b>' . $parent->alias . '</b>');
+
+		$this->logger->log('<br><b>Hole Attribute und verfolge dabei Datentypen bis zum Ende.</b>');
+
+		$featureType->getAttributesUntilLeafs($featureType->alias, array());
+		
+		$featureType->flattenAttributes();
+		
+		$featureType->outputFlattenedAttributes();
+
+		$featureType->setAssociationEnds($class);
+		
+		#echo '<pre>' . $featureType->asFlattenedSql() . '</pre>';
+
+		# lade abgeleitete Klassen
+		$subClasses = $this->umlSchema->getSubUmlClasses($stereotype, $class);
+		if (empty($subClasses)) {
+			$featureType->unifyShortNames(1);
+			$this->renameList = array_merge(
+				$this->renameList,
+				$featureType->outputFlattenedAttributes()
+			);
+
+			$sql .= $featureType->asFlattenedSql();
+		}
+
+		foreach($subClasses as $subClass) {
+			# übergibt den featureType als parent an die Sub-Klassen
+			$sql .= $this->createFeatureTypeTables($stereotype, $featureType, $subClass);
+		}
+
+/*
+		$this->logger->log('<br><b>Create ' . $stereotype . ': ' . $class['name'] .' </b>');
 		# Erzeuge FeatueType
 		$featureType = new FeatureType($class['name'], $parent, $this->logger, $this->umlSchema);
 		$featureType->setId($class['id']);
@@ -70,6 +110,7 @@ class OgrSchema extends Schema {
 		$this->logger->log($featureType->attributesAsTable());
 		*/
 
+		/*
 		# lade navigierbare Assoziationsenden von 1:n Assoziationen
 		foreach($this->umlSchema->getAssociationEnds($class) AS $end) {
 			$associationEnd = new AssociationEnd(
@@ -91,7 +132,6 @@ class OgrSchema extends Schema {
 		# lade abgeleitete Klassen
 		$subClasses = $this->umlSchema->getSubUmlClasses($stereotype, $class);
 
-		/*
 		# Für alle abgeleiteten Klassen
 		foreach($subClasses as $subClass) {
 			$this->logger->log('<br><b>Sub' . $stereotype . ': ' . $subClass['name'] . '</b> (' . $subClass['xmi_id'] . ')');
@@ -100,6 +140,35 @@ class OgrSchema extends Schema {
 		*/
 
 		return $sql;
+	}
+
+	function listFeatureTypesAttributes($stereotype, $parent, $class, $attributPath = '') {
+		$this->logger->log('<br><b>Klasse: ' . $class['name'] . '</b> (' . $class['xmi_id'] . ')');
+
+		# Erzeuge FeatueType
+		$featureType = new FeatureType($class['name'], $parent, $this->logger, $this->umlSchema);
+		$featureType->setId($class['id']);
+		$featureType->primaryKey = 'gml_id';
+		if ($parent != null)
+			$this->logger->log(' abgeleitet von: <b>' . $parent->alias . '</b>');
+
+		$featureType->getAttributesUntilLeafs($featureType->alias, array());
+
+		$featureType->flattenAttributes();
+
+		# lade abgeleitete Klassen
+		$subClasses = $this->umlSchema->getSubUmlClasses($stereotype, $class);
+		if (empty($subClasses)) {
+			$featureType->unifyShortNames(1);
+			$this->renameList = array_merge(
+				$this->renameList,
+				$featureType->outputFlattenedAttributes()
+			);
+		}
+
+		foreach($subClasses as $subClass) {
+			$this->listFeatureTypesAttributes($stereotype, $featureType, $subClass);
+		}
 	}
 
 	function getAttributesFromComplexType($datatype, $stereotype) {
