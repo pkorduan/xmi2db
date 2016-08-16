@@ -41,6 +41,13 @@
 
 			window.location = 'db2classes.php?umlSchema=' + umlSchema + '&gmlSchema=' + gmlSchema;
 		}
+		function execDb2Ogr() {
+			var umlSchema = document.getElementById("umlSchema").value,
+					ogrSchema = document.getElementById("ogrSchema").value;
+
+			window.location = 'db2ogr.php?umlSchema=' + umlSchema + '&ogrSchema=' + ogrSchema;
+			console.log('db2ogr.php?umlSchema=' + umlSchema + '&ogrSchema=' + ogrSchema);
+		}
 	</script>
 	<title>XPlanung XMI2DB Converter</title>
 	<?php include('conf/database_conf.php'); ?>
@@ -141,14 +148,14 @@
 
 		<h4>OGR-Schema</h4>
 		<i>Das Schema in dem die GML-Tabellen und Datentypen angelegt werden sollen.</i><br>
-		<input type="text" id="gmlSchema" name="gmlSchema" list="gmlSchemaListe" size="50" value="<?php echo CLASSES_SCHEMA; ?>"/>
-		<datalist id="gmlSchemaListe">
-			<option value="<?php echo CLASSES_SCHEMA; ?>" selected><?php echo OGR_SCHEMA; ?></option>
+		<input type="text" id="ogrSchema" name="ogrSchema" list="ogrSchemaListe" size="50" value="<?php echo OGR_SCHEMA; ?>"/>
+		<datalist id="ogrSchemaListe">
+			<option value="<?php echo OGR_SCHEMA; ?>" selected><?php echo OGR_SCHEMA; ?></option>
 		</datalist>
 		
 		<div class="text-center" id="queryButton">
-		<button type="submit" class="btn btn-primary btn-sm" id="queryNERC" onclick="execDb2OGR()"><span class="glyphicon glyphicon-ok"> </span> Erzeuge GML-Klassenschema</button>
-		</div>
+		<button type="submit" class="btn btn-primary btn-sm" id="queryNERC" onclick="execDb2Ogr()"><span class="glyphicon glyphicon-ok"> </span> Erzeuge OGR-Schema</button>
+		</div>	
 	</div>
 	</body>
 </html>

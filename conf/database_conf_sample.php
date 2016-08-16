@@ -7,9 +7,13 @@
 	define('PG_PASSWORD', 'postgres'); // Kennwort
 	define('PG_MAX_NAME_LENGTH', 58); // Maximale Länge von Tabellen, Type und Attributnamen
 
-	define('UML_SCHEMA', 'aaa_uml');
-	define('CLASSES_SCHEMA', 'aaa_classes');
-	define('OGR_SCHEMA', 'aaa_ogr');
+  ($_REQUEST['umlSchema'] != '') ? $umlSchemaVar = $_REQUEST['umlSchema'] : 'aaa_uml';
+  ($_REQUEST['gmlSchema'] != '') ? $gmlSchemaVar = $_REQUEST['gmlSchema'] : 'aaa_gml';
+  ($_REQUEST['ogrSchema'] != '') ? $ogrSchemaVar = $_REQUEST['ogrSchema'] : 'aaa_ogr';
+
+  define('UML_SCHEMA', $umlSchemaVar);
+  define('CLASSES_SCHEMA', $gmlSchemaVar);
+  define('OGR_SCHEMA', $ogrSchemaVar);
 
 	define('WITH_UUID_OSSP', false);
 	

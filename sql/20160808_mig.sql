@@ -19,7 +19,7 @@ CREATE OR REPLACE VIEW schema_name.classes_with_attributes AS
 			ELSE acs.name
 		END AS attribute_stereotype,
 		a.multiplicity_range_lower,
-		a.multiplicity_range_upper,
+		a.multiplicity_range_upper
 	FROM schema_name.uml_classes c
 		JOIN schema_name.stereotypes cs ON c.stereotype_id::text = cs.xmi_id::text
 		LEFT JOIN schema_name.uml_attributes a ON c.id = a.uml_class_id
