@@ -31,6 +31,7 @@ echo '<!DOCTYPE html>
 	$gmlSchema = new Schema(CLASSES_SCHEMA, $logger);
 	$sql = $gmlSchema->asSql();
 
+	$umlSchema->logger->level = 0;
 	#**************
 	# Enumerations
 	#**************
@@ -114,13 +115,9 @@ echo '<!DOCTYPE html>
 	}
 
 	$logger->log('<br>Ende Debug Ausgabe<br><hr><br>');
-
+	$umlSchema->logger->level = 1;
 #	$gmlSchema->execSql($sql);
-
-?><pre><?php
-	echo $sql;
-?></pre>
-<?php
+	$logger->log('<b>Attributliste:</b><br>' . $umlSchema->outputAttributeListHtml());
 echo '	</body>
 </html>';
 ?>

@@ -1,12 +1,12 @@
 <?php
 class Attribute {
 
-	function __construct($name, $datatype, $parent_name = '', $null = '', $default = '', $comment = '') {
+	function __construct($name, $datatype, $parent = '', $parts = '', $null = '', $default = '', $comment = '') {
 		$this->alias = $name;
-		$this->name = strtolower(substr($name, 0, PG_MAX_NAME_LENGTH));
+		$this->name = $this->getName($name);
 		$this->brackets = '';
-		$this->parent_name = strtolower(substr($parent_name, 0, PG_MAX_NAME_LENGTH));
-		$this->parent_name_alias = $parent_name;
+		$this->parent = $parent;
+		$this->parts = parts;
 		$this->datatype = strtolower(substr($datatype, 0, PG_MAX_NAME_LENGTH));
 		$this->datatype_alias = $datatype;
 		$this->attribute_type = '';
@@ -23,12 +23,64 @@ class Attribute {
 		$this->null = $null;
 		$this->default = $default;
 		$this->comment = $comment;
+		$this->attributes_name = '';
+		$this->path_name = '';
+		$this->frequency = 0;
 	}
 
-	function getComment() {
+	public static function getName($name) {
+		return strtolower(substr($name, 0, PG_MAX_NAME_LENGTH));
+	}
+
+	function setNameFromParts() {
+		$this->path_name = implode(
+			'_',
+			array_map(
+				function($part) {
+					return $part->parent->alias . '_' . $part->alias;
+				},
+				$this->parts
+			)
+		);
+
+		$this->attributes_name = implode(
+			'_',
+			array_map(
+				function($part) {
+					return $part->name;
+				},
+				$this->parts
+			)
+		);
+
+		$this->short_name = end($this->parts)->name;
+	}
+
+	function getComment($table_name) {
 		$sql = "
-COMMENT ON COLUMN " . $this->parent_name . "." . $this->name . " IS '";
-		$sql .= trim($this->attribute_type . ' ' . $this->stereotype_alias . ' ' . $this->datatype_alias);
+COMMENT ON COLUMN " . $table_name . "." . $this->name . " IS '";
+		$sql .= trim($this->name . ' ' . $this->stereotype_alias . ' ' . $this->datatype_alias);
+		$sql .= ' ' . $this->multiplicity;
+		$sql .= "';";
+		return $sql;
+	}
+
+	function getFlattenedComment($table_name) {
+		$parts = $this->parts;
+		$attribute_path = $parts[0]->alias;
+		array_shift($parts);
+		$attribute_path .= ' ' . implode(
+			'|',
+			array_map(
+				function($part) {
+					return $part->parent->alias . '|' . $part->alias;
+				},
+				$parts
+			)
+		);
+		$sql = "
+COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
+		$sql .= $attribute_path . ' ' . $this->stereotype_alias . ' ' . $this->datatype_alias;
 		$sql .= ' ' . $this->multiplicity;
 		$sql .= "';";
 		return $sql;
@@ -199,6 +251,21 @@ COMMENT ON COLUMN " . $this->parent_name . "." . $this->name . " IS '";
 	function asSql() {
 		$sql = "	" .
 			$this->name . " " . $this->get_database_type() . $this->getBrackets();
+
+		# Ausgabe NOT NULL
+		if ($this->null != '')
+			$sql .= ' ' . $this->null;
+
+		# Ausgabe DEFAULT
+		if ($this->default != '')
+			$sql .= ' DEFAULT ' . $this->default;
+
+		return $sql;
+	}
+
+	function asFlattenedSql() {
+		$sql = "	" .
+			$this->short_name . " " . $this->get_database_type() . $this->getBrackets();
 
 		# Ausgabe NOT NULL
 		if ($this->null != '')

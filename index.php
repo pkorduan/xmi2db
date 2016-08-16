@@ -94,34 +94,60 @@
 	</div>
 	<div class="container">
 		<h3>db2classes</h4>
-		db2classes überträgt die mit xmi2db eingelesenen UML-Modell-Elemente, die in dem ausgewählten
-		UML-Schema enthalten sind, in das ausgewählte GML-Klassenschema.
-		Das GML-Klassenschema enthält nach dem Ausführen von db2classes im ausgewählten Schema je
+		db2classes erzeugt ein GML-Klassenschema an Hand der mit xmi2db eingelesenen UML-Modell-Elemente.
+		Das GML-Klassenschema enthält nach dem Ausführen des erzeugten SQL im ausgewählten Schema je
 		<ul>
+			<li>eine mit den Werten befüllte Tabelle pro Enumeration</li>
 			<li>eine leere Tabelle pro FeatureType</li>
-			<li>eine mit den Werten befüllte Tabelle pro CodeListe</li>
+			<li>eine mit den Werten befüllte Tabelle pro CodeListe (falls im UML-Modell enthalten)</li>
 			<li>einen nutzerdefinierten Postgres Datentyp pro UML DataType</li>
-			<li>eine Postgres Enum Datentyp pro UML Enumeration mit den Code-Werten der Listen</li>
 		</ul>
 	</div>
 	<div class="container">
 		<h4>UML-Schema</h4>
-		<i>Das Schema wird entsprechend der gewählten Konfiguration in der Datenbank
-			"<?php echo PG_DBNAME; ?>" angelegt.</i><br>
-		<input type="text" id="umlSchema" name="umlSchema" list="schemaName" size="50"/>
-		<datalist id="umlSchemaNamen">
-			<option value="xplan_uml" selected>xplan_uml</option>
+		<i>Das Schema in dem vorher die UML-Elemente mit xmi2db eingelesen wurden.</i><br>
+		<input type="text" id="umlSchema" name="umlSchema" list="umlSchemaListe" size="50" value="<?php echo UML_SCHEMA; ?>"/>
+		<datalist id="umlSchemaListe">
+			<option value="<?php echo UML_SCHEMA; ?>" selected><?php echo UML_SCHEMA; ?></option>
 		</datalist>
+
 		<h4>GML-Klassenschema</h4>
-		<i>Das Schema wird entsprechend der gewählten Konfiguration in der Datenbank
-			"<?php echo PG_DBNAME; ?>" angelegt.</i><br>
-		<input type="text" id="gmlSchema" name="umlSchema" list="schemaName" size="50"/>
-		<datalist id="umlSchemaNamen">
-			<option value="xplan_classes" selected>xplan_classes</option>
+		<i>Das Schema in dem die GML-Tabellen und Datentypen angelegt werden sollen.</i><br>
+		<input type="text" id="gmlSchema" name="gmlSchema" list="gmlSchemaListe" size="50" value="<?php echo CLASSES_SCHEMA; ?>"/>
+		<datalist id="gmlSchemaListe">
+			<option value="<?php echo CLASSES_SCHEMA; ?>" selected><?php echo CLASSES_SCHEMA; ?></option>
 		</datalist>
 		
 		<div class="text-center" id="queryButton">
 		<button type="submit" class="btn btn-primary btn-sm" id="queryNERC" onclick="execDb2Classes()"><span class="glyphicon glyphicon-ok"> </span> Erzeuge GML-Klassenschema</button>
+		</div>
+	</div>
+	<div class="container">
+		<h3>db2ogr</h4>
+		db2ogr erzeugt aus dem UML-Modell ein flaches GML-Schema welches zum Einlesen von komplexen GML-Dateien mit ogr2ogr geeignet sein sollte. Die Tabellen der FeatureTypen enthalten alle Attribute der abgeleiteten Klassen und der verzweigenden komplexen Datentypen. Das Schema enthält nach dem Ausführen des erzeugten SQL im ausgewählten Schema je
+		<ul>
+			<li>eine mit den Werten befüllte Tabelle pro Enumeration</li>
+			<li>eine leere Tabelle pro FeatureType</li>
+			<li>eine mit den Werten befüllte Tabelle pro CodeListe (falls im UML-Modell enthalten)</li>
+		</ul>
+	</div>
+	<div class="container">
+		<h4>UML-Schema</h4>
+		<i>Das Schema in dem vorher die UML-Elemente mit xmi2db eingelesen wurden.</i><br>
+		<input type="text" id="umlSchema" name="umlSchema" list="umlSchemaListe" size="50" value="<?php echo UML_SCHEMA; ?>"/>
+		<datalist id="umlSchemaListe">
+			<option value="<?php echo UML_SCHEMA; ?>" selected><?php echo UML_SCHEMA; ?></option>
+		</datalist>
+
+		<h4>OGR-Schema</h4>
+		<i>Das Schema in dem die GML-Tabellen und Datentypen angelegt werden sollen.</i><br>
+		<input type="text" id="gmlSchema" name="gmlSchema" list="gmlSchemaListe" size="50" value="<?php echo CLASSES_SCHEMA; ?>"/>
+		<datalist id="gmlSchemaListe">
+			<option value="<?php echo CLASSES_SCHEMA; ?>" selected><?php echo OGR_SCHEMA; ?></option>
+		</datalist>
+		
+		<div class="text-center" id="queryButton">
+		<button type="submit" class="btn btn-primary btn-sm" id="queryNERC" onclick="execDb2OGR()"><span class="glyphicon glyphicon-ok"> </span> Erzeuge GML-Klassenschema</button>
 		</div>
 	</div>
 	</body>

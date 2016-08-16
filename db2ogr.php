@@ -3,6 +3,7 @@
 	include('classes/logger.php');
 	include('classes/databaseobject.php');
 	include('classes/schema.php');
+	include('classes/ogrschema.php');
 	include('classes/table.php');
 	include('classes/attribute.php');
 	include('classes/data.php');
@@ -26,17 +27,20 @@ echo '<!DOCTYPE html>
 	# Initialize the umlSchema object
 	$umlSchema = new Schema(UML_SCHEMA, $logger);
 	$umlSchema->openConnection(PG_HOST, PG_DBNAME, PG_USER, PG_PASSWORD);
+	$umlSchema->logger->level = 0;
+	$umlSchema->logger->debug = true;
 
 	# Initialize the gmlSchema object
-	$gmlSchema = new Schema(CLASSES_SCHEMA, $logger);
-	$sql = $gmlSchema->asSql();
+	$ogrSchema = new OgrSchema(OGR_SCHEMA, $logger);
+	$ogrSchema->umlSchema = $umlSchema;
+	$sql = $ogrSchema->asSql();
 
 	#**************
 	# Enumerations
 	#**************
 	# Erzeuge Enummerations
 	foreach($umlSchema->getEnumerations() AS $enumeration) {
-		$sql .= $umlSchema->createEnumerationTable($enumeration, $gmlSchema);
+		$sql .= $umlSchema->createEnumerationTable($enumeration, $ogrSchema);
 	}
 	$logger->log('<br><hr><br>');
 
@@ -58,16 +62,16 @@ echo '<!DOCTYPE html>
 	# Für alle oberen Unions
 	foreach($topDataTypes as $topDataType) {
 		$umlSchema->logger->log('<br><b>Top UnionType: ' . $topDataType['name'] . '</b> (' . $topDataType['xmi_id'] . ')');
-		$sql .= $umlSchema->createComplexDataTypes('Union', $topDataType, $gmlSchema);
+		$sql .= $umlSchema->createComplexDataTypes('Union', $topDataType, $ogrSchema);
 	}
 	$logger->log('<br><hr><br>');
 
 	#********************************************
 	# Create DataTypes not definend in UML-Model
 	#********************************************
-	$sql .= $umlSchema->createExternalDataTypes($gmlSchema);
+	$sql .= $umlSchema->createExternalDataTypes($ogrSchema);
 	$logger->log('<br><hr><br>');
-
+	
 	#***********
 	# DataTypes
 	#***********
@@ -78,7 +82,7 @@ echo '<!DOCTYPE html>
 	# Für alle oberen Datentypen
 	foreach($topDataTypes as $topDataType) {
 		$umlSchema->logger->log('<br><b>Top DataType: ' . $topDataType['name'] . '</b> (' . $topDataType['xmi_id'] . ')');
-		$sql .= $umlSchema->createComplexDataTypes('DataType', $topDataType, $gmlSchema);
+		$sql .= $umlSchema->createComplexDataTypes('DataType', $topDataType, $ogrSchema);
 	}
 	$logger->log('<br><hr><br>');
 
@@ -90,30 +94,10 @@ echo '<!DOCTYPE html>
 	
 	# Für alle oberen Klassen
 	foreach($topClasses as $topClass) {
-		$umlSchema->logger->log('<br><b>TopKlasse: ' . $topClass['name'] . '</b> (' . $topClass['xmi_id'] . ')');
-		$sql .= $umlSchema->createFeatureTypeTables('FeatureType', null, $topClass);
+		$ogrSchema->logger->log('<br><b>TopKlasse: ' . $topClass['name'] . '</b> (' . $topClass['xmi_id'] . ')');
+		$sql .= $ogrSchema->createFeatureTypeTables('FeatureType', null, $topClass);
 	}
 	$logger->log('<br><hr><br>');
-
-	#******************
-	# n:m Associations
-	#******************
-	# Lade n:m Associations
-	$associations = $umlSchema->getAssociations();
-	foreach($associations AS $association) {
-		$text = '<br><b>Association: ' . $association['assoc_id'] . '</b><br>' .
-			$association['a_class'] . ' hat ' . $association['a_num'] . ' ' . $association['b_class'] . ' über ' . $association['a_rel'] . '<br>';
-		if ($association['b_rel'] != '')
-			$text .= $association['b_class'] . ' hat ' . $association['b_num'] . ' ' . $association['b_rel'];
-		if ($association['a_num'] == 'n' AND $association['b_num'] == 'n') {
-			$assoc_table = strtolower($association['a_class'] . '2' . $association['b_class']);
-			$text .= '<br>Lege n:m Tabelle ' . $assoc_table . ' an.';
-			$sql .= $umlSchema->createAssociationTable($association);
-		}
-		$umlSchema->logger->log($text);
-	}
-
-	$logger->log('<br>Ende Debug Ausgabe<br><hr><br>');
 
 #	$gmlSchema->execSql($sql);
 
