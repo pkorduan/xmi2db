@@ -27,7 +27,7 @@ class OgrSchema extends Schema {
 		# lade abgeleitete Klassen
 		$subClasses = $this->umlSchema->getSubUmlClasses($stereotype, $class);
 		if (empty($subClasses)) {
-			$featureType->unifyShortNamesWithFirst(1);
+			$featureType->unifyShortNames(1);
 			$this->renameList = array_merge(
 				$this->renameList,
 				$featureType->outputFlattenedAttributes()

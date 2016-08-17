@@ -27,14 +27,13 @@ echo '<!DOCTYPE html>
 	# Initialize the umlSchema object
 	$umlSchema = new Schema(UML_SCHEMA, $logger);
 	$umlSchema->openConnection(PG_HOST, PG_DBNAME, PG_USER, PG_PASSWORD);
-	$umlSchema->logger->level = 1;
 	$umlSchema->logger->debug = true;
 
 	# Initialize the gmlSchema object
 	$ogrSchema = new OgrSchema(OGR_SCHEMA, $logger);
 	$ogrSchema->umlSchema = $umlSchema;
 	$sql = $ogrSchema->asSql();
-	/*
+
 	#**************
 	# Enumerations
 	#**************
@@ -85,7 +84,7 @@ echo '<!DOCTYPE html>
 		$sql .= $umlSchema->createComplexDataTypes('DataType', $topDataType, $ogrSchema);
 	}
 	$logger->log('<br><hr><br>');
-*/
+
 	#**************
 	# FeatureTypes
 	#**************
