@@ -145,6 +145,39 @@ class FeatureType {
 		}
 	}
 
+	function unifyShortNamesWithFirst($level) {
+		$multiple_occured = false;
+		foreach($this->attributes AS $a) {
+			$frequency = 0;
+			foreach($this->attributes AS $b) {
+				if ($a->short_name == $b->short_name) {
+					$frequency++;
+				}
+			}
+			$a->frequency = $frequency;
+			if ($frequency > 1) {
+				$multiple_occured = true;
+			}
+		}
+		if ($multiple_occured AND $level < 10) {
+			foreach($this->attributes AS $a) {
+				$n = count($a->parts) - $level - 1;
+				if ($a->frequency > 1 AND $n > -1) {
+					$this->logger->log('<br>Attribut: ' . $a->short_name);
+					$this->logger->log('<br>level: ' . $level . ' path' . $a->path_name);
+					if ($level == 1) {
+						$a->short_name = $a->parts[0]->name . '_' . $a->short_name;
+					}
+					else {
+						$a->short_name = $a->parts[$n]->name . '_' . $a->short_name;
+					}
+					$this->logger->log(' umbenannt nach: ' . $a->short_name);
+				}
+			}
+			$this->unifyShortNames($level++);
+		}
+	}
+
 	function getFlattenedName() {
 		$n = count($this->attribute_names);
 		$return_name = $this->attribute_names[0]->name;
@@ -268,8 +301,10 @@ WHERE
 				$num_attributes = 0;
 				foreach ($this->attributes AS $attribute) {
 					if ($attribute->short_name != end($attribute->parts)->name) {
-						# collect renamed attributes
-						$output[$attribute->path_name] = $attribute->short_name;
+					#	if (strpos(strtolower($attribute->path_name), 'zeigtaufexternes') === false) {
+							# collect renamed attributes
+							$output[$attribute->path_name] = $attribute->short_name;
+					#	}
 					}
 					$html .= '<tr>';
 					$html .=  '<td>' . $attribute->path_name . '</td>';

@@ -36,7 +36,7 @@
 
 	# Für alle oberen Klassen
 	foreach($topClasses as $topClass) {
-		$ogrSchema->listFeatureTypesAttributes('FeatureType', null, $topClass);
+		$ogrSchema->listFeatureTypesAttributes('FeatureType', null, $topClass, false);
 	}
 	# Sortiere Ausgabeliste
 	ksort($ogrSchema->renameList);

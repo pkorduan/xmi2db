@@ -27,7 +27,7 @@ class OgrSchema extends Schema {
 		# lade abgeleitete Klassen
 		$subClasses = $this->umlSchema->getSubUmlClasses($stereotype, $class);
 		if (empty($subClasses)) {
-			$featureType->unifyShortNames(1);
+			$featureType->unifyShortNamesWithFirst(1);
 			$this->renameList = array_merge(
 				$this->renameList,
 				$featureType->outputFlattenedAttributes()
@@ -142,7 +142,7 @@ class OgrSchema extends Schema {
 		return $sql;
 	}
 
-	function listFeatureTypesAttributes($stereotype, $parent, $class, $attributPath = '') {
+	function listFeatureTypesAttributes($stereotype, $parent, $class, $with_first_attrib_name = false) {
 		$this->logger->log('<br><b>Klasse: ' . $class['name'] . '</b> (' . $class['xmi_id'] . ')');
 
 		# Erzeuge FeatueType
@@ -159,7 +159,12 @@ class OgrSchema extends Schema {
 		# lade abgeleitete Klassen
 		$subClasses = $this->umlSchema->getSubUmlClasses($stereotype, $class);
 		if (empty($subClasses)) {
-			$featureType->unifyShortNames(1);
+			if ($with_first_attrib_name) {
+				$featureType->unifyShortNamesWithFirst(1);
+			}
+			else {
+				$featureType->unifyShortNames(1);
+			}
 			$this->renameList = array_merge(
 				$this->renameList,
 				$featureType->outputFlattenedAttributes()
@@ -167,7 +172,7 @@ class OgrSchema extends Schema {
 		}
 
 		foreach($subClasses as $subClass) {
-			$this->listFeatureTypesAttributes($stereotype, $featureType, $subClass);
+			$this->listFeatureTypesAttributes($stereotype, $featureType, $subClass, $with_first_attrib_name);
 		}
 	}
 
