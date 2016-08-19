@@ -1,7 +1,7 @@
 <?php
-class EnumType {
+class Enumeration {
 
-	function EnumType($name, $logger) {
+	function Enumeration($name, $logger) {
 		$this->alias = $name;
 		$this->name = strtolower(substr($name, 0, 58));
 		if ($this->name != $this->alias)
@@ -9,6 +9,8 @@ class EnumType {
 		$this->values = new Data();
 		$this->id = 0;
 		$this->logger = $logger;
+		$this->value_type = 'character varying';
+		$this->enum_type = 'keytable';
 	}
 
 	function setSchemas($umlSchema, $gmlSchema) {
@@ -63,6 +65,11 @@ WHERE
 				trim($row['name'])
 			));
 		}
+		$this->value_type = (ctype_digit($this->values->rows[0][0])) ? 'integer' : 'character varying';
+		$this->enum_type = (
+			$this->values->rows[0][0] == $this->values->rows[0][1] ||
+			$this->values->rows[0][1] == 'NULL'
+		) ? 'enum' : 'keytable';
 		return $this->values;
 	}
 

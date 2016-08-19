@@ -61,6 +61,7 @@ class FeatureType {
 				$attributeObj = new Attribute(
 					$attribute['attribute_name'],
 					$attribute['attribute_datatype'],
+					$this->logger,
 					$parent,
 					$parts
 				);

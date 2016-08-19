@@ -7,6 +7,7 @@ class Schema {
 		$this->unionTypes = array();
 		$this->dataTypes = array();
 		$this->enumerations = array();
+		$this->enumerationTypes = array();
 		$this->codeLists = array();
 		$this->featureTypes = array();
 		$this->attributes = array();
@@ -658,6 +659,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 				$dataTypeAttribute = new Attribute(
 					$attribute['name'],
 					$attribute['datatype'],
+					$this->logger,
 					$dataType,
 					$pathPart
 				);
@@ -751,11 +753,18 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 			$featureTypeAttribute = new Attribute(
 				$attribute['name'],
 				$attribute['datatype'],
+				$this->logger,
 				$featureType,
 				$pathPart
 			);
 			$featureTypeAttribute->setStereoType($attribute['stereotype']);
+
 			$featureTypeAttribute->attribute_type = $attribute['attribute_type'];
+
+			if ($featureTypeAttribute->stereotype == 'enumeration') {
+				$featureTypeAttribute->setEnumeration($this->enumerationTypes[$featureTypeAttribute->datatype]);
+			}
+
 			$featureTypeAttribute->setMultiplicity($attribute['multiplicity_range_lower'], $attribute['multiplicity_range_upper']);
 			$featureType->addAttribute($featureTypeAttribute);
 			$this->attributes[] = $featureTypeAttribute;
@@ -790,32 +799,45 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		return $sql;
 	}
 
-	function createEnumerationTable($enumeration, $dbSchema) {
-		$this->logger->log('<br><b>Create Enumeration Tables: ' . $enumeration['name'] . '</b> (' . $enumeration['xmi_id'] . ')');
-
-		$table = new Table('enum_' . $enumeration['name']);
-
+	function createEnumerationTable($uml_enum, $dbSchema) {
 		# read Values
-		$enumType = new EnumType($enumeration['name'], $this->logger);
-		$enumType->setSchemas($this, $dbSchema);
-		$enumType->setId($enumeration['id']);
-		$table->values = $enumType->getValues($enumeration);
+		$enumeration = new Enumeration($uml_enum['name'], $this->logger);
+		$enumeration->setSchemas($this, $dbSchema);
+		$enumeration->setId($uml_enum['id']);
+		$enumeration->getValues($uml_enum);
 
-		# definiere Attribute
-		$wert_type = (ctype_digit($table->values->rows[0][0])) ? 'integer' : 'character varying';
-		$attribute = new Attribute('wert', $wert_type);
-		$table->addAttribute($attribute);
-		$attribute = new Attribute('beschreibung', 'character varying');
-		$table->addAttribute($attribute);
+		if ($enumeration->enum_type == 'keytable') {
+			$this->logger->log('<br><b>Erzeuge Schlüsseltabelle für Enumeration: ' . $uml_enum['name'] . '</b> (' . $uml_enum['xmi_id'] . ')');
+			# erzeuge Schlüsseltabelle
+			$table = new Table($uml_enum['name']);
+			# erzeuge Attribute
+			$attribute = new Attribute('wert', $enumeration->value_type, $this->logger); // 1000 => int or 'linksbündig' => character Varying
+			$table->addAttribute($attribute);
+			$attribute = new Attribute('beschreibung', 'character varying', $this->logger);
+			$table->addAttribute($attribute);
+			# befülle mit Werten
+			$table->values = $enumeration->values;
+			# definiere Primärschlüssel
+			$table->primaryKey = 'wert';
+			# Zeige Werte im Log an.
+			$this->logger->log($table->values->asTable($table->attributes));
+			# Gebe SQL für Schlüsseltabelle aus
+			$sql = $table->asSql();
+		}
+		else {
+			$this->logger->log('<br><b>Erzeuge Datentyp für Enumeration: ' . $uml_enum['name'] . '</b> (' . $uml_enum['xmi_id'] . ')');
+			$this->logger->log($enumeration->values->asList($table->attributes));
+			# Gebe SQL für datatype enum aus
+			$sql = $enumeration->asSql();
+		}
 
-		# definiere Primärschlüssel
-		$table->primaryKey = 'wert';
+		# registriere Enumeration im Schema
+		# An Hand dieser Werte kann später entschieden werden, ob das Attribut, welches die Enumeration verwendet
+		# den gleichnamigen datatype enum bekommt oder
+		# den Fremdschlüssel auf die Schlüsseltabelle der Enumeration mit Beschreibungen
+		$this->enumerationTypes[$enumeration->name] = $enumeration;
 
-		$this->logger->log($table->values->asTable($table->attributes));
-
-		$sql  = $enumType->asSql();
-		$sql .= $table->asSql();
-		$this->logger->log('<pre>' . $tableSql . '</pre>');
+		$this->logger->log('<pre>' . $sql . '</pre>');
 		return $sql;
 	}
 
@@ -825,15 +847,15 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		$table = new Table($code_list['name']);
 
 		# definiere Attribute
-		$attribute = new Attribute('id', 'integer');
+		$attribute = new Attribute('id', 'integer', $this->logger);
 		$table->addAttribute($attribute);
-		$attribute = new Attribute('name', 'character varying');
+		$attribute = new Attribute('name', 'character varying', $this->logger);
 		$table->addAttribute($attribute);
-		$attribute = new Attribute('status', 'character varying');
+		$attribute = new Attribute('status', 'character varying', $this->logger);
 		$table->addAttribute($attribute);
-		$attribute = new Attribute('definition', 'text');
+		$attribute = new Attribute('definition', 'text', $this->logger);
 		$table->addAttribute($attribute);
-		$attribute = new Attribute('additional_information', 'text');
+		$attribute = new Attribute('additional_information', 'text', $this->logger);
 		$table->addAttribute($attribute);
 
 		# definiere Primärschlüssel
@@ -945,7 +967,8 @@ IS '" . $table_orig .
 		# create Attributes
 		$dataTypeAttribute = new Attribute(
 			'scope','CharacterString',
-			$dataType->name
+			$dataType->name,
+			$this->logger
 		);
 		$dataTypeAttribute->setStereoType('CharacterString');
 		$dataTypeAttribute->attribute_type = 'ISO 19136 GML Type';
@@ -979,7 +1002,8 @@ IS '" . $table_orig .
 		# create Attributes
 		$dataTypeAttribute = new Attribute(
 			'list','Sequence',
-			$dataType->name
+			$dataType->name,
+			$this->logger
 		);
 		$dataTypeAttribute->setStereoType('Sequence');
 		$dataTypeAttribute->attribute_type = 'ISO 19136 GML Type';
@@ -1012,7 +1036,8 @@ IS '" . $table_orig .
 		# create Attributes
 		$dataTypeAttribute = new Attribute(
 			'value','Integer',
-			$dataType->name
+			$dataType->name,
+			$this->logger
 		);
 		$dataTypeAttribute->setStereoType('DataType');
 		$dataTypeAttribute->attribute_type = 'ISO 19136 GML Type';

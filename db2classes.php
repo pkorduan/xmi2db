@@ -7,7 +7,7 @@
 	include('classes/attribute.php');
 	include('classes/data.php');
 	include('classes/datatype.php');
-	include('classes/enumtype.php');
+	include('classes/enumeration.php');
 	include('classes/associationend.php');
 	include('classes/featuretype.php');
 	$tabNameAssoc = array();

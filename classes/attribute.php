@@ -1,7 +1,7 @@
 <?php
 class Attribute {
 
-	function __construct($name, $datatype, $parent = '', $parts = '', $null = '', $default = '', $comment = '') {
+	function __construct($name, $datatype, $logger, $parent = '', $parts = '', $null = '', $default = '', $comment = '') {
 		$this->alias = $name;
 		$this->name = $this->getName($name);
 		$this->brackets = '';
@@ -9,6 +9,7 @@ class Attribute {
 		$this->parts = parts;
 		$this->datatype = strtolower(substr($datatype, 0, PG_MAX_NAME_LENGTH));
 		$this->datatype_alias = $datatype;
+		$this->logger = $logger;
 		$this->attribute_type = '';
 		$this->stereotype = '';
 		$this->stereotype_alias = '';
@@ -26,6 +27,7 @@ class Attribute {
 		$this->attributes_name = '';
 		$this->path_name = '';
 		$this->frequency = 0;
+		$this->enumeration = '';
 	}
 
 	public static function getName($name) {
@@ -102,6 +104,19 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 	function setStereoType($stereotype) {
 		$this->stereotype = strtolower(substr($stereotype, 0, PG_MAX_NAME_LENGTH));
 		$this->stereotype_alias = $stereotype;
+	}
+
+	function setEnumeration($enumeration) {
+		echo 'hhg';
+		$this->enumeration = $enumeration;
+		if ($this->enumeration->enum_type == 'keytable') {
+			$this->logger->log(
+				'<br>Ändere Datentyp des Attributes <b>' . $this->parent->name . '</b> von
+				<b>' . $this->datatype . '</b> nach
+				<b>' . $this->enumeration->value_type . '</b>'
+			);
+			$this->datatype = $this->enumeration->value_type;
+		}
 	}
 
 	function get_database_type() {
@@ -259,6 +274,12 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 		# Ausgabe DEFAULT
 		if ($this->default != '')
 			$sql .= ' DEFAULT ' . $this->default;
+
+		# Ausgabe der Fremdschlüsselbeziehungen zu Schlüsseltabellen von EnumTypen
+		if ($this->enumeration->enum_type == 'keytable') {
+			$this->logger->log('<br>Erzeuge Fremdschlüsselbeziehung zur Schlüsseltabelle ' . $this->enumeration->name . ' für Enumeration-Attribut: ' . $this->name);
+			$sql .= ' references ' . $this->enumeration->name . '(wert)';
+		}
 
 		return $sql;
 	}

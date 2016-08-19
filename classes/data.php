@@ -26,6 +26,16 @@ class Data {
 		return $html;
 	}
 
+	function asList($attributes) {
+		$html = implode(', ', array_map(
+			function ($values) {
+				return $values[0];
+			},
+			$this->rows
+		));
+		return $html;
+	}
+
 	function asSql() {
 		$sql = implode(
 				",\n",
