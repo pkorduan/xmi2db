@@ -34,7 +34,7 @@ echo '<!DOCTYPE html>
 	#**************
 	# Enumerations
 	#**************
-	# Erzeuge Enummerations
+	# Erzeuge Enummerationtypen und dazugehörige enum_ Schlüsseltabellen
 	foreach($umlSchema->getEnumerations() AS $enumeration) {
 		$sql .= $umlSchema->createEnumerationTable($enumeration, $gmlSchema);
 	}

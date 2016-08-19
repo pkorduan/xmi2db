@@ -791,9 +791,9 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 	}
 
 	function createEnumerationTable($enumeration, $dbSchema) {
-		$this->logger->log('<br><b>Create Enumeration: ' . $enumeration['name'] . '</b> (' . $enumeration['xmi_id'] . ')');
+		$this->logger->log('<br><b>Create Enumeration Tables: ' . $enumeration['name'] . '</b> (' . $enumeration['xmi_id'] . ')');
 
-		$table = new Table($enumeration['name']);
+		$table = new Table('enum_' . $enumeration['name']);
 
 		# read Values
 		$enumType = new EnumType($enumeration['name'], $this->logger);
@@ -813,7 +813,8 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 
 		$this->logger->log($table->values->asTable($table->attributes));
 
-		$sql = $table->asSql();
+		$sql  = $enumType->asSql();
+		$sql .= $table->asSql();
 		$this->logger->log('<pre>' . $tableSql . '</pre>');
 		return $sql;
 	}

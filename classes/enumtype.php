@@ -20,6 +20,16 @@ class EnumType {
 		$this->id = $id;
 	}
 
+	function getWerte() {
+		return array_map(
+			function ($value) {
+				$text = (ctype_digit($value[0])) ? $value[0] : "'" . $value[0] . "'";
+				return $text;
+			},
+			$this->values->rows
+		);
+	}
+
 	function getValues() {
 		$sql = "
 SELECT
@@ -70,8 +80,8 @@ IF NOT EXISTS (
 		t.typname = '" . $this->name . "'
 		AND ns.nspname = '" . $this->gmlSchema->schemaName . "'
 ) THEN
-CREATE TYPE " . $this->name . " AS ENUM 
-" . $this->values->asSql() . ";
+CREATE TYPE " . $this->gmlSchema->schemaName . "." . $this->name . " AS ENUM 
+	(" . implode(', ', $this->getWerte()) . ");
 END IF;
 END$$;
 ";
