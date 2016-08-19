@@ -795,8 +795,15 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 
 		$table = new Table($enumeration['name']);
 
+		# read Values
+		$enumType = new EnumType($enumeration['name'], $this->logger);
+		$enumType->setSchemas($this, $dbSchema);
+		$enumType->setId($enumeration['id']);
+		$table->values = $enumType->getValues($enumeration);
+
 		# definiere Attribute
-		$attribute = new Attribute('wert', 'character varying');
+		$wert_type = (ctype_digit($table->values->rows[0][0])) ? 'integer' : 'character varying';
+		$attribute = new Attribute('wert', $wert_type);
 		$table->addAttribute($attribute);
 		$attribute = new Attribute('beschreibung', 'character varying');
 		$table->addAttribute($attribute);
@@ -804,12 +811,6 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		# definiere Primärschlüssel
 		$table->primaryKey = 'wert';
 
-		# read Values
-		$enumType = new EnumType($enumeration['name'], $this->logger);
-		$enumType->setSchemas($this, $dbSchema);
-
-		$enumType->setId($enumeration['id']);
-		$table->values = $enumType->getValues($enumeration);
 		$this->logger->log($table->values->asTable($table->attributes));
 
 		$sql = $table->asSql();
