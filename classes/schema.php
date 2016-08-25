@@ -361,7 +361,8 @@ WHERE
 SELECT
 	ca.name a_class_name,
 	b.id b_id,
-	b.name b_name,
+	CASE WHEN b.name = '<undefined>' AND NOT b.\"isNavigable\" THEN 'inversZu_' || a.name || '_' || cb.name ELSE b.name END AS b_name,
+	-- b.name b_name,
 	b.multiplicity_range_lower b_multiplicity_range_lower,
 	b.multiplicity_range_upper b_multiplicity_range_upper,
 	a.id a_id,
@@ -377,7 +378,7 @@ FROM
 WHERE
 	a.id != b.id
 	AND ca.name = '" . $class['name'] . "'
-	AND b.\"isNavigable\"
+	-- AND b.\"isNavigable\"
 		";
 		$this->logger->log(' <br><b>Get 1:n Association Ends for Class: ' . $class['name'] . '</b>');
 		$this->logger->log(' <textarea cols="5" rows="1">' . $sql . '</textarea>');
