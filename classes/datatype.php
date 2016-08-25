@@ -24,49 +24,6 @@ class DataType {
 		$this->id = $id;
 	}
 
-	function getAttributes() {
-		$sql = "
-SELECT
-	a.name AS name,
-	CASE
-		WHEN d.name IS NULL THEN cc.name
-		ELSE d.name
-	END AS datatype, 
-	CASE
-		WHEN d.name IS NULL THEN cs.name
-		ELSE ds.name
-	END AS stereotype,
-	CASE
-		WHEN d.name IS NULL THEN CASE
-			WHEN cs.name IS NULL THEN NULL
-			ELSE 'UML-Classifier'
-		END
-		ELSE 'UML-DataType'
-	END AS attribute_type,
-	a.multiplicity_range_lower::integer,
-	a.multiplicity_range_upper,
-	a.initialvalue_body
-FROM
-	" . $this->umlSchema->schemaName . ".uml_classes c JOIN 
-	" . $this->umlSchema->schemaName . ".uml_attributes a ON c.id = a.uml_class_id LEFT JOIN
-	" . $this->umlSchema->schemaName . ".datatypes d ON a.datatype = d.xmi_id LEFT JOIN
-	" . $this->umlSchema->schemaName . ".uml_classes dc ON d.name = dc.name LEFT JOIN
-	" . $this->umlSchema->schemaName . ".stereotypes ds ON dc.stereotype_id = ds.xmi_id Left JOIN
-	" . $this->umlSchema->schemaName . ".uml_classes cc ON a.classifier = cc.xmi_id LEFT JOIN
-	" . $this->umlSchema->schemaName . ".stereotypes cs ON cc.stereotype_id = cs.xmi_id
-WHERE
-	uml_class_id = " . $this->id . "
-";
-		$this->logger->log('<br><b>Get Attributes: </b>');
-		$this->logger->log(' <textarea cols="5" rows="1">' . $sql . '</textarea>');
-
-		$result = pg_fetch_all(
-			pg_query($this->umlSchema->dbConn, $sql)
-		);
-		if ($result == false) $result = array();
-		return $result;
-	}
-
 	function addAttribute($attribute) {
 		$this->attributes[] = $attribute;
 	}

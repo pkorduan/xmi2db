@@ -188,49 +188,6 @@ class FeatureType {
 		return $return_name;
 	}
 
-	function getAttributes() {
-		$sql = "
-SELECT
-	a.name AS name,
-	CASE
-		WHEN d.name IS NULL THEN cc.name
-		ELSE d.name
-	END AS datatype, 
-	CASE
-		WHEN d.name IS NULL THEN cs.name
-		ELSE ds.name
-	END AS stereotype,
-	CASE
-		WHEN d.name IS NULL THEN CASE
-			WHEN cs.name IS NULL THEN NULL
-			ELSE 'UML-Classifier'
-		END
-		ELSE 'UML-DataType'
-	END AS attribute_type,
-	a.multiplicity_range_lower::integer,
-	a.multiplicity_range_upper,
-	a.initialvalue_body
-FROM
-	" . $this->umlSchema->schemaName . ".uml_classes c JOIN 
-	" . $this->umlSchema->schemaName . ".uml_attributes a ON c.id = a.uml_class_id LEFT JOIN
-	" . $this->umlSchema->schemaName . ".datatypes d ON a.datatype = d.xmi_id LEFT JOIN
-	" . $this->umlSchema->schemaName . ".uml_classes dc ON d.name = dc.name LEFT JOIN
-	" . $this->umlSchema->schemaName . ".stereotypes ds ON dc.stereotype_id = ds.xmi_id Left JOIN
-	" . $this->umlSchema->schemaName . ".uml_classes cc ON a.classifier = cc.xmi_id LEFT JOIN
-	" . $this->umlSchema->schemaName . ".stereotypes cs ON cc.stereotype_id = cs.xmi_id
-WHERE
-	uml_class_id = " . $this->id . "
-";
-		$this->logger->log('<br><b>Get Attributes: </b>');
-		$this->logger->log(' <textarea cols="5" rows="1">' . $sql . '</textarea>');
-
-		$result = pg_fetch_all(
-			$this->umlSchema->execSql($sql)
-		);
-		if ($result == false) $result = array();
-		return $result;
-	}
-
 	function getKeys() {
 		return array_map(
 			function($attribute) {
@@ -245,7 +202,7 @@ WHERE
 			$html = '<br>Keine Attribute gefunden.';
 		}
 		else {
-			$html = '<table border="1"><tr><th>Attribut</th><th>Attributtyp</th><th>Stereotyp</th><th>Datentyp</th><th>Multiplizität</th><th>Default</th></tr>';
+			$html = '<table border="1"><tr><th>Attribut</th><th>Attributtyp</th><th>Stereotyp</th><th>Datentyp</th><th>Multiplizität</th><th>Default</th><th>Sequence</th></tr>';
 			# für jedes Attribut erzeuge Attributzeilen
 			foreach($this->attributes AS $i => $attribute) {
 				$html .= '<tr><td>' . $attribute->name . '</td><td>' .
@@ -253,7 +210,8 @@ WHERE
 								$attribute->stereotype . '</td><td>' .
 								$attribute->datatype . '</td><td>' .
 								$attribute->multiplicity . '</td><td>' .
-								$attribute->default . '</td></tr>';
+								$attribute->default . '</td><td>' .
+								$attribute->sequence_number . '</td></tr>';
 				$sql .= '
 		';
 			}

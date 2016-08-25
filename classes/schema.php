@@ -239,7 +239,7 @@ WHERE
 		return $result;
   }
 
-	function getAttributes($class) {
+	function getAttributes($class_id) {
 		$sql = "
 SELECT
 	a.name AS name,
@@ -260,7 +260,8 @@ SELECT
 	END AS attribute_type,
 	a.multiplicity_range_lower::integer,
 	a.multiplicity_range_upper,
-	a.initialvalue_body
+	a.initialvalue_body,
+	tv.datavalue AS sequence_number
 FROM
 	" . $this->schemaName . ".uml_classes c JOIN 
 	" . $this->schemaName . ".uml_attributes a ON c.id = a.uml_class_id LEFT JOIN
@@ -268,11 +269,16 @@ FROM
 	" . $this->schemaName . ".uml_classes dc ON d.name = dc.name LEFT JOIN
 	" . $this->schemaName . ".stereotypes ds ON dc.stereotype_id = ds.xmi_id Left JOIN
 	" . $this->schemaName . ".uml_classes cc ON a.classifier = cc.xmi_id LEFT JOIN
-	" . $this->schemaName . ".stereotypes cs ON cc.stereotype_id = cs.xmi_id
+	" . $this->schemaName . ".stereotypes cs ON cc.stereotype_id = cs.xmi_id LEFT JOIN
+	" . $this->schemaName . ".taggedvalues tv ON a.id = tv.attribute_id LEFT JOIN
+	" . $this->schemaName . ".tagdefinitions td ON tv.type = td.xmi_id
 WHERE
-	uml_class_id = " . $class['id'] . "
+  lower(td.name) = 'sequencenumber' AND
+	uml_class_id = " . $class_id . "
+ORDER BY
+	tv.datavalue
 ";
-		$this->logger->log(' <b>Get Attributes: </b>');
+		$this->logger->log('<br><b>Get Attributes: </b>');
 		$this->logger->log(' <textarea cols="5" rows="1">' . $sql . '</textarea>');
 
 		$result = pg_fetch_all(
@@ -647,7 +653,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 			# union oder datentyp existiert noch nicht, jetzt erzeugen
 			$dataType->setSchemas($this, $dbSchema);
 			$dataType->setId($class['id']);
-			$attributes = $dataType->getAttributes();
+			$attributes = $this->getAttributes($dataType->id);
 			$this->logger->log('<ul>');
 			foreach($attributes AS $attribute) {
 				$this->logger->log('<li>');
@@ -665,7 +671,8 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 				$dataTypeAttribute->setStereoType($attribute['stereotype']);
 				$dataTypeAttribute->attribute_type = $attribute['attribute_type'];
 				$dataTypeAttribute->setMultiplicity($attribute['multiplicity_range_lower'], $attribute['multiplicity_range_upper']);
-				$this->logger->log('<b>' . $attribute['name'] . '</b> datatype: <b>' . $dataTypeAttribute->datatype .'</b> stereotype: <b>' . $dataTypeAttribute->stereotype . '</b>');
+				$dataTypeAttribute->sequence_number = $attribute['sequence_number'];
+				$this->logger->log('<b>' . $attribute['name'] . '</b> datatype: <b>' . $dataTypeAttribute->datatype .'</b> stereotype: <b>' . $dataTypeAttribute->stereotype . '</b> sequenceNumber: <b>' . $dataTypeAttribute->sequence_number . '</b>');
 				$dataType->addAttribute($dataTypeAttribute);
 				$this->attributes[] = $dataTypeAttribute;
 
@@ -744,7 +751,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 			$this->logger->log(' abgeleitet von: <b>' . $parent->alias . '</b>');
 		}
 
-		foreach($featureType->getAttributes() AS $attribute) {
+		foreach($this->getAttributes($featureType->id) AS $attribute) {
 			if ($attributePath != '')
 				$pathPart = $attributPath . '|' . $class['name'] . '|' . $attribute['name'];
 			else
@@ -758,6 +765,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 			$featureTypeAttribute->setStereoType($attribute['stereotype']);
 			$featureTypeAttribute->attribute_type = $attribute['attribute_type'];
 			$featureTypeAttribute->setMultiplicity($attribute['multiplicity_range_lower'], $attribute['multiplicity_range_upper']);
+			$featureTypeAttribute->sequence_number = $attribute['sequence_number']; 
 			$featureType->addAttribute($featureTypeAttribute);
 			$this->attributes[] = $featureTypeAttribute;
 		}
