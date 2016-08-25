@@ -7,16 +7,16 @@
 	define('PG_PASSWORD', 'postgres'); // Kennwort
 	define('PG_MAX_NAME_LENGTH', 58); // Maximale Länge von Tabellen, Type und Attributnamen
 
-  ($_REQUEST['umlSchema'] != '') ? $umlSchemaVar = $_REQUEST['umlSchema'] : 'aaa_uml';
-  ($_REQUEST['gmlSchema'] != '') ? $gmlSchemaVar = $_REQUEST['gmlSchema'] : 'aaa_gml';
-  ($_REQUEST['ogrSchema'] != '') ? $ogrSchemaVar = $_REQUEST['ogrSchema'] : 'aaa_ogr';
+	$umlSchemaVar = ($_REQUEST['umlSchema'] != '') ? $_REQUEST['umlSchema'] : 'aaa_uml';
+	$gmlSchemaVar = ($_REQUEST['gmlSchema'] != '') ? $_REQUEST['gmlSchema'] : 'aaa_gml';
+	$ogrSchemaVar = ($_REQUEST['ogrSchema'] != '') ? $_REQUEST['ogrSchema'] : 'aaa_ogr';
 
-  define('UML_SCHEMA', $umlSchemaVar);
-  define('CLASSES_SCHEMA', $gmlSchemaVar);
-  define('OGR_SCHEMA', $ogrSchemaVar);
+	define('UML_SCHEMA', $umlSchemaVar);
+	define('CLASSES_SCHEMA', $gmlSchemaVar);
+	define('OGR_SCHEMA', $ogrSchemaVar);
 
 	define('WITH_UUID_OSSP', false);
-	
+
 	$packages = array();
 	
 # Packages of XPlanung Schema
@@ -146,21 +146,21 @@
 	$packages[] = 'Punktangaben';
 	$packages[] = 'Reservierungen';
 
-  define('PACKAGES', "'" . implode("','", $packages) . "'");
-  
-  $classesOut[] = '';
-  #$classesOut[] = 'AX_Flurstueck';
-  #$classesOut[] = 'AX_BenutzergruppeMitZugriffskontrolle';
-  #$classesOut[] = 'AX_Gebaeude';
-  #$classesOut[] = 'AX_Gebiet_Verwaltungsgemeinschaft';
-  #$classesOut[] = 'AX_MarkanterGelaendepunkt';
-  #$classesOut[] = 'AA_Objekt';
-  #$classesOut[] = 'AX_HistorischesFlurstueckOhneRaumbezug';
-  #$classesOut[] = 'AX_Verwaltungsgemeinschaft';
-  #$classesOut[] = 'AX_Schleuse';
-  
-  $attributesOut[] = '';
-  #$attributesOut[] = 'gemarkung';
-  #$attributesOut[] = 'gemeindezugehoerigkeit';
-  #$attributesOut[] = 'qualitaetsangaben';
+	define('PACKAGES', "'" . implode("','", $packages) . "'");
+
+	$classesOut[] = '';
+	#$classesOut[] = 'AX_Flurstueck';
+	#$classesOut[] = 'AX_BenutzergruppeMitZugriffskontrolle';
+	#$classesOut[] = 'AX_Gebaeude';
+	#$classesOut[] = 'AX_Gebiet_Verwaltungsgemeinschaft';
+	#$classesOut[] = 'AX_MarkanterGelaendepunkt';
+	#$classesOut[] = 'AA_Objekt';
+	#$classesOut[] = 'AX_HistorischesFlurstueckOhneRaumbezug';
+	#$classesOut[] = 'AX_Verwaltungsgemeinschaft';
+	#$classesOut[] = 'AX_Schleuse';
+
+	$attributesOut[] = '';
+	#$attributesOut[] = 'gemarkung';
+	#$attributesOut[] = 'gemeindezugehoerigkeit';
+	#$attributesOut[] = 'qualitaetsangaben';
 ?>
