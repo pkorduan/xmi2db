@@ -1,15 +1,22 @@
 <?php
-	include('conf/database_conf.php');
-	include('classes/logger.php');
-	include('classes/databaseobject.php');
-	include('classes/schema.php');
-	include('classes/table.php');
-	include('classes/attribute.php');
-	include('classes/data.php');
-	include('classes/datatype.php');
-	include('classes/enumtype.php');
-	include('classes/associationend.php');
-	include('classes/featuretype.php');
+// +----------------------------------------------------------------------+
+// | listAttributes.php                                                   |
+// | List attributes from UML-Modell created with xmi2db.php              |
+// +----------------------------------------------------------------------+
+// | Author: Peter Korduan <peter.korduan@gdi-service.de>                 |
+// | Licence: GPL https://www.gnu.org/licenses/gpl-3.0.de.html            |
+// +----------------------------------------------------------------------+
+	include('../conf/database_conf.php');
+	include('../classes/logger.php');
+	include('../classes/databaseobject.php');
+	include('../classes/schema.php');
+	include('../classes/table.php');
+	include('../classes/attribute.php');
+	include('../classes/data.php');
+	include('../classes/datatype.php');
+	include('../classes/enumtype.php');
+	include('../classes/associationend.php');
+	include('../classes/featuretype.php');
 	$tabNameAssoc = array();
 	$log_sql = '';
 	$logger = new Logger(LOGLEVEL);
@@ -117,8 +124,7 @@ echo '<!DOCTYPE html>
 	$logger->log('<br>Ende Debug Ausgabe<br><hr><br>');
 	$umlSchema->logger->level = 1;
 #	$gmlSchema->execSql($sql);
-	$logger->log('<b>Komplexe Uniontypen:</b><br>' . $umlSchema->outputUnionListHtml());
-	$logger->log('<b>Komplexe Datentypen:</b><br>' . $umlSchema->outputDataTypeListHtml());
+	$logger->log('<b>Attributliste:</b><br>' . $umlSchema->outputAttributeListHtml());
 echo '	</body>
 </html>';
 ?>

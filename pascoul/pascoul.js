@@ -112,7 +112,7 @@ var Pascoul = Pascoul || (function(){
 				});
 			}
 			else {
-				//IE: just run "window.location = 'use-xmi2db.php?truncate=' + truncate + '&file=' + file + '&schema=' + schema + '&basepackage=' + basepkg + '&argo=' + argo;" then?
+				//IE: just run "window.location = 'converter/xmi2db.php?truncate=' + truncate + '&file=' + file + '&schema=' + schema + '&basepackage=' + basepkg + '&argo=' + argo;" then?
 				addLog("Sorry, your browser does not support server-sent events...");
 			}
 		},

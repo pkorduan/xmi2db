@@ -1,6 +1,9 @@
 <?php
 	error_reporting(E_ALL & ~E_NOTICE);
-	define('LOGLEVEL', 0);
+
+	$loglevel = ($_REQUEST['loglevel'] != '') ? $_REQUEST['loglevel'] : '0';
+	define('LOGLEVEL', $loglevel);
+
 	define('PG_HOST', 'localhost'); // Hostname
 	define('PG_DBNAME', 'postgres'); // Name der Datenbank
 	define('PG_USER', 'postgres'); // Benutzername

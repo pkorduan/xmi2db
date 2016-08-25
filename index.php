@@ -1,4 +1,12 @@
-<!DOCTYPE html>
+<?php
+// +----------------------------------------------------------------------+
+// | uml2db                                                               |
+// | Ableitungen von Datenbankmodellen aus UML-Modellen im XMI-Format     |
+// +----------------------------------------------------------------------+
+// | Author: Peter Korduan <peter.korduan@gdi-service.de>                 |
+// | Licence: GPL https://www.gnu.org/licenses/gpl-3.0.de.html            |
+// +----------------------------------------------------------------------+
+?><!DOCTYPE html>
 <html lang="de">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
@@ -33,28 +41,28 @@
 			else
 				var argo = "0";
 
-			window.location = 'use-xmi2db.php?truncate=' + truncate + '&file=' + file + '&schema=' + schema + '&basepackage=' + basepkg + '&argo=' + argo;
+			window.location = 'converter/xmi2db.php?truncate=' + truncate + '&file=' + file + '&schema=' + schema + '&basepackage=' + basepkg + '&argo=' + argo;
 		}
 		function execDb2Classes() {
 			var umlSchema = document.getElementById("umlSchema").value,
 					gmlSchema = document.getElementById("gmlSchema").value;
 
-			window.location = 'db2classes.php?umlSchema=' + umlSchema + '&gmlSchema=' + gmlSchema;
+			window.location = 'converter/db2classes.php?umlSchema=' + umlSchema + '&gmlSchema=' + gmlSchema;
 		}
 		function execDb2Ogr() {
 			var umlSchema = document.getElementById("umlSchema").value,
 					ogrSchema = document.getElementById("ogrSchema").value;
 
-			window.location = 'db2ogr.php?umlSchema=' + umlSchema + '&ogrSchema=' + ogrSchema;
-			console.log('db2ogr.php?umlSchema=' + umlSchema + '&ogrSchema=' + ogrSchema);
+			window.location = 'converter/db2ogr.php?umlSchema=' + umlSchema + '&ogrSchema=' + ogrSchema;
 		}
 	</script>
-	<title>XPlanung XMI2DB Converter</title>
+	<title>UML to DB model</title>
 	<?php include('conf/database_conf.php'); ?>
 	</head>
 	<body>
 	<div class="container">
-		<h3>xmi2db</h4>
+		<h2>Ableitung von PostgreSQL-Datenbankmodellen aus UML-Modellen</h2>
+		<h3>xmi2db</h3>
 		xmi2db überträgt die UML-Modell Elemente der ausgewählten xmi Datei in das ausgewählte Datenbank Schema. Eingelesen werden nur die Elemente ab dem ausgewählten Basispacket.
 	</div>
 	<div class="container">
@@ -90,11 +98,8 @@
 		<div class="checkbox">
 			<label><input type="checkbox" id="argo">Argo Export mit ISO19136 Profil</label>
 		</div>
+		Das Befüllen der Datenbank mit den Inhalten der XMI-Datei insbesondere der tagged values kann einige Minuten dauern!
 		<div class="text-center" id="queryButton">
-		<!--<button type="submit" class="btn btn-primary btn-sm" id="queryNERC"
-			onclick="document.location.href='use-xmi2db.php?truncate=1&file=xplanerweitert20150609.xmi&
-			schema=xplan_argotest&basepackage=Raumordnungsplan_Kernmodell'">
-			<span class="glyphicon glyphicon-ok"> </span> Suche passende Begriffe</button>-->
 		<button type="submit" class="btn btn-primary btn-sm" id="queryNERC" onclick="exefunction()">
 			<span class="glyphicon glyphicon-ok"> </span> Fülle DB mit XMI Inhalten</button>
 		</div>

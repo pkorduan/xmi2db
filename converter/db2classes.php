@@ -1,15 +1,22 @@
 <?php
-	include('conf/database_conf.php');
-	include('classes/logger.php');
-	include('classes/databaseobject.php');
-	include('classes/schema.php');
-	include('classes/table.php');
-	include('classes/attribute.php');
-	include('classes/data.php');
-	include('classes/datatype.php');
-	include('classes/enumtype.php');
-	include('classes/associationend.php');
-	include('classes/featuretype.php');
+// +----------------------------------------------------------------------+
+// | db2classes.php                                                       |
+// | Creating DB-Schema from UML-Model for gml classes                    |
+// +----------------------------------------------------------------------+
+// | Author: Peter Korduan <peter.korduan@gdi-service.de>                 |
+// | Licence: GPL https://www.gnu.org/licenses/gpl-3.0.de.html            |
+// +----------------------------------------------------------------------+
+	include('../conf/database_conf.php');
+	include('../classes/logger.php');
+	include('../classes/databaseobject.php');
+	include('../classes/schema.php');
+	include('../classes/table.php');
+	include('../classes/attribute.php');
+	include('../classes/data.php');
+	include('../classes/datatype.php');
+	include('../classes/enumtype.php');
+	include('../classes/associationend.php');
+	include('../classes/featuretype.php');
 	$tabNameAssoc = array();
 	$log_sql = '';
 	$logger = new Logger(LOGLEVEL);
@@ -31,11 +38,10 @@ echo '<!DOCTYPE html>
 	$gmlSchema = new Schema(CLASSES_SCHEMA, $logger);
 	$sql = $gmlSchema->asSql();
 
-	$umlSchema->logger->level = 0;
 	#**************
 	# Enumerations
 	#**************
-	# Erzeuge Enummerations
+	# Erzeuge Enummerationtypen und dazugehörige enum_ Schlüsseltabellen
 	foreach($umlSchema->getEnumerations() AS $enumeration) {
 		$sql .= $umlSchema->createEnumerationTable($enumeration, $gmlSchema);
 	}
@@ -115,9 +121,13 @@ echo '<!DOCTYPE html>
 	}
 
 	$logger->log('<br>Ende Debug Ausgabe<br><hr><br>');
-	$umlSchema->logger->level = 1;
+
 #	$gmlSchema->execSql($sql);
-	$logger->log('<b>Attributliste:</b><br>' . $umlSchema->outputAttributeListHtml());
+
+?><pre><?php
+	echo $sql;
+?></pre>
+<?php
 echo '	</body>
 </html>';
 ?>

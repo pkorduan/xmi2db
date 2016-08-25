@@ -1,16 +1,23 @@
 <?php
-	include('conf/database_conf.php');
-	include('classes/logger.php');
-	include('classes/databaseobject.php');
-	include('classes/schema.php');
-	include('classes/ogrschema.php');
-	include('classes/table.php');
-	include('classes/attribute.php');
-	include('classes/data.php');
-	include('classes/datatype.php');
-	include('classes/enumtype.php');
-	include('classes/associationend.php');
-	include('classes/featuretype.php');
+// +----------------------------------------------------------------------+
+// | db2ogr.php                                                           |
+// | Creating DB-Schema from UML-Model for ogr2ogr imports                |
+// +----------------------------------------------------------------------+
+// | Author: Peter Korduan <peter.korduan@gdi-service.de>                 |
+// | Licence: GPL https://www.gnu.org/licenses/gpl-3.0.de.html            |
+// +----------------------------------------------------------------------+
+	include('../conf/database_conf.php');
+	include('../classes/logger.php');
+	include('../classes/databaseobject.php');
+	include('../classes/schema.php');
+	include('../classes/ogrschema.php');
+	include('../classes/table.php');
+	include('../classes/attribute.php');
+	include('../classes/data.php');
+	include('../classes/datatype.php');
+	include('../classes/enumtype.php');
+	include('../classes/associationend.php');
+	include('../classes/featuretype.php');
 	$tabNameAssoc = array();
 	$log_sql = '';
 	$logger = new Logger(LOGLEVEL);

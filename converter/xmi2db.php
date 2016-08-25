@@ -6,8 +6,13 @@
 # | This file explains how to use and call the class                     |
 # +----------------------------------------------------------------------+
 # | Author: Christian Seip <christian.seip@gdi-service.de>               |
+# | this is under GPL https://www.gnu.org/licenses/gpl-3.0.de.html       |
 # +----------------------------------------------------------------------+
 # based on http:#www.phpclasses.org/package/2272-PHP-Generate-SQL-queries-to-import-data-from-XML-files.html
+include('../classes/class.xmi2db.php');
+include('../classes/schema.php');
+include('../classes/logger.php');
+include('../conf/database_conf.php');
 ?>
 <!DOCTYPE html>
 <html lang="de">
@@ -16,14 +21,6 @@
   </head>
   <body>
 <?php
-
-include( dirname(__FILE__) . '/class.debug.php');
-include( dirname(__FILE__) . "/class.xmi2db.php");
-include( dirname(__FILE__) . "/classes/schema.php");
-include( dirname(__FILE__) . "/classes/logger.php");
-include( dirname(__FILE__) . "/conf/database_conf.php");
-
-
 # Call the class with the root element of the xmi data
 $xmi2db = new xmi2db("XMI.content");
 
