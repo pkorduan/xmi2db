@@ -815,6 +815,10 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		$this->logger->log($table->values->asTable($table->attributes));
 
 		$sql  = $enumType->asSql();
+		if (
+			$table->values->rows[0][0] != $table->values->rows[0][1] AND
+			$table->values->rows[0][1] != 'NULL'
+		)
 		$sql .= $table->asSql();
 		$this->logger->log('<pre>' . $tableSql . '</pre>');
 		return $sql;
