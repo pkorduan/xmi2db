@@ -870,7 +870,8 @@ COMMENT ON TABLE " . $table . " IS 'Code Liste " . $class['name'] . "';
 
 	function createAssociationTable($association) {
 		//Fixed: Table identifier max length is 63
-		$table = strtolower($association['a_class'] . '2' . $association['b_class']);
+		$delimiter = '_zu_';
+		$table = strtolower($association['a_class'] . $delimiter . $association['b_class']);
 		$table_orig = $table;
 		if (strlen($table)>63) $table = substr($table, 0, 63);
 		//Fixed: Check if table already exists (e.g. aa_reo double assoc results in two 'AA_REO2AA_REO' tables)
@@ -879,27 +880,25 @@ COMMENT ON TABLE " . $table . " IS 'Code Liste " . $class['name'] . "';
 			if ($table==$tabname) {
 				$last = substr($table, -1);
 				if (intval($last)!=0) $table = substr($table, 0, strlen($table)-1).(intval($last)+1);
-				else $table = $table.'2';
+				else $table = $table.$delimiter;
 			}
 		}
 		array_push($tabNameAssoc, $table);
-		//Fixed for self-associations (e.g. aa_reo)
 		if ($association['a_class'] == $association['b_class']) {
-			$sql = "\n
-CREATE TABLE IF NOT EXISTS " . $table . " (
-	" . strtolower($association['a_class']) . "1_gml_id integer,
-	" . strtolower($association['b_class']) . "2_gml_id integer
-);
-COMMENT ON TABlE " . $table . " IS 'Association " . $association['a_class'] . '2' . $association['b_class'] . "';";
+			$key1 = '1_gml_id';
+			$key2 = '2_gml_id';
+		} else {
+			$key1 = $key2 = 'gml_id';
 		}
-		else {
-			$sql = "
-CREATE TABLE IF NOT EXISTS " . $table . " (
-	" . strtolower($association['a_class']) . "_gml_id integer,
-	" . strtolower($association['b_class']) . "_gml_id integer
+
+		$sql = "\n
+CREATE TABLE IF NOT EXISTS {$table} (
+	" . strtolower($association['a_class']) . "_{$key1} integer,
+	" . strtolower($association['b_class']) . "_{$key2} integer,
+	PRIMARY KEY (" . strtolower($association['a_class']) . "_{$key1}, " . strtolower($association['b_class']) . "_{$key2})
 );
-COMMENT ON TABLE " . $table . " IS 'Association " . $association['a_class'] . '2' . $association['b_class'] . "';";
-		}
+COMMENT ON TABLE {$table} IS 'Association {$association['a_class']} {$delimiter} {$association['b_class']}';";
+
 		if ($association['a_rel'] != '') {
 			//Fixed for self-associations (e.g. aa_reo)
 			if ($association['a_class'] == $association['b_class']) {
@@ -922,6 +921,7 @@ COMMENT ON COLUMN " . $table . "." . strtolower($association['b_class']) . "2_gm
 COMMENT ON COLUMN " . $table . "." . strtolower($association['b_class']) . "_gml_id IS '" . $association['b_rel'] ."';";
 			}
 		}
+
 		//Fixed: Table identifier max length is 63
 		if (strlen($table_orig) > PG_MAX_NAME_LENGTH) $sql .= "
 ALTER TABLE " . $table . " ADD COLUMN " . $table . " character varying(255);

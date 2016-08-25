@@ -18,7 +18,7 @@
 	define('WITH_UUID_OSSP', false);
 
 	$packages = array();
-	
+
 # Packages of XPlanung Schema
 #  $packages[] = 'Basisklassen';
 #  $packages[] = 'Bebauungsplan';

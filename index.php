@@ -104,10 +104,14 @@
 		db2classes erzeugt ein GML-Klassenschema an Hand der mit xmi2db eingelesenen UML-Modell-Elemente.
 		Das GML-Klassenschema enthält nach dem Ausführen des erzeugten SQL im ausgewählten Schema je
 		<ul>
-			<li>eine mit den Werten befüllte Tabelle pro Enumeration</li>
-			<li>eine leere Tabelle pro FeatureType</li>
-			<li>eine mit den Werten befüllte Tabelle pro CodeListe (falls im UML-Modell enthalten)</li>
-			<li>einen nutzerdefinierten Postgres Datentyp pro UML DataType</li>
+			<li>je eine Tabelle für Enumerations mit Perfix "enum_" im Tabellennamen, befüllt mit wert und beschreibung aus dem UML-Modell.</li>
+			<li>je einen Postgres Enum-DataType pro Enumeration. Die Werte sind aus den dazugehörigen enum_ Tabellen aus der Spalte wert entnommen.</li>
+			<li>je eine leere Tabelle pro FeatureType</li>
+			<li>FeatureType-Tabellen haben Attribute für die Assoziationen</li>
+			<li>FeatureType-Attribute mit Kardinalität > 1 sind Arrays</li>
+			<li>je eine mit den Werten befüllte Tabelle pro CodeListe (falls im UML-Modell enthalten)</li>
+			<li>je einen nutzerdefinierten Postgres Datentyp pro UML DataType</li>
+			<li>je eine Tabelle pro n:m Beziehung. Die Namen setzen sich aus den beteiligten Tabellen getrennt mit "_zu_" zusammen</li>
 		</ul>
 	</div>
 	<div class="container">

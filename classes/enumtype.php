@@ -23,8 +23,8 @@ class EnumType {
 	function getWerte() {
 		return array_map(
 			function ($value) {
-				$text = (ctype_digit($value[0])) ? $value[0] : "'" . $value[0] . "'";
-				return $text;
+				# return (ctype_digit($value[0])) ? $value[0] : "'" . $value[0] . "'";
+				return "'" . $value[0] . "'";
 			},
 			$this->values->rows
 		);
