@@ -312,7 +312,7 @@ CREATE TABLE IF NOT EXISTS " . $this->name . " (
 		if ($this->parent == null) {
 			$part .= "\t" . $this->primaryKey;
 			if (WITH_UUID_OSSP) {
-				$part .= " uuid NOT NULL DEFAULT uuid_generate_v1mc(),";
+				$part .= " uuid NOT NULL DEFAULT uuid_generate_v1mc()";
 			}
 			else {
 				$part .= " text";
