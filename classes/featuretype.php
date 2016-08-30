@@ -31,6 +31,14 @@ class FeatureType {
 		$this->attributes[] = $attribute;
 	}
 
+	function createUserInfoColumns() {
+		$this->logger->log('<br><b>Erzeuge userinfo Spalten</b>');
+		$this->addAttribute(new Attribute('user_id', 'integer'));
+		$this->addAttribute(new Attribute('created_at', 'timestamp without time zone'));
+		$this->addAttribute(new Attribute('updated_at', 'timestamp without time zone'));
+		$this->addAttribute(new Attribute('konvertierung_id', 'integer'));
+	}
+
 	function setAssociationEnds($class) {
 		# lade navigierbare Assoziationsenden von 1:n Assoziationen
 		foreach($this->umlSchema->getAssociationEnds($class) AS $end) {
