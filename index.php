@@ -45,9 +45,17 @@
 		}
 		function execDb2Classes() {
 			var umlSchema = document.getElementById("umlSchema").value,
-					gmlSchema = document.getElementById("gmlSchema").value;
+					gmlSchema = document.getElementById("gmlSchema").value,
+					createUserInfoColumns = document.getElementById('createUserInfoColumns').checked,
+					url = 'converter/db2classes.php',
+					params = [];
 
-			window.location = 'converter/db2classes.php?umlSchema=' + umlSchema + '&gmlSchema=' + gmlSchema;
+			if (umlSchema) params.push('umlSchema=' + umlSchema);
+			if (gmlSchema) params.push('gmlSchema=' + gmlSchema);
+			if (createUserInfoColumns) params.push('createUserInfoColumns=1');
+			if (params.length > 0) url += '?';
+
+			window.location = url + params.join('&');
 		}
 		function execDb2Ogr() {
 			var umlSchema = document.getElementById("umlSchema").value,
@@ -133,7 +141,11 @@
 		<datalist id="gmlSchemaListe">
 			<option value="<?php echo CLASSES_SCHEMA; ?>" selected><?php echo CLASSES_SCHEMA; ?></option>
 		</datalist>
-		
+
+		<div class="checkbox">
+			<label><input type="checkbox" id="createUserInfoColumns"> Spalten für user_id, created_at, updated_at und konvertierung_id an alle FeatureType-Tabellen anhängen.</label>
+		</div>
+
 		<div class="text-center" id="queryButton">
 		<button type="submit" class="btn btn-primary btn-sm" id="queryNERC" onclick="execDb2Classes()"><span class="glyphicon glyphicon-ok"> </span> Erzeuge GML-Klassenschema</button>
 		</div>

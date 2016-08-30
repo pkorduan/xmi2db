@@ -739,7 +739,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		) ? true : false;
 	}
 
-	function createFeatureTypeTables($stereotype, $parent, $class, $attributPath ='') {
+	function createFeatureTypeTables($stereotype, $parent, $class, $attributPath = '', $createUserInfoColumns = false) {
 		$this->logger->log('<br><b>Create ' . $stereotype . ': ' . $class['name'] .' </b>');
 		# Erzeuge FeatueType
 		$featureType = new FeatureType($class['name'], $parent, $this->logger, $this);
@@ -769,6 +769,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 			$featureType->addAttribute($featureTypeAttribute);
 			$this->attributes[] = $featureTypeAttribute;
 		}
+
 		$this->logger->log($featureType->attributesAsTable());
 
 		# lade navigierbare Assoziationsenden von 1:n Assoziationen
@@ -785,16 +786,22 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		}
 		$this->logger->log($featureType->associationsAsTable());
 
+		# lade abgeleitete Klassen
+		$subClasses = $this->getSubUmlClasses($stereotype, $class);
+
+		# User Info Spalten nur für Leaf Klassen erzeugen.
+		if ($createUserInfoColumns AND empty($subClasses)) {
+			$featureType->createUserInfoColumns();
+		}
+
 		$sql = $featureType->asSql();
 
 		$this->logger->log('<pre>' . $sql . '</pre>');
-		
-		# lade abgeleitete Klassen
-		$subClasses = $this->getSubUmlClasses($stereotype, $class);
+
 		# Für alle abgeleiteten Klassen
 		foreach($subClasses as $subClass) {
 			$this->logger->log('<br><b>Sub' . $stereotype . ': ' . $subClass['name'] . '</b> (' . $subClass['xmi_id'] . ')');
-			$sql .= $this->createFeatureTypeTables($stereotype, $featureType, $subClass);
+			$sql .= $this->createFeatureTypeTables($stereotype, $featureType, $subClass, '', $createUserInfoColumns);
 		}
 		return $sql;
 	}

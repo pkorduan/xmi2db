@@ -95,11 +95,17 @@ echo '<!DOCTYPE html>
 	#**************
 	# Lade oberste Klassen vom Typ FeatureType, die von keinen anderen abgeleitet wurden
 	$topClasses = $umlSchema->getTopUmlClasses('FeatureType');
-	
+
 	# Für alle oberen Klassen
 	foreach($topClasses as $topClass) {
 		$umlSchema->logger->log('<br><b>TopKlasse: ' . $topClass['name'] . '</b> (' . $topClass['xmi_id'] . ')');
-		$sql .= $umlSchema->createFeatureTypeTables('FeatureType', null, $topClass);
+		$sql .= $umlSchema->createFeatureTypeTables(
+			'FeatureType',
+			null,
+			$topClass,
+			'',
+			($_REQUEST['createUserInfoColumns'] == 1) ? true : false
+		);
 	}
 	$logger->log('<br><hr><br>');
 
