@@ -832,10 +832,31 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		return $sql;
 	}
 
+	function createCodeListDataType($code_list, $dbSchema) {
+		$this->logger->log('<b>Create DataType for CodeList ' . $code_list['name'] . ':</b>');
+		$dataType = new DataType($code_list['name'], 'DataType', $this->logger);
+		$this->logger->log('<br><b>' . $dataType->name . '</b>');
+		$dataType->setSchemas($this, $dbSchema);
+		$dataType->setId(0);
+
+		# create Attributes
+		$dataTypeAttribute = new Attribute('codeSpace', 'text');
+		$dataType->addAttribute($dataTypeAttribute);
+		$dataTypeAttribute = new Attribute('id', integer);
+		$dataType->addAttribute($dataTypeAttribute);
+
+		# Erzeuge SQL und registriere DataType in Liste
+		$dataTypeSql = $dataType->asSql();
+		$this->logger->log('<pre>' . $dataTypeSql . '</pre>');
+		$sql .= $dataTypeSql;
+		$this->dataTypes[$dataType->name] = $dataType;
+		return $sql;
+	}
+
 	function createCodeListTable($code_list) {
 		$this->logger->log('<br><b>CodeList: ' . $code_list['name'] . '</b> (' . $code_list['xmi_id'] . ')');
 
-		$table = new Table($code_list['name']);
+		$table = new Table('codelist_' . $code_list['name']);
 
 		# definiere Attribute
 		$attribute = new Attribute('id', 'integer');

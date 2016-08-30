@@ -53,6 +53,7 @@ echo '<!DOCTYPE html>
 	# Lade CodeLists
 	foreach($umlSchema->getCodeLists() AS $code_list) {
 		$sql .= $umlSchema->createCodeListTable($code_list);
+		$sql .= $umlSchema->createCodeListDataType($code_list, $gmlSchema);
 	}
 	$logger->log('<br><hr><br>');
 
