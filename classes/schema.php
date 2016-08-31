@@ -790,7 +790,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		$subClasses = $this->getSubUmlClasses($stereotype, $class);
 
 		# User Info Spalten nur für Leaf Klassen erzeugen.
-		if ($createUserInfoColumns AND empty($subClasses)) {
+		if ($createUserInfoColumns AND empty($parent)) {
 			$featureType->createUserInfoColumns();
 		}
 
@@ -931,10 +931,12 @@ COMMENT ON TABLE " . $table . " IS 'Code Liste " . $class['name'] . "';
 			$key1 = $key2 = 'gml_id';
 		}
 
+		$fkey_type = (WITH_UUID_OSSP) ? 'uuid' : 'text';
+
 		$sql = "\n
 CREATE TABLE IF NOT EXISTS {$table} (
-	" . strtolower($association['a_class']) . "_{$key1} integer,
-	" . strtolower($association['b_class']) . "_{$key2} integer,
+	" . strtolower($association['a_class']) . "_{$key1} $fkey_type,
+	" . strtolower($association['b_class']) . "_{$key2} $fkey_type,
 	PRIMARY KEY (" . strtolower($association['a_class']) . "_{$key1}, " . strtolower($association['b_class']) . "_{$key2})
 );
 COMMENT ON TABLE {$table} IS 'Association {$association['a_class']} {$delimiter} {$association['b_class']}';";
