@@ -244,9 +244,13 @@ WHERE
 SELECT
 	a.name AS name,
 	CASE
-		WHEN d.name IS NULL THEN cc.name
+		WHEN d.name IS NULL THEN
+		  CASE
+		    WHEN cc.name IS NULL THEN cd.name
+		    ELSE cc.name
+		  END
 		ELSE d.name
-	END AS datatype, 
+	END AS datatype,
 	CASE
 		WHEN d.name IS NULL THEN cs.name
 		ELSE ds.name
@@ -269,6 +273,7 @@ FROM
 	" . $this->schemaName . ".uml_classes dc ON d.name = dc.name LEFT JOIN
 	" . $this->schemaName . ".stereotypes ds ON dc.stereotype_id = ds.xmi_id Left JOIN
 	" . $this->schemaName . ".uml_classes cc ON a.classifier = cc.xmi_id LEFT JOIN
+	" . $this->schemaName . ".datatypes cd ON a.classifier = cd.xmi_id LEFT JOIN
 	" . $this->schemaName . ".stereotypes cs ON cc.stereotype_id = cs.xmi_id LEFT JOIN
 	" . $this->schemaName . ".taggedvalues tv ON a.id = tv.attribute_id LEFT JOIN
 	" . $this->schemaName . ".tagdefinitions td ON tv.type = td.xmi_id
