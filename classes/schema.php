@@ -790,7 +790,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		$subClasses = $this->getSubUmlClasses($stereotype, $class);
 
 		# User Info Spalten nur für Leaf Klassen erzeugen.
-		if ($createUserInfoColumns AND empty($subClasses)) {
+		if ($createUserInfoColumns AND empty($parent)) {
 			$featureType->createUserInfoColumns();
 		}
 

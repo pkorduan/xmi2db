@@ -18,12 +18,12 @@
 	<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.7.0/bootstrap-table.min.css">	
 	
 	<script language="javascript" type="text/javascript">
-		function exefunction() {
+		function execXmi2Db() {
 			var selectedFile = document.getElementById("selectedFile");
 			var file = selectedFile.options[selectedFile.selectedIndex].value;
 			//alert(file);
 
-			var schema = document.getElementById("schema").value;
+			var umlSchema = document.getElementById("xmi2db_umlSchema").value;
 			//alert(schema);
 
 			var basepkg = document.getElementById("basepkg").value;
@@ -41,11 +41,12 @@
 			else
 				var argo = "0";
 
-			window.location = 'converter/xmi2db.php?truncate=' + truncate + '&file=' + file + '&schema=' + schema + '&basepackage=' + basepkg + '&argo=' + argo;
+			window.location = 'converter/xmi2db.php?truncate=' + truncate + '&file=' + file + '&schema=' + umlSchema + '&basepackage=' + basepkg + '&argo=' + argo;
 		}
+
 		function execDb2Classes() {
-			var umlSchema = document.getElementById("umlSchema").value,
-					gmlSchema = document.getElementById("gmlSchema").value,
+			var umlSchema = document.getElementById("db2classes_umlSchema").value,
+					gmlSchema = document.getElementById("db2classes_gmlSchema").value,
 					createUserInfoColumns = document.getElementById('createUserInfoColumns').checked,
 					url = 'converter/db2classes.php',
 					params = [];
@@ -57,9 +58,10 @@
 
 			window.location = url + params.join('&');
 		}
+
 		function execDb2Ogr() {
-			var umlSchema = document.getElementById("umlSchema").value,
-					ogrSchema = document.getElementById("ogrSchema").value;
+			var umlSchema = document.getElementById("db2ogr_umlSchema").value,
+					ogrSchema = document.getElementById("db2ogr_ogrSchema").value;
 
 			window.location = 'converter/db2ogr.php?umlSchema=' + umlSchema + '&ogrSchema=' + ogrSchema;
 		}
@@ -70,6 +72,9 @@
 	<body>
 	<div class="container">
 		<h2>Ableitung von PostgreSQL-Datenbankmodellen aus UML-Modellen</h2>
+
+
+
 		<h3>xmi2db</h3>
 		xmi2db überträgt die UML-Modell Elemente der ausgewählten xmi Datei in das ausgewählte Datenbank Schema. Eingelesen werden nur die Elemente ab dem ausgewählten Basispacket.
 	</div>
@@ -81,24 +86,24 @@
 			foreach ($files AS $i => $file) {
 				$path_parts = pathinfo($file);
 				if (!is_dir($file) and $path_parts['extension'] == 'xmi') { ?>
-					<option value="xmis/<?php echo $file; ?>"><?php echo $file; ?></option><?php
+					<option value="../xmis/<?php echo $file; ?>" <?php if ($file == '2016-06-30_Modell_EA-xmi12-uml14.xmi') echo 'selected'; ?>><?php echo $file; ?></option><?php
 				}
 			} ?>
 		</select>
-
 		<h4>Schemaauswahl/-eingabe</h4>
 		<i>Das Schema wird entsprechend der gewählten Konfiguration in der Datenbank "<?php echo $db_name; ?>" angelegt.</i><br>
-		<input type="text" id="schema" name="schema" list="schemaName" size="50"/>
-		<datalist id="schemaName">
-			<option value="xplan_uml" selected>xplan_uml</option>
+		<input type="text" id="xmi2db_umlSchema" name="umlSchema" list="xmi2db_umlSchemaName" size="50"/ value="<?php echo UML_SCHEMA; ?>">
+		<datalist id="xmi2db_umlSchemaName">
+			<option value="<?php echo UML_SCHEMA; ?>" selected><?php echo UML_SCHEMA; ?></option>
+			<option value="<?php echo UML_SCHEMA . '_test'; ?>" selected><?php echo UML_SCHEMA . '_test'; ?></option>
 		</datalist>
 		
 		<h4>BasePackageauswahl/-eingabe</h4>
 		<i>Bei einem EA-Export dex XPlan-Modells "XPlanGML 4.1" wählen, bei einem ArgoUML Export leer lassen oder ein Package eintragen, falls man nur das eine laden möchte.</i>
-		<input type="text" id="basepkg" name="basepkg" list="basepkgName"/>
+		<input type="text" id="basepkg" name="basepkg" list="basepkgName" value="XPlanGML 4.1"/>
 		<datalist id="basepkgName">
-		<option value="XPlanGML 4.1">XPlanGML 4.1</option>
-		<option value="Raumordnungsplan_Kernmodell">Raumordnungsplan_Kernmodell</option>
+			<option value="XPlanGML 4.1">XPlanGML 4.1</option>
+			<option value="Raumordnungsplan_Kernmodell">Raumordnungsplan_Kernmodell</option>
 		</datalist>
 		<div class="checkbox">
 			<label><input type="checkbox" value="checked" id="truncate" checked="checked"> Tabellen vor dem Einlesen leeren</label>
@@ -108,11 +113,13 @@
 		</div>
 		Das Befüllen der Datenbank mit den Inhalten der XMI-Datei insbesondere der tagged values kann einige Minuten dauern!
 		<div class="text-center" id="queryButton">
-		<button type="submit" class="btn btn-primary btn-sm" id="queryNERC" onclick="exefunction()">
+		<button type="submit" class="btn btn-primary btn-sm" id="queryNERC" onclick="execXmi2Db()">
 			<span class="glyphicon glyphicon-ok"> </span> Fülle DB mit XMI Inhalten</button>
 		</div>
-	</div>
-	<div class="container">
+
+
+
+
 		<h3>db2classes</h4>
 		db2classes erzeugt ein GML-Klassenschema an Hand der mit xmi2db eingelesenen UML-Modell-Elemente.
 		Das GML-Klassenschema enthält nach dem Ausführen des erzeugten SQL im ausgewählten Schema je
@@ -130,15 +137,15 @@
 	<div class="container">
 		<h4>UML-Schema</h4>
 		<i>Das Schema in dem vorher die UML-Elemente mit xmi2db eingelesen wurden.</i><br>
-		<input type="text" id="umlSchema" name="umlSchema" list="umlSchemaListe" size="50" value="<?php echo UML_SCHEMA; ?>"/>
-		<datalist id="umlSchemaListe">
+		<input type="text" id="db2classes_umlSchema" name="umlSchema" list="db2classes_umlSchemaListe" size="50" value="<?php echo UML_SCHEMA; ?>"/>
+		<datalist id="db2classes_umlSchemaListe">
 			<option value="<?php echo UML_SCHEMA; ?>" selected><?php echo UML_SCHEMA; ?></option>
 		</datalist>
 
 		<h4>GML-Klassenschema</h4>
 		<i>Das Schema in dem die GML-Tabellen und Datentypen angelegt werden sollen.</i><br>
-		<input type="text" id="gmlSchema" name="gmlSchema" list="gmlSchemaListe" size="50" value="<?php echo CLASSES_SCHEMA; ?>"/>
-		<datalist id="gmlSchemaListe">
+		<input type="text" id="db2classes_gmlSchema" name="gmlSchema" list="db2classes_gmlSchemaListe" size="50" value="<?php echo CLASSES_SCHEMA; ?>"/>
+		<datalist id="db2classes_gmlSchemaListe">
 			<option value="<?php echo CLASSES_SCHEMA; ?>" selected><?php echo CLASSES_SCHEMA; ?></option>
 		</datalist>
 
@@ -149,8 +156,10 @@
 		<div class="text-center" id="queryButton">
 		<button type="submit" class="btn btn-primary btn-sm" id="queryNERC" onclick="execDb2Classes()"><span class="glyphicon glyphicon-ok"> </span> Erzeuge GML-Klassenschema</button>
 		</div>
-	</div>
-	<div class="container">
+
+
+
+
 		<h3>db2ogr</h4>
 		db2ogr erzeugt aus dem UML-Modell ein flaches GML-Schema welches zum Einlesen von komplexen GML-Dateien mit ogr2ogr geeignet sein sollte. Die Tabellen der FeatureTypen enthalten alle Attribute der abgeleiteten Klassen und der verzweigenden komplexen Datentypen. Das Schema enthält nach dem Ausführen des erzeugten SQL im ausgewählten Schema je
 		<ul>
@@ -162,15 +171,15 @@
 	<div class="container">
 		<h4>UML-Schema</h4>
 		<i>Das Schema in dem vorher die UML-Elemente mit xmi2db eingelesen wurden.</i><br>
-		<input type="text" id="umlSchema" name="umlSchema" list="umlSchemaListe" size="50" value="<?php echo UML_SCHEMA; ?>"/>
-		<datalist id="umlSchemaListe">
+		<input type="text" id="db2ogr_umlSchema" name="umlSchema" list="db2ogr_umlSchemaListe" size="50" value="<?php echo UML_SCHEMA; ?>"/>
+		<datalist id="db2ogr_umlSchemaListe">
 			<option value="<?php echo UML_SCHEMA; ?>" selected><?php echo UML_SCHEMA; ?></option>
 		</datalist>
 
 		<h4>OGR-Schema</h4>
 		<i>Das Schema in dem die GML-Tabellen und Datentypen angelegt werden sollen.</i><br>
-		<input type="text" id="ogrSchema" name="ogrSchema" list="ogrSchemaListe" size="50" value="<?php echo OGR_SCHEMA; ?>"/>
-		<datalist id="ogrSchemaListe">
+		<input type="text" id="db2ogr_ogrSchema" name="ogrSchema" list="db2ogr_ogrSchemaListe" size="50" value="<?php echo OGR_SCHEMA; ?>"/>
+		<datalist id="db2ogr_ogrSchemaListe">
 			<option value="<?php echo OGR_SCHEMA; ?>" selected><?php echo OGR_SCHEMA; ?></option>
 		</datalist>
 		
