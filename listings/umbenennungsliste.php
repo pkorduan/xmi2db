@@ -49,7 +49,13 @@
 	ksort($ogrSchema->renameList);
 	header('Content-Type: application/json');
 	$json = '{';
+	$firstline = true;
 	foreach($ogrSchema->renameList AS $key => $value) {
+		if ($firstline)
+			$firstline = false;
+		else
+			$json .= ',';
+		
 		$json .= "\n	\"{$key}\":\"{$value}\"";
 	}
 	$json .= "\n}";
