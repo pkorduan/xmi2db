@@ -1,7 +1,7 @@
 <?php
 class Attribute {
 
-	function __construct($name, $datatype, $parent = '', $parts = '', $null = '', $default = '', $comment = '') {
+	function __construct($name, $datatype, $parent = '', $parts = array(), $null = '', $default = '', $comment = '') {
 		$this->alias = $name;
 		$this->name = $this->getName($name);
 		$this->brackets = '';
@@ -138,6 +138,15 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 						'characterstring',
 						'<undefined>',
 						'uri'
+					)) :
+					$database_type = 'character varying';
+				break;
+				
+				# external datatypes
+				case in_array($this->datatype, array(
+						'sc_crs',
+						'doublelist',
+						'measure'
 					)) :
 					$database_type = 'character varying';
 				break;
@@ -286,7 +295,19 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 	}
 	
 	function getBrackets() {
-		return ($this->multiplicity_upper == '*' OR $this->multiplicity == '*' OR intval($this->multiplicity) > 1) ? '[]' : '';
+		$brackets = false;
+		if (is_array($this->parts) and !empty($this->parts)) {
+			$brackets = in_array(
+				'[]',
+				array_map(
+					function($attribute) {
+						return ($attribute->multiplicity_upper == '*' OR $attribute->multiplicity == '*' OR intval($attribute->multiplicity) > 1) ? '[]' : '';
+					},
+					$this->parts
+				)
+			);
+		}
+		return $brackets ? '[]' : '';
 	}
 
 	function asSql() {

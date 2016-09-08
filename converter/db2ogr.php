@@ -55,7 +55,7 @@ echo '<!DOCTYPE html>
 	#***********
 	# Lade CodeLists
 	foreach($umlSchema->getCodeLists() AS $code_list) {
-		$sql .= $umlSchema->createCodeListTable($code_list);
+#		$sql .= $umlSchema->createCodeListTable($code_list);
 	}
 	$logger->log('<br><hr><br>');
 
@@ -77,7 +77,7 @@ echo '<!DOCTYPE html>
 	#********************************************
 	# Create DataTypes not definend in UML-Model
 	#********************************************
-	$sql .= $umlSchema->createExternalDataTypes($ogrSchema);
+#	$sql .= $umlSchema->createExternalDataTypes($ogrSchema);
 	$logger->log('<br><hr><br>');
 
 /*	

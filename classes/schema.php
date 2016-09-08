@@ -650,7 +650,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		return $text;
 	}
 
-	function createComplexDataTypes($stereotype, $class, $dbSchema, $attributPath = '') {
+	function createComplexDataTypes($stereotype, $class, $dbSchema, $parts = array()) {
 		$this->logger->log('<br><b>Create ' . $stereotype . ' ' . $class['name'] . '</b> (' . $class['xmi_id'] . ') id: ' . $class['id']);
 		$sql = '';
 		$dataType = new DataType($class['name'], $stereotype, $this->logger);
@@ -662,17 +662,15 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 			$this->logger->log('<ul>');
 			foreach($attributes AS $attribute) {
 				$this->logger->log('<li>');
-				if ($attributPath != '')
-					$pathPart = $attributPath . '|' . $class['name'] . '|' . $attribute['name'];
-				else
-					$pathPart = $class['name'] . '|' . $attribute['name'];
 				# erzeuge Attributdefinition
 				$dataTypeAttribute = new Attribute(
 					$attribute['name'],
 					$attribute['datatype'],
 					$dataType,
-					$pathPart
+					$parts
 				);
+				$new_parts = $parts;
+				array_push($new_parts, $dataTypeAttribute);
 				$dataTypeAttribute->setStereoType($attribute['stereotype']);
 				$dataTypeAttribute->attribute_type = $attribute['attribute_type'];
 				$dataTypeAttribute->setMultiplicity($attribute['multiplicity_range_lower'], $attribute['multiplicity_range_upper']);
@@ -687,7 +685,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 					$dataTypeClass = $this->getClass($dataTypeAttribute->datatype_alias);
 					if (!empty($dataTypeClass)) {
 						# erzeuge diesen typ und hänge in an die Liste der erzeugten Datentypen an.
-						$sql .= $this->createComplexDataTypes($dataTypeAttribute->stereotype, $dataTypeClass[0], $dbSchema, $pathPart);
+						$sql .= $this->createComplexDataTypes($dataTypeAttribute->stereotype, $dataTypeClass[0], $dbSchema, $new_parts);
 					}
 				}
 
@@ -744,7 +742,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		) ? true : false;
 	}
 
-	function createFeatureTypeTables($stereotype, $parent, $class, $attributPath = '', $createUserInfoColumns = false) {
+	function createFeatureTypeTables($stereotype, $parent, $class, $parts = array(), $createUserInfoColumns = false) {
 		$this->logger->log('<br><b>Create ' . $stereotype . ': ' . $class['name'] .' </b>');
 		# Erzeuge FeatueType
 		$featureType = new FeatureType($class['name'], $parent, $this->logger, $this);
@@ -757,16 +755,14 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		}
 
 		foreach($this->getAttributes($featureType->id) AS $attribute) {
-			if ($attributePath != '')
-				$pathPart = $attributPath . '|' . $class['name'] . '|' . $attribute['name'];
-			else
-				$pathPart = $class['name'] . '|' . $attribute['name'];
 			$featureTypeAttribute = new Attribute(
 				$attribute['name'],
 				$attribute['datatype'],
 				$featureType,
-				$pathPart
+				$parts
 			);
+			$new_parts = $parts;
+			array_merge($new_parts, $featureTypeAttribute);
 			$featureTypeAttribute->setStereoType($attribute['stereotype']);
 			$featureTypeAttribute->attribute_type = $attribute['attribute_type'];
 			$featureTypeAttribute->setMultiplicity($attribute['multiplicity_range_lower'], $attribute['multiplicity_range_upper']);
@@ -806,7 +802,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		# Für alle abgeleiteten Klassen
 		foreach($subClasses as $subClass) {
 			$this->logger->log('<br><b>Sub' . $stereotype . ': ' . $subClass['name'] . '</b> (' . $subClass['xmi_id'] . ')');
-			$sql .= $this->createFeatureTypeTables($stereotype, $featureType, $subClass, '', $createUserInfoColumns);
+			$sql .= $this->createFeatureTypeTables($stereotype, $featureType, $subClass, $new_parts, $createUserInfoColumns);
 		}
 		return $sql;
 	}
