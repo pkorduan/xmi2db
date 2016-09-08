@@ -1,12 +1,53 @@
 <?php
 class OgrSchema extends Schema {
 
+	function createEnumerationTable($enumeration, $dbSchema) {
+		$this->logger->log('<br><b>Create Enumeration Tables: ' . $enumeration['name'] . '</b> (' . $enumeration['xmi_id'] . ')');
+
+		$table = new Table($enumeration['name']);
+
+		# read Values
+		$enumType = new EnumType($enumeration['name'], $this->logger);
+		$enumType->setSchemas($this->umlSchema, $dbSchema);
+		$enumType->setId($enumeration['id']);
+		$table->values = $enumType->getValues($enumeration);
+
+		# definiere Attribute
+		$wert_type = $enumType->getWertType();
+		$attribute = new Attribute('wert', $wert_type);
+		$table->addAttribute($attribute);
+		$attribute = new Attribute('beschreibung', 'character varying');
+		$table->addAttribute($attribute);
+
+		# definiere Primärschlüssel
+		$table->primaryKey = 'wert';
+
+		$this->logger->log($table->values->asTable($table->attributes));
+
+#		if (
+#			$table->values->rows[0][0] != $table->values->rows[0][1] AND
+#			$table->values->rows[0][1] != 'NULL'
+#		)
+
+		# definiere Commentare
+		$table->addComment('UML-Typ: Enumeration');
+
+		$sql .= $table->asSql();
+
+		$this->enumerations[$enumType->name] = $enumType;
+
+		$this->logger->log('<pre>' . $tableSql . '</pre>');
+
+		return $sql;
+	}
+
 	function createFeatureTypeTables($stereotype, $parent, $class, $attributPath = '') {
 		$this->logger->log('<br><b>Create ' . $stereotype . ': ' . $class['name'] .' </b>');
 #		$this->logger->log('<br><b>Klasse: ' . $class['name'] . '</b> (' . $class['xmi_id'] . ')');
 
 		# Erzeuge FeatueType
 		$featureType = new FeatureType($class['name'], $parent, $this->logger, $this->umlSchema);
+		$featureType->ogrSchema = $this;
 		$featureType->setId($class['id']);
 		$featureType->primaryKey = 'gml_id';
 		if ($parent != null)

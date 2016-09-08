@@ -5,7 +5,7 @@ class EnumType {
 		$this->alias = $name;
 		$this->name = strtolower(substr($name, 0, 58));
 		if ($this->name != $this->alias)
-			$this->comments[] = 'Alias: "' . $this->alias . '"';
+			$this->comments[] = 'Enumeration: "' . $this->alias . '"';
 		$this->values = new Data();
 		$this->id = 0;
 		$this->logger = $logger;
@@ -28,6 +28,10 @@ class EnumType {
 			},
 			$this->values->rows
 		);
+	}
+
+	function getWertType() {
+		return ctype_digit($this->values->rows[0][0]) ? 'integer' : 'character varying';
 	}
 
 	function getValues() {

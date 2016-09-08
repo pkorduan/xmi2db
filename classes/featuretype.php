@@ -6,7 +6,7 @@ class FeatureType {
 		$this->name = $this->getName($name);
 		$this->comments = array();
 		if ($this->name != $this->alias)
-			$this->comments[] = 'Alias: "' . $this->alias . '"';
+			$this->comments[] = 'FeatureType: "' . $this->alias . '"';
 		$this->attributes = array();
 		$this->attributes_until_leafs = array();
 		$this->associationEnds = array();

@@ -104,15 +104,18 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 		$this->stereotype_alias = $stereotype;
 	}
 
-	function get_database_type() {
+	function get_database_type($with_enum_type = true, $with_codelist_type = true) {
 		$database_type = $this->datatype;
-
-		if (in_array($this->stereotype, array(
+		$defined_types = array(
 			'datatype',
-			'codelist',
-			'enumeration',
 			'union'
-		))) {
+		);
+
+		if ($with_enum_type) {
+			$defined_types[] = 'enumeration';
+		}
+
+		if (in_array($this->stereotype, $defined_types)) {
 			$database_type = $this->datatype;
 		}
 		else {
@@ -134,20 +137,58 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 				case in_array($this->datatype, array(
 						'characterstring',
 						'<undefined>',
-						'enumeration',
-						'enum',
 						'uri'
 					)) :
 					$database_type = 'character varying';
 				break;
 
+				# enumerations from stereotype
+				case ($this->stereotype == 'enumeration') :
+					if ($with_enum_type) {
+						$database_type = $this->datatype;
+					}
+					else {
+						if (empty($this->parent->ogrSchema)) {
+							$database_type = 'character varying';
+						}
+						else {
+							$enumType = $this->parent->ogrSchema->enumerations[$this->datatype];
+							$database_type = $enumType->getWertType();
+						}
+					}
+				break;
+
+				# enumerations from datatype
+				case in_array($this->datatype, array(
+						'enumeration',
+						'enum'
+					)) :
+					$database_type = 'character varying';
+				break;
+
+				# code list from stereotype
+				case ($this->stereotype == 'codelist') :
+					if ($with_codelist_type) {
+						$database_type = $this->datatype;
+					}
+					else {
+						$database_type = 'text';
+					}
+				break;
+
 				# date
 				case in_array($this->datatype, array(
 						'date',
-						'datetime',
 						'tm_duration'
 					)) :
 					$database_type = 'date';
+				break;
+
+				# datetime
+				case in_array($this->datatype, array(
+						'datetime'
+					)) :
+					$database_type = 'timestamp without time zone';
 				break;
 
 				# integer
@@ -265,7 +306,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 
 	function asFlattenedSql() {
 		$sql = "	" .
-			$this->short_name . " " . $this->get_database_type() . $this->getBrackets();
+			$this->short_name . " " . $this->get_database_type(false, false) . $this->getBrackets();
 
 		# Ausgabe NOT NULL
 		if ($this->null != '')

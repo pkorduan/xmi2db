@@ -46,7 +46,7 @@ echo '<!DOCTYPE html>
 	#**************
 	# Erzeuge Enummerations
 	foreach($umlSchema->getEnumerations() AS $enumeration) {
-		$sql .= $umlSchema->createEnumerationTable($enumeration, $ogrSchema);
+		$sql .= $ogrSchema->createEnumerationTable($enumeration, $ogrSchema);
 	}
 	$logger->log('<br><hr><br>');
 
@@ -59,6 +59,7 @@ echo '<!DOCTYPE html>
 	}
 	$logger->log('<br><hr><br>');
 
+/*
 	#***********
 	# Unions
 	#***********
@@ -71,13 +72,15 @@ echo '<!DOCTYPE html>
 		$sql .= $umlSchema->createComplexDataTypes('Union', $topDataType, $ogrSchema);
 	}
 	$logger->log('<br><hr><br>');
+*/
 
 	#********************************************
 	# Create DataTypes not definend in UML-Model
 	#********************************************
 	$sql .= $umlSchema->createExternalDataTypes($ogrSchema);
 	$logger->log('<br><hr><br>');
-	
+
+/*	
 	#***********
 	# DataTypes
 	#***********
@@ -91,7 +94,7 @@ echo '<!DOCTYPE html>
 		$sql .= $umlSchema->createComplexDataTypes('DataType', $topDataType, $ogrSchema);
 	}
 	$logger->log('<br><hr><br>');
-
+*/
 	#**************
 	# FeatureTypes
 	#**************

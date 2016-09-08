@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS " . $this->name . " (
 		$sql .= ";\n";	# Tabellenende
 
 		# Ausgabe Tabellenkommentare
-		if (!empty($comments)) {
+		if (!empty($this->comments)) {
 			$sql .= "\nCOMMENT ON TABLE " . $this->name . " IS '" .
 				implode(', ', $this->comments) . "';";
 		}

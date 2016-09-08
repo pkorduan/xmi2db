@@ -823,7 +823,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		$table->values = $enumType->getValues($enumeration);
 
 		# definiere Attribute
-		$wert_type = (ctype_digit($table->values->rows[0][0])) ? 'integer' : 'character varying';
+		$wert_type = $enumType->getWertType();
 		$attribute = new Attribute('wert', $wert_type);
 		$table->addAttribute($attribute);
 		$attribute = new Attribute('beschreibung', 'character varying');
@@ -854,7 +854,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		# create Attributes
 		$dataTypeAttribute = new Attribute('codeSpace', 'text');
 		$dataType->addAttribute($dataTypeAttribute);
-		$dataTypeAttribute = new Attribute('id', integer);
+		$dataTypeAttribute = new Attribute('id', 'character varying');
 		$dataType->addAttribute($dataTypeAttribute);
 
 		# Erzeuge SQL und registriere DataType in Liste
@@ -868,18 +868,12 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 	function createCodeListTable($code_list) {
 		$this->logger->log('<br><b>CodeList: ' . $code_list['name'] . '</b> (' . $code_list['xmi_id'] . ')');
 
-		$table = new Table('codelist_' . $code_list['name']);
+		$table = new Table($code_list['name']);
 
 		# definiere Attribute
-		$attribute = new Attribute('id', 'integer');
+		$attribute = new Attribute('codeSpace', 'text');
 		$table->addAttribute($attribute);
-		$attribute = new Attribute('name', 'character varying');
-		$table->addAttribute($attribute);
-		$attribute = new Attribute('status', 'character varying');
-		$table->addAttribute($attribute);
-		$attribute = new Attribute('definition', 'text');
-		$table->addAttribute($attribute);
-		$attribute = new Attribute('additional_information', 'text');
+		$attribute = new Attribute('id', 'character varying');
 		$table->addAttribute($attribute);
 
 		# definiere Primärschlüssel
@@ -892,25 +886,6 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		$this->logger->log('<pre>' . $sql . '</pre>');
 
 		return $sql;
-/*		
-		$table = strtolower($class['name']);
-
-		# Erzeuge Create Table Statement
-		$sql = "
-CREATE TABLE IF NOT EXISTS " . $table . " (
-	id integer,
-	name character varying,
-	status character varying,
-	definition text,
-	description text,
-	additional_information text,
-	CONSTRAINT " . $table . "_pkey PRIMARY KEY (id)
-);
-COMMENT ON TABLE " . $table . " IS 'Code Liste " . $class['name'] . "';
-";
-		$this->logger->log('<pre>' . $sql . '</pre>');
-		return $sql;		
-*/
 	}
 
 	function createAssociationTable($association) {
