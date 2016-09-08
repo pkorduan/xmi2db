@@ -31,7 +31,7 @@ COMMENT ON COLUMN " . $this->parent_name . "." . $this->name . " IS 'Assoziation
 		$this->umlSchema = $schema;
 	}
 
-	function get_database_type() {
+	function get_database_type($with_enum_type = true, $with_codelist_type = true) {
 		return 'text';
 	}
 }
