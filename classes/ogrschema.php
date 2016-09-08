@@ -41,7 +41,7 @@ class OgrSchema extends Schema {
 		return $sql;
 	}
 
-	function createFeatureTypeTables($stereotype, $parent, $class, $attributPath = '') {
+	function createFeatureTypeTables($stereotype, $parent, $class, $attributPath = array()) {
 		$this->logger->log('<br><b>Create ' . $stereotype . ': ' . $class['name'] .' </b>');
 #		$this->logger->log('<br><b>Klasse: ' . $class['name'] . '</b> (' . $class['xmi_id'] . ')');
 

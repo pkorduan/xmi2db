@@ -670,7 +670,8 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 					$parts
 				);
 				$new_parts = $parts;
-				array_push($new_parts, $dataTypeAttribute);
+				if (is_array($new_parts))
+					array_push($new_parts, $dataTypeAttribute);
 				$dataTypeAttribute->setStereoType($attribute['stereotype']);
 				$dataTypeAttribute->attribute_type = $attribute['attribute_type'];
 				$dataTypeAttribute->setMultiplicity($attribute['multiplicity_range_lower'], $attribute['multiplicity_range_upper']);
@@ -762,7 +763,8 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 				$parts
 			);
 			$new_parts = $parts;
-			array_merge($new_parts, $featureTypeAttribute);
+			if (is_array($new_parts))
+				array_push($new_parts, $featureTypeAttribute);
 			$featureTypeAttribute->setStereoType($attribute['stereotype']);
 			$featureTypeAttribute->attribute_type = $attribute['attribute_type'];
 			$featureTypeAttribute->setMultiplicity($attribute['multiplicity_range_lower'], $attribute['multiplicity_range_upper']);
