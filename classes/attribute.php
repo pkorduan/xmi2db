@@ -130,6 +130,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 						'dq_absoluteexternalpositionalaccuracy',
 						'genericname',
 						'query',
+						'transaction'
 					)) :
 					$database_type = 'text';
 				break;
