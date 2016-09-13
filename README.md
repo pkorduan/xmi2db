@@ -1,5 +1,7 @@
 # xmi2db
-Convert UML class models from XMI files into a relational database models (testet for PostgreSQL).
+Konvertiert UML Klassenmodelle aus XMI Dateien in Tabellen und Typen nach PostgreSQL.
+
+Convert UML class models from XMI files into tables and datatypes in PostgreSQL.
 
 XMI files are XML representations of UML models. Sometimes there is a need to have theses UML model elements especially the classes its attributes, the assosiations an generalisations in a database table structure.
 xmi2db read an xmi file and write the UML Things into a database structure, which is oriented on the UML Structure. There are tables fore uml_classes, uml_attributes, class_generalizsations, datatypes, stereotypes etc.
