@@ -59,7 +59,7 @@ class Attribute {
 	function getComment($table_name) {
 		$sql = "
 COMMENT ON COLUMN " . $table_name . "." . $this->name . " IS '";
-		$sql .= trim($this->name . ' ' . $this->stereotype_alias . ' ' . $this->datatype_alias);
+		$sql .= trim($this->alias . ' ' . $this->stereotype_alias . ' ' . $this->datatype_alias);
 		$sql .= ' ' . $this->multiplicity;
 		$sql .= "';";
 		return $sql;
@@ -128,7 +128,8 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 						'sequence',
 						'dq_relativeinternalpositionalaccuracy',
 						'dq_absoluteexternalpositionalaccuracy',
-						'genericname'
+						'genericname',
+						'query',
 					)) :
 					$database_type = 'text';
 				break;
@@ -162,7 +163,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 						}
 						else {
 							$enumType = $this->parent->ogrSchema->enumerations[$this->datatype];
-							$database_type = $enumType->getWertType();
+							$database_type = (empty($enumType)) ? 'chacacter varying' : $enumType->getWertType();
 						}
 					}
 				break;
@@ -306,6 +307,9 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 					$this->parts
 				)
 			);
+		}
+		else {
+			$brackets = ($this->multiplicity_upper == '*' OR $this->multiplicity == '*' OR intval($this->multiplicity) > 1);
 		}
 		return $brackets ? '[]' : '';
 	}

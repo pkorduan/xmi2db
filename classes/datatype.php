@@ -62,6 +62,12 @@ END$$;";
 			$sql .= "\nCOMMENT ON TYPE " . $this->name . " IS '" .
 				implode(', ', $this->comments) . "';";
 		}
+
+		# Ausgabe Attributkommentare
+		foreach($this->attributes AS $attribute) {
+			$sql .= $attribute->getComment($this->name);
+		}
+
 		return $sql;
 	}
 }

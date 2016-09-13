@@ -897,7 +897,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		foreach ($tabNameAssoc as $tabname) {
 			if ($table==$tabname) {
 				$last = substr($table, -1);
-				if (intval($last)!=0) $table = substr($table, 0, strlen($table)-1).(intval($last)+1);
+				if (intval($last)!=0) $table = substr($table, 0, strlen($table) - 1).(intval($last) + 1);
 				else $table = $table.$delimiter;
 			}
 		}
@@ -923,7 +923,7 @@ COMMENT ON TABLE {$table} IS 'Association {$association['a_class']} {$delimiter}
 			//Fixed for self-associations (e.g. aa_reo)
 			if ($association['a_class'] == $association['b_class']) {
 				$sql .= "
-COMMENT ON COLUMN " . $table . "." . strtolower($association['a_class']) . "1_gml_id IS '" . $association['a_rel'] ."';";
+COMMENT ON COLUMN " . $table . "." . strtolower($association['a_class']) . "_1_gml_id IS '" . $association['a_rel'] ."';";
 			}
 			else {
 			$sql .= "
@@ -934,7 +934,7 @@ COMMENT ON COLUMN " . $table . "." . strtolower($association['a_class']) . "_gml
 			if ($association['a_class'] == $association['b_class']) {
 				//Fixed for self-associations (e.g. aa_reo)
 				$sql .= "
-COMMENT ON COLUMN " . $table . "." . strtolower($association['b_class']) . "2_gml_id IS '" . $association['b_rel'] ."';";
+COMMENT ON COLUMN " . $table . "." . strtolower($association['b_class']) . "_2_gml_id IS '" . $association['b_rel'] ."';";
 			}
 			else{
 				$sql .= "
@@ -958,7 +958,7 @@ IS '" . $table_orig .
 		#*******************************
 		# SC_CRS
 		#*******************************
-		$dataType = new DataType('sc_crs', 'DataType', $this->logger);
+		$dataType = new DataType('SC_CRS', 'DataType', $this->logger);
 		$this->logger->log('<br><b>' . $dataType->name . '</b>');
 		$dataType->setSchemas($this, $dbSchema);
 		$dataType->setId(0);
@@ -971,6 +971,74 @@ IS '" . $table_orig .
 		$dataTypeAttribute->setStereoType('CharacterString');
 		$dataTypeAttribute->attribute_type = 'ISO 19136 GML Type';
 		$dataTypeAttribute->setMultiplicity('1', '-1');
+		$this->logger->log(
+			'<br>attribute: <b>' . $dataTypeAttribute->name . '</b>
+			datatype: <b>' . $dataTypeAttribute->datatype .'</b>
+			stereotype: <b>' . $dataTypeAttribute->stereotype . '</b>'
+		);
+		$dataType->addAttribute($dataTypeAttribute);
+
+		# Create Comments
+		$comment  = $dataTypeAttribute->attribute_type . ': ' . $dataTypeAttribute->name;
+		$comment .= ' ' . $dataTypeAttribute->multiplicity;
+		$dataType->addComment($comment);
+
+		# Erzeuge SQL und registriere DataType in Liste
+		$dataTypeSql = $dataType->asSql();
+		$this->logger->log('<pre>' . $dataTypeSql . '</pre>');
+		$sql .= $dataTypeSql;
+		$this->dataTypes[$dataType->name] = $dataType;
+
+		#*******************************
+		# Query
+		#*******************************
+		$dataType = new DataType('Query', 'DataType', $this->logger);
+		$this->logger->log('<br><b>' . $dataType->name . '</b>');
+		$dataType->setSchemas($this, $dbSchema);
+		$dataType->setId(0);
+
+		# create Attributes
+		$dataTypeAttribute = new Attribute(
+			'url','CharacterString',
+			$dataType->name
+		);
+		$dataTypeAttribute->setStereoType('CharacterString');
+		$dataTypeAttribute->attribute_type = 'wfs:Query nach Web Feature Service Specifikation, Version 1.0.0';
+		$dataTypeAttribute->setMultiplicity('0', '1');
+		$this->logger->log(
+			'<br>attribute: <b>' . $dataTypeAttribute->name . '</b>
+			datatype: <b>' . $dataTypeAttribute->datatype .'</b>
+			stereotype: <b>' . $dataTypeAttribute->stereotype . '</b>'
+		);
+		$dataType->addAttribute($dataTypeAttribute);
+
+		# Create Comments
+		$comment  = $dataTypeAttribute->attribute_type . ': ' . $dataTypeAttribute->name;
+		$comment .= ' ' . $dataTypeAttribute->multiplicity;
+		$dataType->addComment($comment);
+
+		# Erzeuge SQL und registriere DataType in Liste
+		$dataTypeSql = $dataType->asSql();
+		$this->logger->log('<pre>' . $dataTypeSql . '</pre>');
+		$sql .= $dataTypeSql;
+		$this->dataTypes[$dataType->name] = $dataType;
+
+		#*******************************
+		# Transaction
+		#*******************************
+		$dataType = new DataType('Transaction', 'DataType', $this->logger);
+		$this->logger->log('<br><b>' . $dataType->name . '</b>');
+		$dataType->setSchemas($this, $dbSchema);
+		$dataType->setId(0);
+
+		# create Attributes
+		$dataTypeAttribute = new Attribute(
+			'content','Text',
+			$dataType->name
+		);
+		$dataTypeAttribute->setStereoType('CharacterString');
+		$dataTypeAttribute->attribute_type = 'wfs:Transaction nach Web Feature Service Specifikation, Version 1.0.0';
+		$dataTypeAttribute->setMultiplicity('0', '1');
 		$this->logger->log(
 			'<br>attribute: <b>' . $dataTypeAttribute->name . '</b>
 			datatype: <b>' . $dataTypeAttribute->datatype .'</b>

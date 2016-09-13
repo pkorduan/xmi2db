@@ -17,6 +17,7 @@ class FeatureType {
 		$this->umlSchema = $umlSchema;
 		$this->logger = $logger;
 		$this->stereotype = 'featuretype';
+		$this->attribute_filter = array();
 	}
 
 	public static function getName($name) {
@@ -42,47 +43,62 @@ class FeatureType {
 	function setAssociationEnds($class) {
 		# lade navigierbare Assoziationsenden von 1:n Assoziationen
 		foreach($this->umlSchema->getAssociationEnds($class) AS $end) {
-			$associationEnd = new AssociationEnd(
-				$end['b_name'],
-				$end['a_class_name'],
-				$end['b_class_name'],
-				$this->logger
-			);
-			$associationEnd->stereotype = 'FeatureType';
-			$associationEnd->setMultiplicity($end['b_multiplicity_range_lower'], $end['b_multiplicity_range_upper']);
-			$this->addAssociationEnd($associationEnd);
+			if (!$this->is_filtered('beziehungen', $class['name'], $end['b_name'])) {
+				$associationEnd = new AssociationEnd(
+					$end['b_name'],
+					$end['a_class_name'],
+					$end['b_class_name'],
+					$this->logger
+				);
+				$associationEnd->stereotype = 'FeatureType';
+				$associationEnd->setMultiplicity($end['b_multiplicity_range_lower'], $end['b_multiplicity_range_upper']);
+				$this->addAssociationEnd($associationEnd);
+			}
 		}
 		$this->logger->log($this->associationsAsTable());
+	}
+
+	function is_filtered($attribute_type, $class_name, $attribute_name) {
+		$is_filtered = (array_key_exists($class_name, $GLOBALS['filter']) and 
+										array_key_exists($attribute_type, $GLOBALS['filter'][$class_name]) and
+										array_key_exists($attribute_name, $GLOBALS['filter'][$class_name][$attribute_type]));
+
+		$this->logger->log("<br>Prüfe ob {$attribute_type}: {$attribute_name} in class: {$class_name} gefiltert wird.");
+		if ($is_filtered)
+			$this->logger->log("<br>Ignoriere Klasse: {$class_name} Attribute: {$attribute_name}");
+		return $is_filtered;
 	}
 
 	function getAttributesUntilLeafs($type, $parts) {
 		$return_attributes = array();
 		$attributes = $this->umlSchema->getClassAttributes($type);
 		foreach ($attributes AS $attribute) {
-			if (!empty($attribute['attribute_name'])) {
-				if (empty($parts)) {
-					$parent = $this;
-				}
-				else {
-					$parent = new Datatype($attribute['class_name'], 'datatype', $this->logger);
-				}
-				$attributeObj = new Attribute(
-					$attribute['attribute_name'],
-					$attribute['attribute_datatype'],
-					$parent,
-					$parts
-				);
-				$attributeObj->setStereoType($attribute['attribute_stereotype']);
-				$attributeObj->setMultiplicity($attribute['multiplicity_range_lower'], $attribute['multiplicity_range_upper']);
-				$new_path = $parts;
-				array_push($new_path, $attributeObj);
-				if (in_array(strtolower($attribute['attribute_stereotype']), array('datatype', 'union'))) {
-					foreach ($this->getAttributesUntilLeafs($attribute['attribute_datatype'], $new_path) AS $child_attribute) {
-						$return_attributes[] = $child_attribute;
+			if (!$this->is_filtered('attribute', $type, $attribute['attribute_name'])) {
+				if (!empty($attribute['attribute_name'])) {
+					if (empty($parts)) {
+						$parent = $this;
 					}
-				}
-				else {
-					$return_attributes[] = $new_path;
+					else {
+						$parent = new Datatype($attribute['class_name'], 'datatype', $this->logger);
+					}
+					$attributeObj = new Attribute(
+						$attribute['attribute_name'],
+						$attribute['attribute_datatype'],
+						$parent,
+						$parts
+					);
+					$attributeObj->setStereoType($attribute['attribute_stereotype']);
+					$attributeObj->setMultiplicity($attribute['multiplicity_range_lower'], $attribute['multiplicity_range_upper']);
+					$new_path = $parts;
+					array_push($new_path, $attributeObj);
+					if (in_array(strtolower($attribute['attribute_stereotype']), array('datatype', 'union'))) {
+						foreach ($this->getAttributesUntilLeafs($attribute['attribute_datatype'], $new_path) AS $child_attribute) {
+							$return_attributes[] = $child_attribute;
+						}
+					}
+					else {
+						$return_attributes[] = $new_path;
+					}
 				}
 			}
 		}
