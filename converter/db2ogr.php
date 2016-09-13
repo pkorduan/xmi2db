@@ -18,18 +18,18 @@
 	include('../classes/enumtype.php');
 	include('../classes/associationend.php');
 	include('../classes/featuretype.php');
-	
-	if (file_exists(FILTER_FILE)) {
-		$filter = json_decode(file_get_contents(FILTER_FILE), true);
-	}
-	else {
-		echo "Datei {FILTER_FILE} nicht gefunden.";
-		$filter = array();
-	}
 
 	$tabNameAssoc = array();
 	$log_sql = '';
 	$logger = new Logger(LOGLEVEL);
+	if (file_exists(FILTER_FILE)) {
+		$filter = json_decode(file_get_contents(FILTER_FILE), true);
+	}
+	else {
+		$logger->log("Filterdatei " . FILTER_FILE . " nicht gefunden.");
+		$filter = array();
+	}
+
 echo '<!DOCTYPE html>
 <html lang="de">
 	<head>
