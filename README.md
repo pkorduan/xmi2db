@@ -65,6 +65,19 @@ Um einen tieferen Einblick zu erhalten was alles abgefragt wird um die Schmata z
 http://meinserver.de/xmi2db/converter/db2classes.php?umlSchema=aaa_uml&gmlSchema=aaa_gml&loglevel=1
 ```
 
+Umbenennungsskript
+
+Um NAS-Dateien in das neue flache Schema, welches bei db2ogr herauskommt einlesen zu können, müssen einige XML-Elemente umbenannt werden. Dazu wurde das Ruby-Program rename_nas.rb geschrieben, welches sich im Verzeichnis converter befindet. Die Ausführung unter Debian erfordert die Installation von libxml-ruby.
+
+```
+apt-get updated && apt-get install libxml-ruby
+```
+
+Die Umbenennung von Elementen in einer NAS-Dateie "eingabedatei.xml" wird wie folgt aufgerufen:
+```
+ruby rename_nas.rb eingabedatei.xml [ausgabedatei.xml]
+```
+
 Filter
 
 Das Schema, welches mit db2ogr erzeugt wird, kann durch einen Filter beschränkt werden. Dazu dient eine Filterdatei im JSON Format, dessen Name in conf/database_conf.php im Parameter FILTER_FILE eingestellt werden kann. Die Beispieldatei conf/filter_sample.json enthält folgende Filter.
