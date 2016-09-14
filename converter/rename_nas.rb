@@ -74,11 +74,11 @@ while r.read
 			w.start_element name
 			r.attribute_count.times do |i|
 				r.move_to_next_attribute
-				w.write_attribute r.name, r.value
+				w.write_attribute r.name, r.value.encode(:xml => :attr)
 			end
 			w.end_element if content.nil?
 		when XML::Reader::TYPE_TEXT
-			w.write_raw r.value
+			w.write_raw r.value.encode(:xml => :text)
 		when XML::Reader::TYPE_END_ELEMENT
 			w.end_element
 	end
