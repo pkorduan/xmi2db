@@ -18,9 +18,18 @@
 	include('../classes/enumtype.php');
 	include('../classes/associationend.php');
 	include('../classes/featuretype.php');
+
 	$tabNameAssoc = array();
 	$log_sql = '';
 	$logger = new Logger(LOGLEVEL);
+	if (file_exists(FILTER_FILE)) {
+		$filter = json_decode(file_get_contents(FILTER_FILE), true);
+	}
+	else {
+		$logger->log("Filterdatei " . FILTER_FILE . " nicht gefunden.");
+		$filter = array();
+	}
+
 echo '<!DOCTYPE html>
 <html lang="de">
 	<head>
@@ -50,51 +59,6 @@ echo '<!DOCTYPE html>
 	}
 	$logger->log('<br><hr><br>');
 
-	#***********
-	# CodeLists
-	#***********
-	# Lade CodeLists
-	foreach($umlSchema->getCodeLists() AS $code_list) {
-#		$sql .= $umlSchema->createCodeListTable($code_list);
-	}
-	$logger->log('<br><hr><br>');
-
-/*
-	#***********
-	# Unions
-	#***********
-	# Lade oberste Klassen vom Typ Union
-	$topDataTypes = $umlSchema->getTopUmlClasses('Union');
-
-	# Für alle oberen Unions
-	foreach($topDataTypes as $topDataType) {
-		$umlSchema->logger->log('<br><b>Top UnionType: ' . $topDataType['name'] . '</b> (' . $topDataType['xmi_id'] . ')');
-		$sql .= $umlSchema->createComplexDataTypes('Union', $topDataType, $ogrSchema);
-	}
-	$logger->log('<br><hr><br>');
-*/
-
-	#********************************************
-	# Create DataTypes not definend in UML-Model
-	#********************************************
-#	$sql .= $umlSchema->createExternalDataTypes($ogrSchema);
-	$logger->log('<br><hr><br>');
-
-/*	
-	#***********
-	# DataTypes
-	#***********
-	$dataTypes = array();
-	# Lade oberste Klassen vom Typ DataType
-	$topDataTypes = $umlSchema->getTopUmlClasses('DataType');
-
-	# Für alle oberen Datentypen
-	foreach($topDataTypes as $topDataType) {
-		$umlSchema->logger->log('<br><b>Top DataType: ' . $topDataType['name'] . '</b> (' . $topDataType['xmi_id'] . ')');
-		$sql .= $umlSchema->createComplexDataTypes('DataType', $topDataType, $ogrSchema);
-	}
-	$logger->log('<br><hr><br>');
-*/
 	#**************
 	# FeatureTypes
 	#**************

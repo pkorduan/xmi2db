@@ -24,7 +24,7 @@ class EnumType {
 		return array_map(
 			function ($value) {
 				# return (ctype_digit($value[0])) ? $value[0] : "'" . $value[0] . "'";
-				return "'" . $value[0] . "'";
+				return "'" . substr($value[0], 0, 63) . "'";
 			},
 			$this->values->rows
 		);

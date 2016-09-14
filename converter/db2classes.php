@@ -120,7 +120,7 @@ echo '<!DOCTYPE html>
 		if ($association['b_rel'] != '')
 			$text .= $association['b_class'] . ' hat ' . $association['b_num'] . ' ' . $association['b_rel'];
 		if ($association['a_num'] == 'n' AND $association['b_num'] == 'n') {
-			$assoc_table = strtolower($association['a_class'] . '2' . $association['b_class']);
+			$assoc_table = strtolower($association['a_class'] . '_zu_' . $association['b_class']);
 			$text .= '<br>Lege n:m Tabelle ' . $assoc_table . ' an.';
 			$sql .= $umlSchema->createAssociationTable($association);
 		}
