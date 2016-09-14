@@ -16,6 +16,9 @@
 	
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
 	<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.7.0/bootstrap-table.min.css">	
+	<link rel="stylesheet" href="lib/pascoul/pascoul.css">
+	
+	<script src="lib/pascoul/pascoul.js"></script>
 	
 	<script language="javascript" type="text/javascript">
 		function execXmi2Db() {
@@ -41,7 +44,25 @@
 			else
 				var argo = "0";
 
-			window.location = 'converter/xmi2db.php?truncate=' + truncate + '&file=' + file + '&schema=' + umlSchema + '&basepackage=' + basepkg + '&argo=' + argo;
+			//window.location = 'converter/xmi2db.php?truncate=' + truncate + '&file=' + file + '&schema=' + umlSchema + '&basepackage=' + basepkg + '&argo=' + argo;
+			
+			var args = {};
+			args['url_params'] = new Array ();
+			args['url_params']['url'] = "converter/xmi2db.php";
+			args['url_params']['truncate'] = truncate;
+			args['url_params']['schema'] = umlSchema;
+			args['url_params']['basepackage'] = basepkg;
+			args['url_params']['file'] = file;
+			args['url_params']['argo'] = argo;
+			
+			//Styling the progress div/box
+			args['html_params'] = new Array ();
+			args['html_params']['divLogBoxStyle'] = "border:1px solid #000; padding:10px; width:300px; height:250px; overflow:auto; background:#eee;";
+			args['html_params']['progressDivTitle'] = "Progress";
+			args['html_params']['percentageSpanStyle'] = "text-align:right; display:block; margin-top:5px;";
+			
+			Pascoul.init(args);
+			Pascoul.startTask();
 		}
 
 		function execDb2Classes() {
@@ -91,7 +112,7 @@
 			} ?>
 		</select>
 		<h4>Schemaauswahl/-eingabe</h4>
-		<i>Das Schema wird entsprechend der gewählten Konfiguration in der Datenbank "<?php echo $db_name; ?>" angelegt.</i><br>
+		<i>Das Schema wird entsprechend der gewählten Konfiguration in der Datenbank "<?php echo PG_DBNAME; ?>" angelegt.</i><br>
 		<input type="text" id="xmi2db_umlSchema" name="umlSchema" list="xmi2db_umlSchemaName" size="50"/ value="<?php echo UML_SCHEMA; ?>">
 		<datalist id="xmi2db_umlSchemaName">
 			<option value="<?php echo UML_SCHEMA; ?>" selected><?php echo UML_SCHEMA; ?></option>
@@ -99,7 +120,7 @@
 		</datalist>
 		
 		<h4>BasePackageauswahl/-eingabe</h4>
-		<i>Bei einem EA-Export dex XPlan-Modells "XPlanGML 4.1" wählen, bei einem ArgoUML Export leer lassen oder ein Package eintragen, falls man nur das eine laden möchte.</i>
+		<i>Bei einem EA-Export des XPlan-Modells "XPlanGML 4.1" wählen, bei einem ArgoUML Export leer lassen oder ein Package eintragen, falls man nur das eine laden möchte.</i>
 		<input type="text" id="basepkg" name="basepkg" list="basepkgName" value="XPlanGML 4.1"/>
 		<datalist id="basepkgName">
 			<option value="XPlanGML 4.1">XPlanGML 4.1</option>
@@ -111,10 +132,12 @@
 		<div class="checkbox">
 			<label><input type="checkbox" id="argo">Argo Export mit ISO19136 Profil</label>
 		</div>
-		Das Befüllen der Datenbank mit den Inhalten der XMI-Datei insbesondere der tagged values kann einige Minuten dauern!
+		Das Befüllen der Datenbank mit den Inhalten der XMI-Datei, insbesondere der tagged values, kann einige Minuten dauern!
 		<div class="text-center" id="queryButton">
-		<button type="submit" class="btn btn-primary btn-sm" id="queryNERC" onclick="execXmi2Db()">
+		<button type="submit" class="btn btn-primary btn-sm" id="execXmi2Db" onclick="execXmi2Db()">
 			<span class="glyphicon glyphicon-ok"> </span> Fülle DB mit XMI Inhalten</button>
+		<button type="button" class="btn btn-danger btn-sm" id="cancelXmi2Db" onclick="Pascoul.stopTask();">
+			<span class="glyphicon glyphicon-remove"> </span> Abbrechen</button>
 		</div>
 
 
