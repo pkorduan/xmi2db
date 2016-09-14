@@ -65,4 +65,25 @@ Um einen tieferen Einblick zu erhalten was alles abgefragt wird um die Schmata z
 http://meinserver.de/xmi2db/converter/db2classes.php?umlSchema=aaa_uml&gmlSchema=aaa_gml&loglevel=1
 ```
 
+Filter
+
+Das Schema, welches mit db2ogr erzeugt wird, kann durch einen Filter beschränkt werden. Dazu dient eine Filterdatei im JSON Format, dessen Name in conf/database_conf.php im Parameter FILTER_FILE eingestellt werden kann. Die Beispieldatei conf/filter_sample.json enthält folgende Filter.
+```
+{
+	"AA_Modellart": {
+		"attribute": {
+			"sonstigesModell": 0
+		}
+	},
+	"AA_Objekt": {
+		"beziehungen": {
+			"istTeilVon": 0
+		}
+	},
+	"AX_Netzknoten": 0,
+	"AX_Bauwerksfunktion_Leitung": 0
+}
+```
+Im Element AA_Modellart wird das Attribut sonstigesModell ausgeschlossen. Im Element AA_Objekt wird die Beziehung istTeilVon ausgeschlossen. Zusätzlich wird das Elemente AX_Netzknoten und die Aufzählungsklasse AX_Bauwerksfunktion_Leitung vollständig weggelassen. Es können mehrere Attribute und Beziehungen getrennt durch Komma angegeben werden. Die Zahl hinter dem : hat noch nichts zu sagen und sollte mit 0 angegeben werden.
+
 Diese Anwendung wurde 2016 entwickelt von Peter Korduan und Christian Seip.
