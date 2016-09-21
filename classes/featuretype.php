@@ -81,8 +81,13 @@ class FeatureType {
 					else {
 						$parent = new Datatype($attribute['class_name'], 'datatype', $this->logger);
 					}
+					if (GEOMETRY_COLUMN_NAME != '')
+						$attribute_name = ($attribute['attribute_name'] == 'position' ? GEOMETRY_COLUMN_NAME : $attribute['attribute_name']);
+					else
+						$attribute_name = $attribute['attribute_name'];
+
 					$attributeObj = new Attribute(
-						$attribute['attribute_name'] == 'position' ? 'wkb_geometry' : $attribute['attribute_name'],
+						$attribute_name,
 						$attribute['attribute_datatype'],
 						$parent,
 						$parts
