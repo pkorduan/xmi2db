@@ -426,6 +426,12 @@ CREATE TABLE IF NOT EXISTS " . $this->name . " (
 
 CREATE TABLE IF NOT EXISTS " . $this->name . " (
 ";
+		# ogc_fid Spalte
+		$attribute_parts[] .= "	ogc_fid serial NOT NULL";
+
+		# identifier Spalte
+		$attribute_parts[] .= "	identifier character varying";
+
 		# Ausgabe id
 		$attribute_parts[] .= "\t" . $this->primaryKey . ' text';
 
