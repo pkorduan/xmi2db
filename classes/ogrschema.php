@@ -53,7 +53,7 @@ class OgrSchema extends Schema {
 		);
 	}
 
-	function createFeatureTypeTables($stereotype, $parent, $class, $attributPath = array()) {
+	function createFeatureTypeTables($stereotype, $parent, $class, $attributPath = array(), $createUserInfoColumns = false) {
 		if ($this->is_table_filtered($class['name'])) {
 			$this->logger->log("<br>Ignoriere FeatureType: {$class['name']} komplett");
 		}

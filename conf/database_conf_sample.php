@@ -13,10 +13,12 @@
 	$umlSchemaVar = ($_REQUEST['umlSchema'] != '') ? $_REQUEST['umlSchema'] : 'aaa_uml';
 	$gmlSchemaVar = ($_REQUEST['gmlSchema'] != '') ? $_REQUEST['gmlSchema'] : 'aaa_gml';
 	$ogrSchemaVar = ($_REQUEST['ogrSchema'] != '') ? $_REQUEST['ogrSchema'] : 'aaa_ogr';
+	$geometryColumnVar = ($_REQUEST['geometryColumn'] != '') ? $_REQUEST['geometryColumn'] : '';
 
 	define('UML_SCHEMA', $umlSchemaVar);
 	define('CLASSES_SCHEMA', $gmlSchemaVar);
 	define('OGR_SCHEMA', $ogrSchemaVar);
+	define('GEOMETRY_COLUMN_NAME', $geometryColumnVar);
 
 	define('WITH_UUID_OSSP', false);
 

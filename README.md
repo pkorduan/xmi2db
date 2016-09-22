@@ -73,7 +73,7 @@ Um NAS-Dateien in das neue flache Schema, welches bei db2ogr herauskommt einlese
 apt-get updated && apt-get install libxml-ruby
 ```
 
-Die Umbenennung von Elementen in einer NAS-Dateie "eingabedatei.xml" wird wie folgt aufgerufen:
+Die Umbenennung von Elementen in einer NAS-Datei "eingabedatei.xml" wird wie folgt aufgerufen:
 ```
 ruby rename_nas.rb eingabedatei.xml [ausgabedatei.xml]
 ```
@@ -98,5 +98,94 @@ Das Schema, welches mit db2ogr erzeugt wird, kann durch einen Filter beschränkt
 }
 ```
 Im Element AA_Modellart wird das Attribut sonstigesModell ausgeschlossen. Im Element AA_Objekt wird die Beziehung istTeilVon ausgeschlossen. Zusätzlich wird das Elemente AX_Netzknoten und die Aufzählungsklasse AX_Bauwerksfunktion_Leitung vollständig weggelassen. Es können mehrere Attribute und Beziehungen getrennt durch Komma angegeben werden. Die Zahl hinter dem : hat noch nichts zu sagen und sollte mit 0 angegeben werden.
+
+Schritt für Schritt Anleitung zum Einlesen von NAS-Dateien in PostgreSQL
+
+1. Vorbereitungen
+
+Zum Einlesen von NAS-Dateien in Postgres benötigt man in der Datenbank ein aufbereitet Schema im folgenden "aaa_ogr" genannt und eine aufbereitete NAS-Datei im folgenden "renamed_nas.xml" genannt.
+
+1.1 Erstellung des Schemas "aaa_ogr"
+
+Ein vollständiges Schema kann unter
+http://gdi-service.de/xmi2db/converter/db2ogr
+heruntergeladen werden, z.B. in der Datei aaa_ogr_schema.sql ablegen.
+
+Länderspezifische Schemata lassen sich mit dem Zusatz filter= mv,rp oder sl erzeugen. z.B.
+http://gdi-service.de/xmi2db/converter/db2ogr?filter=mv. Siehe Punkt "Filter" oben, um zu erfahren was gefiltert wird und wie er funktioniert.
+
+Den SQL-Text in aaa_ogr_schema.sql in einer Datenbank in einem SQL-Client ausführen z.B. pgAdmin3 oder psql ausführen. Die Befehle zum Anlegen der Datenbank lauten wie folgt:
+
+```
+CREATE DATABASE "mypgdatabase";
+CREATE EXTENSION postgis;
+```
+
+Befehl zum Ausführen der SQL-Datei aaa_ogr_schema.sql im Console-Client psql:
+
+```
+psql -U mydbuser -f aaa_ogr_schema.sql mydbname -
+```
+
+siehe psql --help für mehr Informationen.
+
+1.2 NAS-Datei aufbereiten
+
+Jede NAS-Datei, die in das Schema aaa_ogr eingelesen werden soll, muss voher mit dem Script "rename_nas.rb" aufbereitet werden. Zur Installation von ruby und der Ausführung des Skripts sieht oben Punkt "Umbenennungsskript".
+
+2. Einlesen
+
+2.1 Eine einzelne NAS-Datei einlesen
+Eine einzelne aufbereitete NAS-Datei "renamed_nas.xml" wird wie folgt mit ogr2ogr in das Schema "aaa_ogr" eingelesen.
+
+```
+ogr2ogr -f "PostgreSQL" --config PG_USE_COPY NO -nlt CONVERT_TO_LINEAR -append PG:"dbname=mydbname active_schema=aaa_ogr user=mydbuser host=myhost port=5432" -a_srs EPSG:25833 renamed_nas.xml
+```
+Im Osten Deutschlands wie Mecklenburg-Vorpommern nutze 25833 sonst 25832
+Siehe http://gdal.org/ogr für mehr Informationen zur Benutzung von ogr2ogr
+
+3. Automatisierung des Einlesens von Massendaten
+
+NAS-Dateien, die im nutzer- oder stichtagsbezogenem Abgabeverfahren (NBA) von AAA-Softwaresystemen erzeugt werden, liegen in der Regel in Form von gepackten und komprimierten Archiven vor, z.B. NBA_Grundausstattung_2015-02-11.zip Unter Linux lassen sich solche Archive wie folgt entpacken:
+
+```
+unzip NBA_Grundausstattung_2015-02-11.zip
+```
+Es entstehen viele Dateien z.B.
+```
+NBA_Grundausstattung_001_081_2015-02-11.xml.gz
+NBA_Grundausstattung_002_081_2015-02-11.xml.gz
+...
+NBA_Grundausstattung_081_081_2015-02-11.xml.gz
+```
+Diese Dateien wiederum lassen sich wie folgt entpacken und in einer Schleife verarbeiten.
+
+```
+gunzip *.xml.gz
+for NAS_FILE in *.xml
+do
+  ruby rename_nas.rb $NAS_FILE renamed_nas.xml
+  ogr2ogr -f "PostgreSQL" --config PG_USE_COPY NO -nlt CONVERT_TO_LINEAR -append PG:"dbname=mydbname active_schema=aaa_ogr user=mydbuser host=myhost port=5432" -a_srs EPSG:25833 renamed_nas.xml
+done
+```
+
+In der Schleife der Abarbeitung ist jedoch noch zu berücksichtigen, dass die erste Datei Metadaten enthält und ignoriert werden kann und Fehler abgefangen werden müssen.
+
+Ein Vorschlag für ein Bash-Skript für Linux, welches die Metadaten und Fehlerbehandlung berücksichtigt in Log-Dateien protokolliert und abgearbeitete Dateien in einen Archivordner schreibt, findet sich in der Datei tools/import_nas.sh Die Datei muss im Modus "Ausführbar" sein
+
+```
+chmod a+x import_nas.sh
+```
+Passen Sie vor dem Ausführen der Datei mit
+
+```
+./import_nas.sh
+```
+die folgenden Parameter an.
+```
+DATA_PATH="/pfad/zu/den/nas/dateien"
+OGR_PATH="/pfad/zu/ogr2ogr/bin/verzeichnis"
+ERROR_LOG=/pfad/fuer/logfiles/mylogfile.log
+```
 
 Diese Anwendung wurde 2016 entwickelt von Peter Korduan und Christian Seip.

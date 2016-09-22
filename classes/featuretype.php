@@ -81,8 +81,13 @@ class FeatureType {
 					else {
 						$parent = new Datatype($attribute['class_name'], 'datatype', $this->logger);
 					}
+					if (GEOMETRY_COLUMN_NAME != '')
+						$attribute_name = ($attribute['attribute_name'] == 'position' ? GEOMETRY_COLUMN_NAME : $attribute['attribute_name']);
+					else
+						$attribute_name = $attribute['attribute_name'];
+
 					$attributeObj = new Attribute(
-						$attribute['attribute_name'],
+						$attribute_name,
 						$attribute['attribute_datatype'],
 						$parent,
 						$parts
@@ -421,6 +426,12 @@ CREATE TABLE IF NOT EXISTS " . $this->name . " (
 
 CREATE TABLE IF NOT EXISTS " . $this->name . " (
 ";
+		# ogc_fid Spalte
+		$attribute_parts[] .= "	ogc_fid serial NOT NULL";
+
+		# identifier Spalte
+		$attribute_parts[] .= "	identifier character varying";
+
 		# Ausgabe id
 		$attribute_parts[] .= "\t" . $this->primaryKey . ' text';
 

@@ -82,9 +82,10 @@
 
 		function execDb2Ogr() {
 			var umlSchema = document.getElementById("db2ogr_umlSchema").value,
-					ogrSchema = document.getElementById("db2ogr_ogrSchema").value;
+					ogrSchema = document.getElementById("db2ogr_ogrSchema").value,
+					geometryColumn = document.getElementById("db2ogr_geometryColumn").value;
 
-			window.location = 'converter/db2ogr.php?umlSchema=' + umlSchema + '&ogrSchema=' + ogrSchema;
+			window.location = 'converter/db2ogr.php?umlSchema=' + umlSchema + '&ogrSchema=' + ogrSchema + '&geometryColumn=' + geometryColumn;
 		}
 	</script>
 	<title>UML to DB model</title>
@@ -120,12 +121,18 @@
 		</datalist>
 		
 		<h4>BasePackageauswahl/-eingabe</h4>
-		<i>Bei einem EA-Export des XPlan-Modells "XPlanGML 4.1" wählen, bei einem ArgoUML Export leer lassen oder ein Package eintragen, falls man nur das eine laden möchte.</i>
-		<input type="text" id="basepkg" name="basepkg" list="basepkgName" value="XPlanGML 4.1"/>
-		<datalist id="basepkgName">
-			<option value="XPlanGML 4.1">XPlanGML 4.1</option>
+		<i>Bei einem EA-Export dex XPlan-Modells "XPlanGML 4.1" wählen, bei einem ArgoUML Export leer lassen oder ein Package eintragen, falls man nur das eine laden möchte.</i>
+		<input type="text" id="basepkg" name="basepkg" list="basepkgNameListe" size="50"/>
+		<datalist id="basepkgNameListe">
+			<option value="XPlanGML 4.1" selected>XPlanGML 4.1</option>
 			<option value="Raumordnungsplan_Kernmodell">Raumordnungsplan_Kernmodell</option>
 		</datalist>
+		<!--input type="text" id="basepkg" name="basepkg" list="basepkgNameListe" value="XPlanGML 4.1"/>
+		<datalist id="basepkgNameListe">
+			<option value="XPlanGML 4.1">XPlanGML 4.1</option>
+			<option value="Raumordnungsplan_Kernmodell">Raumordnungsplan_Kernmodell</option>
+			<option value="">Alle Pakete</option>
+		</datalist-->
 		<div class="checkbox">
 			<label><input type="checkbox" value="checked" id="truncate" checked="checked"> Tabellen vor dem Einlesen leeren</label>
 		</div>
@@ -139,9 +146,6 @@
 		<button type="button" class="btn btn-danger btn-sm" id="cancelXmi2Db" onclick="Pascoul.stopTask();">
 			<span class="glyphicon glyphicon-remove"> </span> Abbrechen</button>
 		</div>
-
-
-
 
 		<h3>db2classes</h4>
 		db2classes erzeugt ein GML-Klassenschema an Hand der mit xmi2db eingelesenen UML-Modell-Elemente.
@@ -180,9 +184,6 @@
 		<button type="submit" class="btn btn-primary btn-sm" id="queryNERC" onclick="execDb2Classes()"><span class="glyphicon glyphicon-ok"> </span> Erzeuge GML-Klassenschema</button>
 		</div>
 
-
-
-
 		<h3>db2ogr</h4>
 		db2ogr erzeugt aus dem UML-Modell ein flaches GML-Schema welches zum Einlesen von komplexen GML-Dateien mit ogr2ogr geeignet sein sollte. Die Tabellen der FeatureTypen enthalten alle Attribute der abgeleiteten Klassen und der verzweigenden komplexen Datentypen. Das Schema enthält nach dem Ausführen des erzeugten SQL im ausgewählten Schema je
 		<ul>
@@ -204,6 +205,13 @@
 		<input type="text" id="db2ogr_ogrSchema" name="ogrSchema" list="db2ogr_ogrSchemaListe" size="50" value="<?php echo OGR_SCHEMA; ?>"/>
 		<datalist id="db2ogr_ogrSchemaListe">
 			<option value="<?php echo OGR_SCHEMA; ?>" selected><?php echo OGR_SCHEMA; ?></option>
+		</datalist>
+
+		<h4>Geometry Spalte</h4>
+		<i>Der Name der Geometriespalte in Tabellen lautet normalerweise so wie das Attribut im UML-Schema. OGR geht aber davon aus, dass die Spalte z.B. wkb_geometry heist. Hier kann man andere Namen angeben.</i><br>
+		<input type="text" id="db2ogr_geometryColumn" name="geometryColumn" list="db2ogr_geometryColumnListe" size="50"/>
+		<datalist id="db2ogr_geometryColumnListe">
+			<option value="<?php echo GEOMETRY_COLUMN_NAME; ?>" selected><?php echo GEOMETRY_COLUMN_NAME; ?></option>
 		</datalist>
 		
 		<div class="text-center" id="queryButton">
