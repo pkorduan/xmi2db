@@ -1,4 +1,4 @@
-renamefile = '/var/www/apps/xmi2db/conf/umbenenn.json'
+renamefile = File.expand_path(File.dirname(__FILE__)) + '/../conf/umbenenn.json'
 
 require 'xml'
 require 'json'
