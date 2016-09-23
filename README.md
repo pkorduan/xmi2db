@@ -67,11 +67,13 @@ http://meinserver.de/xmi2db/converter/db2classes.php?umlSchema=aaa_uml&gmlSchema
 
 Umbenennungsskript
 
-Um NAS-Dateien in das neue flache Schema, welches bei db2ogr herauskommt einlesen zu können, müssen einige XML-Elemente umbenannt werden. Dazu wurde das Ruby-Program rename_nas.rb geschrieben, welches sich im Verzeichnis converter befindet. Die Ausführung unter Debian erfordert die Installation von libxml-ruby.
+Um NAS-Dateien in das neue flache Schema, welches bei db2ogr herauskommt einlesen zu können, müssen einige XML-Elemente umbenannt werden. Dazu wurde das Ruby-Program rename_nas.rb geschrieben, welches sich im Verzeichnis converter befindet. Die Ausführung unter Debian erfordert die Installation von ruby_libxml.
 
 ```
 apt-get updated && apt-get install libxml-ruby
 ```
+
+In der Datei rename_nas.rb steht der Pfad auf die Umbenennungsdatei. Der Pfad ist relativ zum Verzeichnis converter angegeben in dem das Skript rename_nas.rb liegt. Wenn die Umbenennungsdatei da bleibt, wo sie standardmäßig liegt, passt der angegebenen Pfad.
 
 Die Umbenennung von Elementen in einer NAS-Datei "eingabedatei.xml" wird wie folgt aufgerufen:
 ```
