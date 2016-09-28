@@ -4,21 +4,22 @@
 	$loglevel = ($_REQUEST['loglevel'] != '') ? $_REQUEST['loglevel'] : '0';
 	define('LOGLEVEL', $loglevel);
 
-	define('PG_HOST', 'localhost'); // Hostname
-	define('PG_DBNAME', 'postgres'); // Name der Datenbank
-	define('PG_USER', 'postgres'); // Benutzername
-	define('PG_PASSWORD', 'postgres'); // Kennwort
+	define('PG_HOST', 'localhost');
+	define('PG_DBNAME', 'postgres');
+	define('PG_USER', 'postgres');
+	define('PG_PASSWORD', 'postgres');
 	define('PG_MAX_NAME_LENGTH', 58); // Maximale Länge von Tabellen, Type und Attributnamen
 
 	$umlSchemaVar = ($_REQUEST['umlSchema'] != '') ? $_REQUEST['umlSchema'] : 'aaa_uml';
-	$gmlSchemaVar = ($_REQUEST['gmlSchema'] != '') ? $_REQUEST['gmlSchema'] : 'aaa_gml';
-	$ogrSchemaVar = ($_REQUEST['ogrSchema'] != '') ? $_REQUEST['ogrSchema'] : 'aaa_ogr';
-	$geometryColumnVar = ($_REQUEST['geometryColumn'] != '') ? $_REQUEST['geometryColumn'] : '';
-
 	define('UML_SCHEMA', $umlSchemaVar);
+
+	$gmlSchemaVar = ($_REQUEST['gmlSchema'] != '') ? $_REQUEST['gmlSchema'] : 'aaa_gml';
 	define('CLASSES_SCHEMA', $gmlSchemaVar);
+
+	$ogrSchemaVar = ($_REQUEST['ogrSchema'] != '') ? $_REQUEST['ogrSchema'] : 'aaa_ogr';
 	define('OGR_SCHEMA', $ogrSchemaVar);
-	define('GEOMETRY_COLUMN_NAME', $geometryColumnVar);
+
+	define('OGR_GEOMETRY_COLUMN_NAME', 'wkb_geometry');
 
 	define('WITH_UUID_OSSP', false);
 
