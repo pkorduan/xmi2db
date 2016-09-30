@@ -49,7 +49,7 @@ IF NOT EXISTS (
 CREATE TYPE " . $this->name . " AS (
 " . implode(",\n", array_map(
 			function($attribute) {
-				return $attribute->asSQL();
+				return $attribute->asSql('datatype');
 			},
 			$this->attributes
 		)) . "

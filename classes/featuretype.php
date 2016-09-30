@@ -35,8 +35,8 @@ class FeatureType {
 	function createUserInfoColumns() {
 		$this->logger->log('<br><b>Erzeuge userinfo Spalten</b>');
 		$this->addAttribute(new Attribute('user_id', 'integer'));
-		$this->addAttribute(new Attribute('created_at', 'timestamp without time zone','',array(), 'NOT NULL', 'current_timestamp'));
-		$this->addAttribute(new Attribute('updated_at', 'timestamp without time zone','',array(), 'NOT NULL', 'current_timestamp'));
+		$this->addAttribute(new Attribute('created_at', 'timestamp without time zone','',array(), true, 'current_timestamp'));
+		$this->addAttribute(new Attribute('updated_at', 'timestamp without time zone','',array(), true, 'current_timestamp'));
 		$this->addAttribute(new Attribute('konvertierung_id', 'integer'));
 	}
 
@@ -346,7 +346,7 @@ CREATE TABLE IF NOT EXISTS " . $this->name . " (
 			$attribute_parts,
 			array_map(
 				function($attribute) {
-					return $attribute->asSql();
+					return $attribute->asSql('table');
 				},
 				$this->attributes
 			)
@@ -357,7 +357,7 @@ CREATE TABLE IF NOT EXISTS " . $this->name . " (
 			$attribute_parts,
 			array_map(
 				function($associationsEnd) {
-					return $associationsEnd->asSql();
+					return $associationsEnd->asSql('table');
 				},
 				$this->associationEnds
 			)

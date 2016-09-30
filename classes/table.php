@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS " . $this->name . " (
 		# Ausgabe Attribute
 		$i = 0;
 		while ($i < count($this->attributes)) {
-			$sql .= $this->attributes[$i]->asSql();
+			$sql .= $this->attributes[$i]->asSql('table');
 			$i++;
 			if ($i < count($this->attributes))
 				$sql .= ",\n";

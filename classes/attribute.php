@@ -1,7 +1,7 @@
 <?php
 class Attribute {
 
-	function __construct($name, $datatype, $parent = '', $parts = array(), $null = '', $default = '', $comment = '') {
+	function __construct($name, $datatype, $parent = '', $parts = array(), $not_null = false, $default = '', $comment = '') {
 		$this->alias = $name;
 		$this->name = $this->getName($name);
 		$this->brackets = '';
@@ -20,7 +20,7 @@ class Attribute {
 		$this->database_type_alias = $database_type; # langer Name
 		$this->database_type = strtolower(substr($database_type, 0, 58)); # verkürzter Name
 
-		$this->null = $null;
+		$this->not_null = $not_null;
 		$this->default = $default;
 		$this->comment = $comment;
 		$this->attributes_name = '';
@@ -315,13 +315,39 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 		return $brackets ? '[]' : '';
 	}
 
-	function asSql() {
-		$sql = "	" .
-			$this->name . " " . $this->get_database_type() . $this->getBrackets();
+	/*
+	* Ausgabe NOT NULL
+	*/
+	function getNotNull() {
+		if ($this->not_null) {
+			# Wenn NOT NULL explizit beim Anlegen des Attributes gesetzt wurde
+			$not_null = $this->not_null;
+		}
+		else {
+			if (is_array($this->parts) and !empty($this->parts)) {
+				# Ermittle NOT NULL aus Multipliziät des Attributes und seiner Vorgänger
+				$not_null = in_array(
+					true,
+					array_map(
+						function($attribute) {
+							return intval($attribute->multiplicity_lower) > 0;
+						},
+						$this->parts
+					)
+				);
+			}
+			else {
+				# Ermittle NOT NULL nur aus multiplicity_lower des Attributes
+				$not_null = (intval($this->multiplicity_lower) > 0);
+			}
+		}
+		return ($not_null ? ' NOT NULL' : '');
+	}
 
-		# Ausgabe NOT NULL
-		if ($this->null != '')
-			$sql .= ' ' . $this->null;
+	function asSql($class_type) {
+		$sql = "	" . $this->name . " " . $this->get_database_type() . $this->getBrackets();
+		if ($class_type == 'table')
+			$sql .= $this->getNotNull();
 
 		# Ausgabe DEFAULT
 		if ($this->default != '')
@@ -332,11 +358,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 
 	function asFlattenedSql() {
 		$sql = "	" .
-			$this->short_name . " " . $this->get_database_type(false, false) . $this->getBrackets();
-
-		# Ausgabe NOT NULL
-		if ($this->null != '')
-			$sql .= ' ' . $this->null;
+			$this->short_name . " " . $this->get_database_type(false, false) . $this->getBrackets() . $this->getNotNull();
 
 		# Ausgabe DEFAULT
 		if ($this->default != '')
