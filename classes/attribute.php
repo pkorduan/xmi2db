@@ -107,8 +107,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 	function get_database_type($with_enum_type = true, $with_codelist_type = true) {
 		$database_type = $this->datatype;
 		$defined_types = array(
-			'datatype',
-			'union'
+			'datatype'
 		);
 
 		if ($with_enum_type) {
@@ -238,42 +237,37 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 
 				# geometry
 				case in_array($this->datatype, array(
+						'gm_object',
+						'union',
+						'xp_variablegeometrie'
+					)):
+					$database_type = 'geometry';
+				break;
+
+				case in_array($this->datatype, array(
 						'gm_point',
 						'directposition'
 					)):
 					$database_type = 'geometry(POINT)';
 				break;
 
+				case in_array($this->datatype, array(
+						'gm_multipoint',
+						'xp_punktgeometrie'
+					)):
+					$database_type = 'geometry(MULTIPOINT)';
+				break;
+
 				case ($this->datatype == 'gm_curve'):
 					$database_type = 'geometry(LINESTRING)';
 				break;
 
-				case ($this->datatype == 'gm_compositecurve'):
+				case in_array($this->datatype, array(
+						'gm_multicurve',
+						'xp_liniengeometrie',
+						'gm_compositecurve'
+					)):
 					$database_type = 'geometry(MULTILINESTRING)';
-				break;
-
-				case ($this->datatype == 'gm_multicurve'):
-					$database_type = 'geometry(MULTILINESTRING)';
-				break;
-
-				case ($this->datatype == 'gm_multipoint'):
-					$database_type = 'geometry(MULTIPOINT)';
-				break;
-
-				case ($this->datatype == 'gm_triangulatedsurface'):
-					$database_type = 'geometry(MULTIPOLYGON)';
-				break;
-
-				case ($this->datatype == 'gm_solid'):
-					$database_type = 'geometry(MULTIPOLYGON)';
-				break;
-
-				case ($this->datatype == 'gm_compositesolid'):
-					$database_type = 'geometry(MULTIPOLYGON)';
-				break;
-
-				case ($this->datatype == 'gm_multisurface'):
-					$database_type = 'geometry(MULTIPOLYGON)';
 				break;
 
 				case ($this->datatype == 'gm_surface'):
@@ -281,10 +275,13 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 				break;
 
 				case in_array($this->datatype, array(
-						'gm_object',
-						'union'
+						'gm_triangulatedsurface',
+						'xp_flaechengeometrie',
+						'gm_solid',
+						'gm_compositesolid',
+						'gm_multisurface'
 					)):
-					$database_type = 'geometry';
+					$database_type = 'geometry(MULTIPOLYGON)';
 				break;
 			} # end of switch
 		}

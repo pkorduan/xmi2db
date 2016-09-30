@@ -82,10 +82,9 @@
 
 		function execDb2Ogr() {
 			var umlSchema = document.getElementById("db2ogr_umlSchema").value,
-					ogrSchema = document.getElementById("db2ogr_ogrSchema").value,
-					geometryColumn = document.getElementById("db2ogr_geometryColumn").value;
+					ogrSchema = document.getElementById("db2ogr_ogrSchema").value;
 
-			window.location = 'converter/db2ogr.php?umlSchema=' + umlSchema + '&ogrSchema=' + ogrSchema + '&geometryColumn=' + geometryColumn;
+			window.location = 'converter/db2ogr.php?umlSchema=' + umlSchema + '&ogrSchema=' + ogrSchema;
 		}
 	</script>
 	<title>UML to DB model</title>
@@ -207,13 +206,6 @@
 			<option value="<?php echo OGR_SCHEMA; ?>" selected><?php echo OGR_SCHEMA; ?></option>
 		</datalist>
 
-		<h4>Geometry Spalte</h4>
-		<i>Der Name der Geometriespalte in Tabellen lautet normalerweise so wie das Attribut im UML-Schema. OGR geht aber davon aus, dass die Spalte z.B. wkb_geometry heist. Hier kann man andere Namen angeben.</i><br>
-		<input type="text" id="db2ogr_geometryColumn" name="geometryColumn" list="db2ogr_geometryColumnListe" size="50"/>
-		<datalist id="db2ogr_geometryColumnListe">
-			<option value="<?php echo GEOMETRY_COLUMN_NAME; ?>" selected><?php echo GEOMETRY_COLUMN_NAME; ?></option>
-		</datalist>
-		
 		<div class="text-center" id="queryButton">
 		<button type="submit" class="btn btn-primary btn-sm" id="queryNERC" onclick="execDb2Ogr()"><span class="glyphicon glyphicon-ok"> </span> Erzeuge OGR-Schema</button>
 		</div>	
