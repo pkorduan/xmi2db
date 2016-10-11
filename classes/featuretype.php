@@ -448,7 +448,7 @@ CREATE TABLE IF NOT EXISTS " . $this->name . " (
 				$attribute_parts,
 				array_map(
 					function($associationsEnd) {
-						return $associationsEnd->asSql();
+						return $associationsEnd->asSql('table');
 					},
 					$this->getParentsAssociationEnds()
 				)
@@ -460,7 +460,7 @@ CREATE TABLE IF NOT EXISTS " . $this->name . " (
 			$attribute_parts,
 			array_map(
 				function($associationsEnd) {
-					return $associationsEnd->asSql();
+					return $associationsEnd->asSql('table');
 				},
 				$this->associationEnds
 			)
