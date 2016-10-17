@@ -1,4 +1,11 @@
 <?php
+	define(
+		'VERSION',
+		preg_replace(
+			"/\r|\n/",
+			"", 
+			file((basename($_SERVER['SCRIPT_NAME']) != 'index.php' ? '../' : '') . 'README.md')[2])
+	);
 	error_reporting(E_ALL & ~E_NOTICE);
 
 	$loglevel = ($_REQUEST['loglevel'] != '') ? $_REQUEST['loglevel'] : '0';

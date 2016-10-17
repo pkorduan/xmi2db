@@ -36,11 +36,10 @@ class Schema {
 	}
 
 	function asSql() {
-$sql = "-- Version vom 11.10.2016\n";		
-
-$sql  .= 'DROP SCHEMA IF EXISTS ' . $this->schemaName . " CASCADE;\n";
+		$sql = '-- ' . VERSION . "\n";
+		$sql  .= 'DROP SCHEMA IF EXISTS ' . $this->schemaName . " CASCADE;\n";
 		$sql .= 'CREATE SCHEMA ' . $this->schemaName . ";\n";
-$sql .= 'COMMENT ON SCHEMA ' . $this->schemaName . " IS 'Version vom 11.10.2016'\n";
+		$sql .= 'COMMENT ON SCHEMA ' . $this->schemaName . " IS '" . VERSION . "';\n";
 		$sql .= 'SET search_path = ' . $this->schemaName . ", public;\n";
 		if (WITH_UUID_OSSP) {
 			$sql .= 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp"' . ";\n";

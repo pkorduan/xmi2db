@@ -1,11 +1,12 @@
 <?php
-// +----------------------------------------------------------------------+
-// | uml2db                                                               |
-// | Ableitungen von Datenbankmodellen aus UML-Modellen im XMI-Format     |
-// +----------------------------------------------------------------------+
-// | Author: Peter Korduan <peter.korduan@gdi-service.de>                 |
-// | Licence: GPL https://www.gnu.org/licenses/gpl-3.0.de.html            |
-// +----------------------------------------------------------------------+
+	// +----------------------------------------------------------------------+
+	// | uml2db                                                               |
+	// | Ableitungen von Datenbankmodellen aus UML-Modellen im XMI-Format     |
+	// +----------------------------------------------------------------------+
+	// | Author: Peter Korduan <peter.korduan@gdi-service.de>                 |
+	// | Licence: GPL https://www.gnu.org/licenses/gpl-3.0.de.html            |
+	// +----------------------------------------------------------------------+
+  include('conf/database_conf.php');
 ?><!DOCTYPE html>
 <html lang="de">
 <head>
@@ -88,14 +89,11 @@
 		}
 	</script>
 	<title>UML to DB model</title>
-	<?php include('conf/database_conf.php'); ?>
 	</head>
 	<body>
 	<div class="container">
 		<h2>Ableitung von PostgreSQL-Datenbankmodellen aus UML-Modellen</h2>
-
-
-
+		<?php echo VERSION; ?>
 		<h3>xmi2db</h3>
 		xmi2db überträgt die UML-Modell Elemente der ausgewählten xmi Datei in das ausgewählte Datenbank Schema. Eingelesen werden nur die Elemente ab dem ausgewählten Basispacket.
 	</div>
