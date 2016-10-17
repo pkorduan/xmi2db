@@ -63,9 +63,13 @@ class FeatureType {
 										array_key_exists($attribute_type, $GLOBALS['filter'][$class_name]) and
 										array_key_exists($attribute_name, $GLOBALS['filter'][$class_name][$attribute_type]));
 
-		$this->logger->log("<br>Prüfe ob {$attribute_type}: {$attribute_name} in class: {$class_name} gefiltert wird.");
-		if ($is_filtered)
+		$this->logger->log("<br>Prüfe ob {$attribute_type}: {$attribute_name} in class: {$class_name} gefiltert wird:");
+		if ($is_filtered) {
 			$this->logger->log("<br>Ignoriere Klasse: {$class_name} Attribute: {$attribute_name}");
+		}
+		else {
+			$this->logger->log(" nein");
+		}
 		return $is_filtered;
 	}
 

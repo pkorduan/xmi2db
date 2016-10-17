@@ -323,8 +323,17 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 		else {
 			if (is_array($this->parts) and !empty($this->parts)) {
 				# Ermittle NOT NULL aus Multipliziät des Attributes und seiner Vorgänger
-				$not_null = in_array(
-					true,
+				# Nur wenn alle Attribute im Pfad die Kardinaltität > 0 haben,
+				# darf das Blattelement auf NOT NULL gesetzt werden.
+#				$not_null = true;
+#				foreach($this->parts AS $attribute) {
+#					if (intval($attribute->multiplicity_lower) == 0) {
+#						$not_null = false; # Attribut darf NULL sein.
+#					}
+#				}
+				
+				$not_null = !in_array(
+					false,
 					array_map(
 						function($attribute) {
 							return intval($attribute->multiplicity_lower) > 0;
