@@ -4,7 +4,7 @@
 		preg_replace(
 			"/\r|\n/",
 			"", 
-			file((basename($_SERVER['SCRIPT_NAME']) != 'index.php' ? '../' : '') . 'README.md')[2])
+			file((basename($_SERVER['SCRIPT_NAME']) != 'index.php' ? '../' : '') . 'README.md')[3])
 	);
 	error_reporting(E_ALL & ~E_NOTICE);
 
