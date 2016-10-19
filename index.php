@@ -114,7 +114,6 @@
 		<input type="text" id="xmi2db_umlSchema" name="umlSchema" list="xmi2db_umlSchemaName" size="50"/ value="<?php echo UML_SCHEMA; ?>">
 		<datalist id="xmi2db_umlSchemaName">
 			<option value="<?php echo UML_SCHEMA; ?>" selected><?php echo UML_SCHEMA; ?></option>
-			<option value="<?php echo UML_SCHEMA . '_test'; ?>" selected><?php echo UML_SCHEMA . '_test'; ?></option>
 		</datalist>
 		
 		<h4>BasePackageauswahl/-eingabe</h4>

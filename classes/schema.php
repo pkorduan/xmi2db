@@ -242,6 +242,24 @@ WHERE
   }
 
 	function getAttributes($class_id) {
+		$with_tagged_values = true;
+		if ($with_tagged_values) {
+			$tagged_values_select = ",
+				tv.datavalue AS sequence_number
+			";
+			$tagged_values_from = " LEFT JOIN
+	" . $this->schemaName . ".taggedvalues tv ON a.id = tv.attribute_id LEFT JOIN
+	" . $this->schemaName . ".tagdefinitions td ON tv.type = td.xmi_id";
+			$tagged_values_where = " lower(td.name) = 'sequencenumber' AND ";
+			$tagged_values_order = " ORDER BY tv.datavalue";
+		}
+		else {
+			$tagged_value_select = "";
+			$tagged_value_from = "";
+			$tagged_value_where = "";
+			$tagged_value_order = "";
+		}
+
 		$sql = "
 SELECT
 	a.name AS name,
@@ -266,8 +284,8 @@ SELECT
 	END AS attribute_type,
 	a.multiplicity_range_lower::integer,
 	a.multiplicity_range_upper,
-	a.initialvalue_body,
-	tv.datavalue AS sequence_number
+	a.initialvalue_body" .
+	$tagged_values_select . "
 FROM
 	" . $this->schemaName . ".uml_classes c JOIN 
 	" . $this->schemaName . ".uml_attributes a ON c.id = a.uml_class_id LEFT JOIN
@@ -276,15 +294,12 @@ FROM
 	" . $this->schemaName . ".stereotypes ds ON dc.stereotype_id = ds.xmi_id Left JOIN
 	" . $this->schemaName . ".uml_classes cc ON a.classifier = cc.xmi_id LEFT JOIN
 	" . $this->schemaName . ".datatypes cd ON a.classifier = cd.xmi_id LEFT JOIN
-	" . $this->schemaName . ".stereotypes cs ON cc.stereotype_id = cs.xmi_id LEFT JOIN
-	" . $this->schemaName . ".taggedvalues tv ON a.id = tv.attribute_id LEFT JOIN
-	" . $this->schemaName . ".tagdefinitions td ON tv.type = td.xmi_id
+	" . $this->schemaName . ".stereotypes cs ON cc.stereotype_id = cs.xmi_id"
+	. $tagged_values_from . "
 WHERE
-  lower(td.name) = 'sequencenumber' AND
-	uml_class_id = " . $class_id . "
-ORDER BY
-	tv.datavalue
-";
+	" . $tagged_value_where . "
+	uml_class_id = " . $class_id .
+	$tagged_value_order_by;
 		$this->logger->log('<br><b>Get Attributes: </b>');
 		$this->logger->log(' <textarea cols="5" rows="1">' . $sql . '</textarea>');
 

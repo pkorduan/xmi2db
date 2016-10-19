@@ -581,7 +581,16 @@ class xmi2db {
   }
         
   function iterateModel($root_package) {
-    foreach ($root_package->{'Namespace.ownedElement'}->Package as $package_sub) {
+		$packages = $root_package->{'Namespace.ownedElement'}->Package;
+		if (empty($packages)) {
+			$packages = array($root_package);
+			$hasSubPackages = false;
+		}
+		else {
+			$hasSubPackages = true;
+		}
+    foreach ($packages as $package_sub) {
+			Pascoul::send_message(0, " Get Queries for sub package " . $package_sub->attributes()->name, $progress++);
       //Store top-level package (e.g. "Basisklassen") into DB and use the returned ID to store it's elements in the db
       $idPackage_sub = $this->getQueriesForPackages($package_sub);
       echo "<h3>Package: ".$idPackage_sub."</h3><br>";
@@ -598,7 +607,12 @@ class xmi2db {
       }
       else $packageIdTop = $this->buildQueryForPackage($packageArrayTop, 'NULL', '-1');
       
-      $package = $package_sub->{'Namespace.ownedElement'}->Package;
+			if ($hasSubPackages) {
+				$package = $package_sub->{'Namespace.ownedElement'}->Package;
+			}
+			else {
+				$package = $package_sub;
+			}
       
       //Either there is a Package (EA) or directly a Class (Argo)
       //if (isset($package_sub->{'Namespace.ownedElement'}->Package)) $package = $package_sub->{'Namespace.ownedElement'}->Package;
@@ -607,7 +621,7 @@ class xmi2db {
       //The top-level package should only have packages as children, now iterate through them
       //foreach ($package_sub->{'Namespace.ownedElement'}->Package as $package_objektbereich) {
       foreach ($package as $package_objektbereich) {
-		$this->iteratePackage($package_objektbereich, $packageIdTop);
+				$this->iteratePackage($package_objektbereich, $packageIdTop);
       }
     }
   }
@@ -887,32 +901,32 @@ class xmi2db {
 		$result = pg_query($this->conn, $schema_sql);
 		$schemaBool = pg_fetch_row($result);
 		if ($schemaBool[0]=='t') {
-		  echo "Schema vorhanden<br>";
-		  $progress++;
-		  Pascoul::send_message(0, 'Schema vorhanden' , $progress);
-		  //Truncate if wanted
-		  if ($_REQUEST['truncate'] == 1) {
-			$this->truncateTables();
+			echo "Schema vorhanden<br>";
 			$progress++;
-			Pascoul::send_message(0, 'Leere vorhandene Tabellen' , $progress);
-		}
-		  $migration_files = scandir('../sql');
-		  foreach ($migration_files as $migration_file) {
-			if (strpos($migration_file, '_mig')) {
-			  echo 'mig file '.$migration_file.' found<br>';
-			  //Load SQL migration file and replace "schema_name" placeholder with desired schema name
-			  $result = pg_query($xmi2db->conn, str_replace('schema_name', $_REQUEST['schema'], file_get_contents('../sql/'.$migration_file)));
-			  if ($result) {
-				echo 'mig file '.$migration_file.' loaded<br>';
+			Pascoul::send_message(0, 'Schema vorhanden' , $progress);
+			//Truncate if wanted
+			if ($_REQUEST['truncate'] == 1) {
+				$this->truncateTables();
 				$progress++;
-				Pascoul::send_message(0, 'mig file '.$migration_file.' geladen', $progress);
+				Pascoul::send_message(0, 'Leere vorhandene Tabellen' , $progress);
 			}
-			  else {
-				echo 'mig file '.$migration_file.' NOT loaded<br>';
-				$progress++;
-				Pascoul::send_message(0, 'mig file '.$migration_file.' NICHT geladen (Fehler)', $progress);
-			}
-		  }
+			$migration_files = scandir('../sql');
+			foreach ($migration_files as $migration_file) {
+				if (strpos($migration_file, '_mig')) {
+					Pascoul::send_message(0, 'mig file ' . $migration_file . ' gefunden', $progress++);
+					//Load SQL migration file and replace "schema_name" placeholder with desired schema name
+					$result = pg_query($xmi2db->conn, str_replace('schema_name', $_REQUEST['schema'], file_get_contents('../sql/'.$migration_file)));
+					if ($result) {
+						echo 'mig file '.$migration_file.' loaded<br>';
+						$progress++;
+						Pascoul::send_message(0, 'mig file '.$migration_file.' geladen', $progress);
+					}
+					else {
+						echo 'mig file '.$migration_file.' nicht geladen, eventuelle schon vorhanden.<br>';
+						$progress++;
+						Pascoul::send_message(0, 'mig file '.$migration_file.' NICHT geladen (Fehler)', $progress);
+					}
+		  	}
 		  }
 		}
 		else {
@@ -929,23 +943,22 @@ class xmi2db {
 		  Pascoul::send_message(0, 'Basisschema angelegt' , $progress);
 		  //Check for additional migration files (e.g. 20150731_mig.sql)
 		  $migration_files = scandir('../sql');
-		  foreach ($migration_files as $migration_file) {
-			if (strpos($migration_file, '_mig')) {
-			  echo 'mig file '.$migration_file.' found<br>';
-			  //Load SQL migration file and replace "schema_name" placeholder with desired schema name
-			  $result = pg_query($this->conn, str_replace('schema_name', $_REQUEST['schema'], file_get_contents('../sql/' . $migration_file)));
-			  if ($result) {
-				echo 'mig file '.$migration_file.' loaded<br>';
-				$progress++;
-				Pascoul::send_message(0, 'mig file '.$migration_file.' geladen', $progress);
+			foreach ($migration_files as $migration_file) {
+				if (strpos($migration_file, '_mig')) {
+					//Load SQL migration file and replace "schema_name" placeholder with desired schema name
+					$result = pg_query($this->conn, str_replace('schema_name', $_REQUEST['schema'], file_get_contents('../sql/' . $migration_file)));
+					if ($result) {
+						echo 'mig file '.$migration_file.' loaded<br>';
+						$progress++;
+						Pascoul::send_message(0, 'mig file '.$migration_file.' geladen', $progress);
+					}
+					else {
+						echo 'mig file '.$migration_file.' NOT loaded<br>';
+						$progress++;
+						Pascoul::send_message(0, 'mig file '.$migration_file.' NICHT geladen (Fehler)', $progress);
+					}
+				}
 			}
-			  else {
-				echo 'mig file '.$migration_file.' NOT loaded<br>';
-				$progress++;
-				Pascoul::send_message(0, 'mig file '.$migration_file.' NICHT geladen (Fehler)', $progress);
-			}
-			}
-		  }
 		}
 		$progress++;
 		Pascoul::send_message(0, '#Ende Lege Datenbankschema an' , $progress); 
@@ -961,12 +974,16 @@ class xmi2db {
   *  "stereotypes" => "stereotypes"));+
   */
   function getQueries() {
+		Pascoul::send_message(0, '#Lade XMI-Datei: ' . $this->xmi_file, $progress++);
     if (!file_exists($this->xmi_file))  {
       echo "File ".$this->xmi_file." not found.";
       return false;
     }
     $xmi = simplexml_load_file($this->xmi_file);
+		Pascoul::send_message(0, '#XMI-Datei erfolgreich geladen', $progress++);
+		
     $namespaces = $xmi->getNamespaces(true);
+		Pascoul::send_message(0, '#Namespace' . $namespace, $progress++);
     //echo "<pre>";
     
     //analyse everything top-level
@@ -1021,7 +1038,10 @@ class xmi2db {
 	$progress++;
     Pascoul::send_message(0, '#Ende Übergeordnetes', $progress);
 	
-    if(!isset($this->basePackage) or $this->basePackage=='') $this->iterateModel($xmi->{$this->root_element}->children($namespaces["UML"])->Model);
+		if(!isset($this->basePackage) or $this->basePackage=='') {
+			Pascoul::send_message(0, 'Iterate through the model', $progress++);
+			$this->iterateModel($xmi->{$this->root_element}->children($namespaces["UML"])->Model);
+		}
     else {
       //look for package that contains most of the model
       foreach ($xmi->{$this->root_element}->children($namespaces["UML"])->Model->{'Namespace.ownedElement'}->Package as $package_top) {
