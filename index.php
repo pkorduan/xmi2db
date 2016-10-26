@@ -23,11 +23,16 @@
 	
 	<script language="javascript" type="text/javascript">
 		function execXmi2Db() {
+			var selectedConf = document.getElementById("selectedConf");
+			var conf = selectedConf.options[selectedConf.selectedIndex].value;
+		
 			var selectedFile = document.getElementById("selectedFile");
 			var file = selectedFile.options[selectedFile.selectedIndex].value;
 			//alert(file);
 
-			var umlSchema = document.getElementById("xmi2db_umlSchema").value;
+			var selecteddbSchemaUML = document.getElementById("dbSchemaUML");
+			var dbSchemaUML = selecteddbSchemaUML.options[selecteddbSchemaUML.selectedIndex].value;
+			//var umlSchema = document.getElementById("xmi2db_umlSchema").value;
 			//alert(schema);
 
 			var basepkg = document.getElementById("basepkg").value;
@@ -51,10 +56,11 @@
 			args['url_params'] = new Array ();
 			args['url_params']['url'] = "converter/xmi2db.php";
 			args['url_params']['truncate'] = truncate;
-			args['url_params']['schema'] = umlSchema;
+			args['url_params']['schema'] = dbSchemaUML;
 			args['url_params']['basepackage'] = basepkg;
 			args['url_params']['file'] = file;
 			args['url_params']['argo'] = argo;
+			args['url_params']['conf'] = conf;
 			
 			//Styling the progress div/box
 			args['html_params'] = new Array ();
@@ -94,12 +100,26 @@
 	<div class="container">
 		<h2>Ableitung von PostgreSQL-Datenbankmodellen aus UML-Modellen</h2>
 		<?php echo VERSION; ?>
+		<br>
+		Gewählte Konfigurationsdatei in "conf/models":
+		<select class="form-control" id="selectedConf">
+			<option value="<?php echo $_REQUEST['conf'].'.php'; ?>"><?php echo $_REQUEST['conf'].'.php'; ?></option>
+		</select>
 		
 		<h3>xmi2db</h3>
 		xmi2db überträgt die UML-Modell Elemente der ausgewählten xmi Datei in das ausgewählte Datenbank Schema. Eingelesen werden nur die Elemente ab dem ausgewählten Basispaket.
 		<h4>Gewählte Pakete</h4>
-		<i>Folgende Pakete wurden laut database_conf.php ausgewählt:</i><br>
-		<?php echo PACKAGES; ?><br>
+		<i>Folgende Pakete wurden laut <?php echo $_REQUEST['conf'].'.php'; ?> ausgewählt:</i><br>
+		<ul class="list-unstyled">
+		<?php
+			include('conf/models/'.$_REQUEST['conf'].'.php');
+			$packages = str_replace("'", "", PACKAGES);
+			$packages = explode(";", $packages);
+			foreach ($packages as $package) {
+				echo '<li class="col-md-6">'.$package.'</li>';
+			}
+		?>
+		</ul>
 		<i><b>(Beachte: Hierchien sind unbedingt zu beachten bei der Angabe der Pakete in der database_conf.php! Das heißt: Möchte man Pakete in einem XPlan Modell auswählen, muss man das oberste Paket "XPlanGML 4.1" unbedingt mitangeben. Möchte man "BP_Bebauung" wählen, muss auch das Paket "Bebauungsplan" gewählt werden, da sich "BP_Bebauung" in "Bebauungsplan" befindet.)</b></i>
 	</div>
 	<div class="container">
@@ -115,12 +135,24 @@
 			} ?>
 		</select>
 		<h4>Schemaauswahl/-eingabe</h4>
-		<i>Das Schema wird entsprechend der gewählten Konfiguration in der Datenbank "<?php echo PG_DBNAME; ?>" angelegt.</i><br>
-		<input type="text" id="xmi2db_umlSchema" name="umlSchema" list="xmi2db_umlSchemaName" size="50"/ value="<?php echo UML_SCHEMA; ?>">
+		<i>Das Schema wird entsprechend der gewählten Konfiguration (laut database_conf.php) in der Datenbank "<?php echo PG_DBNAME; ?>" angelegt.</i><br>
+		<select class="form-control" id="dbSchemaUML">
+		<?php
+			$schemas = str_replace("'", "", SCHEMAS);
+			$schemas = explode(";", $schemas);
+			foreach ($schemas as $schema) {
+				echo '<option value="'.$schema.'_uml">'.$schema.'_uml</option>';
+			}
+		?>
+		</select>
+		<!-- hier SCHEMAS; auseinandernehmen (wieder array), dann array liste durchlaufen und wie oben azeigen. Nich "_uml" vergessen! bei db2classes und db2ogr auch machen!
+		Oben beim übergeben dbSchema als Param nicht vergessen!-->	
+		<!-- wird das nochgebraucht?
+		<input type="text" id="xmi2db_umlSchema" name="umlSchema" list="xmi2db_umlSchemaName" size="50"/ value="<?php //echo UML_SCHEMA; ?>">
 		<datalist id="xmi2db_umlSchemaName">
-			<option value="<?php echo UML_SCHEMA; ?>" selected><?php echo UML_SCHEMA; ?></option>
+			<option value="<?php //echo UML_SCHEMA; ?>" selected><?php //echo UML_SCHEMA; ?></option>
 		</datalist>
-		
+		-->
 		<h4>BasePackageauswahl/-eingabe</h4>
 		<i>Bei einem EA-Export des XPlan-Modells "XPlanGML 4.1" wählen, bei einem ArgoUML Export leer lassen oder ein Package eintragen, falls man nur das eine laden möchte.</i>
 		<input type="text" id="basepkg" name="basepkg" list="basepkgNameListe" size="50"/>
@@ -165,18 +197,40 @@
 	<div class="container">
 		<h4>UML-Schema</h4>
 		<i>Das Schema in dem vorher die UML-Elemente mit xmi2db eingelesen wurden.</i><br>
-		<input type="text" id="db2classes_umlSchema" name="umlSchema" list="db2classes_umlSchemaListe" size="50" value="<?php echo UML_SCHEMA; ?>"/>
+		<select class="form-control" id="db2classes_umlSchema">
+		<?php
+			$schemas = str_replace("'", "", SCHEMAS);
+			$schemas = explode(";", $schemas);
+			foreach ($schemas as $schema) {
+				echo '<option value="'.$schema.'_uml">'.$schema.'_uml</option>';
+			}
+		?>
+		</select>
+		<!--
+		<input type="text" id="db2classes_umlSchema" name="umlSchema" list="db2classes_umlSchemaListe" size="50" value="<?php //echo UML_SCHEMA; ?>"/>
 		<datalist id="db2classes_umlSchemaListe">
-			<option value="<?php echo UML_SCHEMA; ?>" selected><?php echo UML_SCHEMA; ?></option>
+			<option value="<?php //echo UML_SCHEMA; ?>" selected><?php //echo UML_SCHEMA; ?></option>
 		</datalist>
-
+		-->
+		
 		<h4>GML-Klassenschema</h4>
 		<i>Das Schema in dem die GML-Tabellen und Datentypen angelegt werden sollen.</i><br>
-		<input type="text" id="db2classes_gmlSchema" name="gmlSchema" list="db2classes_gmlSchemaListe" size="50" value="<?php echo CLASSES_SCHEMA; ?>"/>
+		<select class="form-control" id="db2classes_gmlSchema">
+		<?php
+			$schemas = str_replace("'", "", SCHEMAS);
+			$schemas = explode(";", $schemas);
+			foreach ($schemas as $schema) {
+				echo '<option value="'.$schema.'_gml">'.$schema.'_gml</option>';
+			}
+		?>
+		</select>
+		<!--
+		<input type="text" id="db2classes_gmlSchema" name="gmlSchema" list="db2classes_gmlSchemaListe" size="50" value="<?php //echo CLASSES_SCHEMA; ?>"/>
 		<datalist id="db2classes_gmlSchemaListe">
-			<option value="<?php echo CLASSES_SCHEMA; ?>" selected><?php echo CLASSES_SCHEMA; ?></option>
+			<option value="<?php //echo CLASSES_SCHEMA; ?>" selected><?php //echo CLASSES_SCHEMA; ?></option>
 		</datalist>
-
+		-->
+		
 		<div class="checkbox">
 			<label><input type="checkbox" id="createUserInfoColumns"> Spalten für user_id, created_at, updated_at und konvertierung_id an alle FeatureType-Tabellen anhängen.</label>
 		</div>
@@ -196,22 +250,55 @@
 	<div class="container">
 		<h4>UML-Schema</h4>
 		<i>Das Schema in dem vorher die UML-Elemente mit xmi2db eingelesen wurden.</i><br>
-		<input type="text" id="db2ogr_umlSchema" name="umlSchema" list="db2ogr_umlSchemaListe" size="50" value="<?php echo UML_SCHEMA; ?>"/>
+		<select class="form-control" id="db2ogr_umlSchema">
+		<?php
+			$schemas = str_replace("'", "", SCHEMAS);
+			$schemas = explode(";", $schemas);
+			foreach ($schemas as $schema) {
+				echo '<option value="'.$schema.'_uml">'.$schema.'_uml</option>';
+			}
+		?>
+		</select>
+		
+		<!--
+		<input type="text" id="db2ogr_umlSchema" name="umlSchema" list="db2ogr_umlSchemaListe" size="50" value="<?php //echo UML_SCHEMA; ?>"/>
 		<datalist id="db2ogr_umlSchemaListe">
-			<option value="<?php echo UML_SCHEMA; ?>" selected><?php echo UML_SCHEMA; ?></option>
+			<option value="<?php //echo UML_SCHEMA; ?>" selected><?php //echo UML_SCHEMA; ?></option>
 		</datalist>
-
+		-->
+		
 		<h4>OGR-Schema</h4>
 		<i>Das Schema in dem die GML-Tabellen und Datentypen angelegt werden sollen.</i><br>
-		<input type="text" id="db2ogr_ogrSchema" name="ogrSchema" list="db2ogr_ogrSchemaListe" size="50" value="<?php echo OGR_SCHEMA; ?>"/>
+		<select class="form-control" id="db2ogr_ogrSchema">
+		<?php
+			$schemas = str_replace("'", "", SCHEMAS);
+			$schemas = explode(";", $schemas);
+			foreach ($schemas as $schema) {
+				echo '<option value="'.$schema.'_ogr">'.$schema.'_ogr</option>';
+			}
+		?>
+		</select>
+		<!--
+		<input type="text" id="db2ogr_ogrSchema" name="ogrSchema" list="db2ogr_ogrSchemaListe" size="50" value="<?php //echo OGR_SCHEMA; ?>"/>
 		<datalist id="db2ogr_ogrSchemaListe">
-			<option value="<?php echo OGR_SCHEMA; ?>" selected><?php echo OGR_SCHEMA; ?></option>
+			<option value="<?php //echo OGR_SCHEMA; ?>" selected><?php //echo OGR_SCHEMA; ?></option>
 		</datalist>
-
+		-->
+		
 		<div class="text-center" id="queryButton">
 		<button type="submit" class="btn btn-primary btn-sm" id="queryNERC" onclick="execDb2Ogr()"><span class="glyphicon glyphicon-ok"> </span> Erzeuge OGR-Schema</button>
 		</div>	
 	</div>
+	<script language="javascript" type="text/javascript">
+		$("#dbSchemaUML").change(function(){
+			var schemaUML = $(this).val();
+			var schemaOGR = schemaUML.substr(0,schemaUML.lastIndexOf("_")+1) + 'ogr';
+			var schemaGML = schemaUML.substr(0,schemaUML.lastIndexOf("_")+1) + 'gml';
+			$("#db2classes_umlSchema").val(schemaUML);
+			$("#db2ogr_umlSchema").val(schemaUML);
+			$("#db2ogr_ogrSchema").val(schemaOGR);
+			$("#db2classes_gmlSchema").val(schemaGML);
+		});
+	</script>
 	</body>
 </html>
-

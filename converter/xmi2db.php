@@ -42,6 +42,10 @@ class xmi2db {
     $this->root_element = $root;
   }
   
+  function includeConf($conf) {
+	$this->conf = $conf;
+	include('../conf/models/'.$conf);
+  }
   /**
   * Sets the xmi file to read
   *
@@ -602,17 +606,7 @@ class xmi2db {
 	$daten = array();
 	$daten[] = "Erster Eintrag";
 	$daten[] = "Zweiter Eintrag";
-	//$this->packages_conf = array_filter($this->packages_conf);
-	//if ($this->packages_conf[1]=="") Pascoul::send_message(0, " PACKAGES EMPTY? ", $progress++);
-	Pascoul::send_message(0, " PACKAGES TEST " . PACKAGES, $progress++);
-	Pascoul::send_message(0, " PACKAGES TEST ARRAY 1 empty " . empty($this->packages_conf), $progress++);
-	Pascoul::send_message(0, " PACKAGES TEST ARRAY 1 is_array " . is_array($this->packages_conf), $progress++);
-	Pascoul::send_message(0, " PACKAGES TEST ARRAY 1 count " . count($this->packages_conf), $progress++);
-	Pascoul::send_message(0, " PACKAGES TEST ARRAY 2 empty " . empty($daten), $progress++);
-	Pascoul::send_message(0, " PACKAGES TEST ARRAY 2 is_array " . is_array($daten), $progress++);
-	Pascoul::send_message(0, " PACKAGES TEST ARRAY 2 count " . count($daten), $progress++);
     foreach ($packages as $package_sub) {
-		#Pascoul::send_message(0, " PACKAGES TEST SUB " . $package_sub->attributes()->name, $progress++);
 		//checks if packages_conf is empty, if not it checks if current package is in packages_conf
 		if (empty($this->packages_conf) xor in_array($package_sub->attributes()->name, $this->packages_conf)) {
 			Pascoul::send_message(0, " Get Queries for sub package " . $package_sub->attributes()->name, $progress++);
@@ -646,7 +640,7 @@ class xmi2db {
 		  //The top-level package should only have packages as children, now iterate through them
 		  //foreach ($package_sub->{'Namespace.ownedElement'}->Package as $package_objektbereich) {
 		  foreach ($package as $package_objektbereich) {
-			#Pascoul::send_message(0, "Stelle !package_objektbereich! Prüfe ob " . $package_objektbereich->attributes()->name . " in Array ".print_r($this->packages_conf) . " vorkommt.", $progress++);
+			//checks if packages_conf is empty, if not it checks if current package is in packages_conf
 			if (empty($this->packages_conf) xor in_array($package_objektbereich->attributes()->name, $this->packages_conf)) {
 				$this->iteratePackage($package_objektbereich, $packageIdTop);
 			}
@@ -873,7 +867,7 @@ class xmi2db {
 		if (isset($pckg->{'Namespace.ownedElement'}->Package)) {
 			$subpackage = $pckg->{'Namespace.ownedElement'}->Package;
 			foreach ($subpackage as $subpckg) {
-				Pascoul::send_message(0, "Stelle !subpackage! Prüfe ob " . $subpckg->attributes()->name . " in Array ".$this->packages_conf[2] . " vorkommt.", $progress++);
+				//checks if packages_conf is empty, if not it checks if current package is in packages_conf
 				if (empty($this->packages_conf) xor in_array($subpckg->attributes()->name, $this->packages_conf)) {
 					$this->iteratePackage($subpckg, $packageId);
 				}
@@ -895,6 +889,9 @@ class xmi2db {
 		else
 		  $this->setSchema("xplan_eatest");
 
+		if (isset($_REQUEST['conf']))
+		  $this->includeConf($_REQUEST['conf']);
+		
 		if (isset($_REQUEST['basepackage']))
 		  $this->setBasePackage($_REQUEST['basepackage']);
 		else
@@ -902,7 +899,7 @@ class xmi2db {
 				
 		
 		$packages_conf = str_replace("'", "", PACKAGES);
-		$packages_conf = explode(",", $packages_conf);
+		$packages_conf = explode(";", $packages_conf);
 		//Delete single empty value so that array is really eampty when there are no PACKAGES given in database_conf
 		if ($packages_conf[0]=="") $packages_conf = array_filter($packages_conf);
 		$this->setConfiguredPackages($packages_conf);
