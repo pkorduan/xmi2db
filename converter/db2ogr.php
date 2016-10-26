@@ -57,6 +57,7 @@ echo '<!DOCTYPE html>
 	foreach($umlSchema->getEnumerations() AS $enumeration) {
 		$sql .= $ogrSchema->createEnumerationTable($enumeration, $ogrSchema);
 	}
+
 	$logger->log('<br><hr><br>');
 
 	#**************

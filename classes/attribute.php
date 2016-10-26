@@ -159,10 +159,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 					}
 					else {
 						if (empty($this->parent->ogrSchema)) {
-							$database_type = 'character varying';
-						}
-						else {
-							$enumType = $this->parent->ogrSchema->enumerations[$this->datatype];
+							$enumType = $this->parent->enumerations[$this->datatype];
 							$database_type = (empty($enumType)) ? 'chacacter varying' : $enumType->getWertType();
 						}
 					}
@@ -359,6 +356,8 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 		if ($this->default != '')
 			$sql .= ' DEFAULT ' . $this->default;
 
+		if ($this->name == 'genauigkeitsstufe')
+			$sql .= '<br>--hier asSQL verwendet.';
 		return $sql;
 	}
 

@@ -1,7 +1,7 @@
 <?php
 class DataType {
 
-	function DataType($name, $stereotype, $logger) {
+	function DataType($name, $stereotype, $logger, $enumerations = NULL) {
 		$this->name = strtolower(substr($name, 0, PG_MAX_NAME_LENGTH));
 		$this->alias = $name;
 		$this->stereotype = strtolower(substr($stereotype, 0, PG_MAX_NAME_LENGTH));
@@ -13,6 +13,7 @@ class DataType {
 		$this->inherits = '';
 		$this->id = 0;
 		$this->logger = $logger;
+		$this->enumerations = $enumerations;
 	}
 
 	function setSchemas($umlSchema, $gmlSchema) {

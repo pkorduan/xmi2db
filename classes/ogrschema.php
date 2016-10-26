@@ -61,7 +61,7 @@ class OgrSchema extends Schema {
 			$this->logger->log('<br><b>Create ' . $stereotype . ': ' . $class['name'] .' </b>');
 
 			# Erzeuge FeatueType
-			$featureType = new FeatureType($class['name'], $parent, $this->logger, $this->umlSchema);
+			$featureType = new FeatureType($class['name'], $parent, $this->logger, $this->umlSchema, $this->enumerations);
 			$featureType->ogrSchema = $this;
 			$featureType->setId($class['id']);
 			$featureType->primaryKey = 'gml_id';
@@ -78,6 +78,8 @@ class OgrSchema extends Schema {
 			$featureType->flattenAttributes();
 
 			$featureType->outputFlattenedAttributes();
+			if ($this->logger->level > 0)
+				$featureType->outputFlattendedAttributTable();
 
 			$featureType->setAssociationEnds($class);
 
@@ -91,7 +93,8 @@ class OgrSchema extends Schema {
 					$this->renameList,
 					$featureType->outputFlattenedAttributes()
 				);
-
+				if ($this->logger->level > 0)
+					$featureType->outputFlattendedAttributTable();
 				$sql .= $featureType->asFlattenedSql();
 			}
 
@@ -131,6 +134,8 @@ class OgrSchema extends Schema {
 				$this->renameList,
 				$featureType->outputFlattenedAttributes()
 			);
+			if ($this->logger->level > 0)
+				$featureType->outputFlattendedAttributTable();
 		}
 
 		foreach($subClasses as $subClass) {

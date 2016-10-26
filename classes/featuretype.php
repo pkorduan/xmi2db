@@ -1,7 +1,7 @@
 <?php
 class FeatureType {
 
-	function __construct($name, $parent, $logger, $umlSchema) {
+	function __construct($name, $parent, $logger, $umlSchema, $enumerations = NULL) {
 		$this->alias = $name;
 		$this->name = $this->getName($name);
 		$this->comments = array();
@@ -18,6 +18,7 @@ class FeatureType {
 		$this->logger = $logger;
 		$this->stereotype = 'featuretype';
 		$this->attribute_filter = array();
+		$this->enumerations = $enumerations;
 	}
 
 	public static function getName($name) {
@@ -83,7 +84,7 @@ class FeatureType {
 						$parent = $this;
 					}
 					else {
-						$parent = new Datatype($attribute['class_name'], 'datatype', $this->logger);
+						$parent = new Datatype($attribute['class_name'], 'datatype', $this->logger, $this->enumerations);
 					}
 
 					$attributeObj = new Attribute(
@@ -277,8 +278,7 @@ class FeatureType {
 		$this->comments[] = $comment;
 	}
 
-	function outputFlattenedAttributes() {
-		$output = array();
+	function outputFlattendedAttributTable() {
 		$html = '';
 		if (empty($this->attributes))
 			$html .= '<br>keine Attribute';
@@ -287,12 +287,6 @@ class FeatureType {
 				<th>Pfad</th><th>Name</th><th>Kurzname</th><th>Stereotype</th><th>UML-Datatype</th><th>Databasetype</th><th>Multipliziät</th>';
 				$num_attributes = 0;
 				foreach ($this->attributes AS $attribute) {
-					if ($attribute->short_name != end($attribute->parts)->name) {
-					#	if (strpos(strtolower($attribute->path_name), 'zeigtaufexternes') === false) {
-							# collect renamed attributes
-							$output[$attribute->path_name] = $attribute->short_name;
-					#	}
-					}
 					$html .= '<tr>';
 					$html .=  '<td>' . $attribute->path_name . '</td>';
 					$html .=  '<td>';
@@ -310,7 +304,7 @@ class FeatureType {
 					$html .=  $attribute->datatype;
 					$html .=  '</td>';
 					$html .=  '<td>';
-					$html .=  $attribute->get_database_type();
+					$html .=  $attribute->get_database_type(false, false);
 					$html .=  '</td>';
 					$html .=  '<td>';
 					$html .=  $attribute->multiplicity;
@@ -319,7 +313,21 @@ class FeatureType {
 				}
 			$html .= '</table>';
 		}
-		$this->logger->log($html);
+		return $html;
+	}
+
+	function outputFlattenedAttributes() {
+		$output = array();
+		if (!empty($this->attributes)) {
+			foreach ($this->attributes AS $attribute) {
+				if ($attribute->short_name != end($attribute->parts)->name) {
+				#	if (strpos(strtolower($attribute->path_name), 'zeigtaufexternes') === false) {
+						# collect renamed attributes
+						$output[$attribute->path_name] = $attribute->short_name;
+				#	}
+				}
+			}
+		}
 		return $output;
 	}
 
