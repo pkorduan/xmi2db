@@ -94,8 +94,13 @@
 	<div class="container">
 		<h2>Ableitung von PostgreSQL-Datenbankmodellen aus UML-Modellen</h2>
 		<?php echo VERSION; ?>
+		
 		<h3>xmi2db</h3>
-		xmi2db überträgt die UML-Modell Elemente der ausgewählten xmi Datei in das ausgewählte Datenbank Schema. Eingelesen werden nur die Elemente ab dem ausgewählten Basispacket.
+		xmi2db überträgt die UML-Modell Elemente der ausgewählten xmi Datei in das ausgewählte Datenbank Schema. Eingelesen werden nur die Elemente ab dem ausgewählten Basispaket.
+		<h4>Gewählte Pakete</h4>
+		<i>Folgende Pakete wurden laut database_conf.php ausgewählt:</i><br>
+		<?php echo PACKAGES; ?><br>
+		<i><b>(Beachte: Hierchien sind unbedingt zu beachten bei der Angabe der Pakete in der database_conf.php! Das heißt: Möchte man Pakete in einem XPlan Modell auswählen, muss man das oberste Paket "XPlanGML 4.1" unbedingt mitangeben. Möchte man "BP_Bebauung" wählen, muss auch das Paket "Bebauungsplan" gewählt werden, da sich "BP_Bebauung" in "Bebauungsplan" befindet.)</b></i>
 	</div>
 	<div class="container">
 		<h4>Dateiauswahl</h4>
@@ -117,7 +122,7 @@
 		</datalist>
 		
 		<h4>BasePackageauswahl/-eingabe</h4>
-		<i>Bei einem EA-Export dex XPlan-Modells "XPlanGML 4.1" wählen, bei einem ArgoUML Export leer lassen oder ein Package eintragen, falls man nur das eine laden möchte.</i>
+		<i>Bei einem EA-Export des XPlan-Modells "XPlanGML 4.1" wählen, bei einem ArgoUML Export leer lassen oder ein Package eintragen, falls man nur das eine laden möchte.</i>
 		<input type="text" id="basepkg" name="basepkg" list="basepkgNameListe" size="50"/>
 		<datalist id="basepkgNameListe">
 			<option value="XPlanGML 4.1" selected>XPlanGML 4.1</option>

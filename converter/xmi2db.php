@@ -142,6 +142,16 @@ class xmi2db {
   }
   
   /**
+  * Sets the configured packages
+  *
+  * @param the configured package array
+  */
+  function setConfiguredPackages($packages_conf)
+  {
+    $this->packages_conf = $packages_conf;
+  }
+  
+  /**
   * Sets the DB connection
   *
   * @param the DB connection
@@ -580,50 +590,69 @@ class xmi2db {
     return $infoArray;
   }
         
-  function iterateModel($root_package) {
-		$packages = $root_package->{'Namespace.ownedElement'}->Package;
-		if (empty($packages)) {
-			$packages = array($root_package);
-			$hasSubPackages = false;
-		}
-		else {
-			$hasSubPackages = true;
-		}
+  function iterateModel($root_package) {	
+	$packages = $root_package->{'Namespace.ownedElement'}->Package;
+	if (empty($packages)) {
+		$packages = array($root_package);
+		$hasSubPackages = false;
+	}
+	else {
+		$hasSubPackages = true;
+	}
+	$daten = array();
+	$daten[] = "Erster Eintrag";
+	$daten[] = "Zweiter Eintrag";
+	//$this->packages_conf = array_filter($this->packages_conf);
+	//if ($this->packages_conf[1]=="") Pascoul::send_message(0, " PACKAGES EMPTY? ", $progress++);
+	Pascoul::send_message(0, " PACKAGES TEST " . PACKAGES, $progress++);
+	Pascoul::send_message(0, " PACKAGES TEST ARRAY 1 empty " . empty($this->packages_conf), $progress++);
+	Pascoul::send_message(0, " PACKAGES TEST ARRAY 1 is_array " . is_array($this->packages_conf), $progress++);
+	Pascoul::send_message(0, " PACKAGES TEST ARRAY 1 count " . count($this->packages_conf), $progress++);
+	Pascoul::send_message(0, " PACKAGES TEST ARRAY 2 empty " . empty($daten), $progress++);
+	Pascoul::send_message(0, " PACKAGES TEST ARRAY 2 is_array " . is_array($daten), $progress++);
+	Pascoul::send_message(0, " PACKAGES TEST ARRAY 2 count " . count($daten), $progress++);
     foreach ($packages as $package_sub) {
+		#Pascoul::send_message(0, " PACKAGES TEST SUB " . $package_sub->attributes()->name, $progress++);
+		//checks if packages_conf is empty, if not it checks if current package is in packages_conf
+		if (empty($this->packages_conf) xor in_array($package_sub->attributes()->name, $this->packages_conf)) {
 			Pascoul::send_message(0, " Get Queries for sub package " . $package_sub->attributes()->name, $progress++);
-      //Store top-level package (e.g. "Basisklassen") into DB and use the returned ID to store it's elements in the db
-      $idPackage_sub = $this->getQueriesForPackages($package_sub);
-      echo "<h3>Package: ".$idPackage_sub."</h3><br>";
-	  Pascoul::send_message(0, '<b>Package: '.$package_sub->attributes()->name.'</b>');
-      echo $package_sub->attributes()->name."<br>";
-      //$this->getAttributeInfos($package_sub);
+		  //Store top-level package (e.g. "Basisklassen") into DB and use the returned ID to store it's elements in the db
+		  $idPackage_sub = $this->getQueriesForPackages($package_sub);
+		  echo "<h3>Package: ".$idPackage_sub."</h3><br>";
+		  Pascoul::send_message(0, '<b>Package: '.$package_sub->attributes()->name.'</b>');
+		  echo $package_sub->attributes()->name."<br>";
+		  //$this->getAttributeInfos($package_sub);
 
-      $packageArrayTop = $this->getAttributeInfos($package_sub);
-      //$packageIdTop = $this->buildQueryForPackage($packageArrayTop, 'NULL', 'NULL');
-      
-      if (isset($package_sub->{'ModelElement.stereotype'})) {
-        $stereotypeId = $package_sub->{'ModelElement.stereotype'}->Stereotype->attributes()->{'xmi.idref'};
-        $packageIdTop = $this->buildQueryForPackage($packageArrayTop, 'NULL', $stereotypeId);
-      }
-      else $packageIdTop = $this->buildQueryForPackage($packageArrayTop, 'NULL', '-1');
-      
+		  $packageArrayTop = $this->getAttributeInfos($package_sub);
+		  //$packageIdTop = $this->buildQueryForPackage($packageArrayTop, 'NULL', 'NULL');
+		  
+		  if (isset($package_sub->{'ModelElement.stereotype'})) {
+			$stereotypeId = $package_sub->{'ModelElement.stereotype'}->Stereotype->attributes()->{'xmi.idref'};
+			$packageIdTop = $this->buildQueryForPackage($packageArrayTop, 'NULL', $stereotypeId);
+		  }
+		  else $packageIdTop = $this->buildQueryForPackage($packageArrayTop, 'NULL', '-1');
+		  
 			if ($hasSubPackages) {
 				$package = $package_sub->{'Namespace.ownedElement'}->Package;
 			}
 			else {
 				$package = $package_sub;
 			}
-      
-      //Either there is a Package (EA) or directly a Class (Argo)
-      //if (isset($package_sub->{'Namespace.ownedElement'}->Package)) $package = $package_sub->{'Namespace.ownedElement'}->Package;
-      //else $package = $package_sub;
-      
-      //The top-level package should only have packages as children, now iterate through them
-      //foreach ($package_sub->{'Namespace.ownedElement'}->Package as $package_objektbereich) {
-      foreach ($package as $package_objektbereich) {
+		  
+		  //Either there is a Package (EA) or directly a Class (Argo)
+		  //if (isset($package_sub->{'Namespace.ownedElement'}->Package)) $package = $package_sub->{'Namespace.ownedElement'}->Package;
+		  //else $package = $package_sub;
+		  
+		  //The top-level package should only have packages as children, now iterate through them
+		  //foreach ($package_sub->{'Namespace.ownedElement'}->Package as $package_objektbereich) {
+		  foreach ($package as $package_objektbereich) {
+			#Pascoul::send_message(0, "Stelle !package_objektbereich! Prüfe ob " . $package_objektbereich->attributes()->name . " in Array ".print_r($this->packages_conf) . " vorkommt.", $progress++);
+			if (empty($this->packages_conf) xor in_array($package_objektbereich->attributes()->name, $this->packages_conf)) {
 				$this->iteratePackage($package_objektbereich, $packageIdTop);
-      }
-    }
+			}
+		  }
+		}
+	}
   }
         
 		
@@ -844,7 +873,10 @@ class xmi2db {
 		if (isset($pckg->{'Namespace.ownedElement'}->Package)) {
 			$subpackage = $pckg->{'Namespace.ownedElement'}->Package;
 			foreach ($subpackage as $subpckg) {
-				$this->iteratePackage($subpckg, $packageId);
+				Pascoul::send_message(0, "Stelle !subpackage! Prüfe ob " . $subpckg->attributes()->name . " in Array ".$this->packages_conf[2] . " vorkommt.", $progress++);
+				if (empty($this->packages_conf) xor in_array($subpckg->attributes()->name, $this->packages_conf)) {
+					$this->iteratePackage($subpckg, $packageId);
+				}
 			}
 		}
 	}
@@ -867,7 +899,13 @@ class xmi2db {
 		  $this->setBasePackage($_REQUEST['basepackage']);
 		else
 		  $this->setBasePackage("XPlanGML 4.1");
+				
 		
+		$packages_conf = str_replace("'", "", PACKAGES);
+		$packages_conf = explode(",", $packages_conf);
+		//Delete single empty value so that array is really eampty when there are no PACKAGES given in database_conf
+		if ($packages_conf[0]=="") $packages_conf = array_filter($packages_conf);
+		$this->setConfiguredPackages($packages_conf);
 		
 		$this->buildSchema();
 		
@@ -1038,12 +1076,13 @@ class xmi2db {
 	$progress++;
     Pascoul::send_message(0, '#Ende Übergeordnetes', $progress);
 	
-		if(!isset($this->basePackage) or $this->basePackage=='') {
-			Pascoul::send_message(0, 'Iterate through the model', $progress++);
-			$this->iterateModel($xmi->{$this->root_element}->children($namespaces["UML"])->Model);
-		}
+	if(!isset($this->basePackage) or $this->basePackage=='') {
+		Pascoul::send_message(0, 'Iterate through the model', $progress++);
+		$this->iterateModel($xmi->{$this->root_element}->children($namespaces["UML"])->Model);
+	}
     else {
       //look for package that contains most of the model
+	  //das müsste für INSPIRE-Kompatibilität angepasst werden
       foreach ($xmi->{$this->root_element}->children($namespaces["UML"])->Model->{'Namespace.ownedElement'}->Package as $package_top) {
         //Only use "XPlanGML 4.1" and ignore the other two ("XPlanung-Operationen" and "Weitere Diagramme")
         //Gilt nur für den EA Export, sonst sollen alle Packages durchgegangen werden! (dann ist basePackage nicht gesetzt bzw. leer!)
