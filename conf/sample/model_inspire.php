@@ -10,5 +10,5 @@
 	# Packages of INSPIRE Schema
 	#$packages[] = 'CadastralParcels';
 	
-	define('PACKAGES', "'" . implode("';'", $packages) . "'");
+	if ($packages) define('PACKAGES', "'" . implode("';'", $packages) . "'");
 ?>

@@ -62,5 +62,5 @@
 	#  $packages[] = 'XP_Praesentationsobjekte';
 	#  $packages[] = 'XP_Raster';
 
-	define('PACKAGES', "'" . implode("';'", $packages) . "'");
+	if ($packages) define('PACKAGES', "'" . implode("';'", $packages) . "'");
 ?>

@@ -112,10 +112,10 @@
 	</head>
 	<body>
 	<div class="container">
-		<h2>Ableitung von PostgreSQL-Datenbankmodellen aus UML-Modellen</h2>
+		<h2>Ableitung von PostgreSQL-Datenbankmodellen aus UML-Modellen_</h2>
 		<?php echo VERSION; ?>
 		<br>
-		Gewählte Konfigurationsdatei im "conf/custom"-Verzeichnis:
+		Gewählte Konfigurationsdatei:
 		<select class="form-control" id="selectedConf">
 			<option value="<?php echo CONF_FILE; ?>"><?php echo CONF_FILE; ?></option>
 		</select>
@@ -123,15 +123,18 @@
 		<h3>xmi2db</h3>
 		xmi2db überträgt die UML-Modell Elemente der ausgewählten xmi Datei in das ausgewählte Datenbank Schema. Eingelesen werden nur die Elemente ab dem ausgewählten Basispaket.
 		<h4>Gewählte Pakete</h4>
-		<i>Folgende Pakete wurden laut <?php echo $_REQUEST['conf'].'.php'; ?> ausgewählt:</i><br>
+		<i>Folgende Pakete wurden laut <?php echo CONF_FILE; ?> ausgewählt:</i><br>
 		<ul class="list-unstyled">
 		<?php
 			include(CONF_FILE);
-			$packages = str_replace("'", "", PACKAGES);
-			$packages = explode(";", $packages);
-			foreach ($packages as $package) {
-				echo '<li class="col-md-6">'.$package.'</li>';
+			if (PACKAGES!='PACKAGES') {
+				$packages = str_replace("'", "", PACKAGES);
+				$packages = explode(";", $packages);
+				foreach ($packages as $package) {
+					echo '<li class="col-md-6">'.$package.'</li>';
+				}
 			}
+			else echo "Keine Pakete gewählt!";
 		?>
 		</ul>
 		<i><b>(Beachte: Hierchien sind unbedingt zu beachten bei der Angabe der Pakete in der database_conf.php! Das heißt: Möchte man Pakete in einem XPlan Modell auswählen, muss man das oberste Paket "XPlanGML 4.1" unbedingt mitangeben. Möchte man "BP_Bebauung" wählen, muss auch das Paket "Bebauungsplan" gewählt werden, da sich "BP_Bebauung" in "Bebauungsplan" befindet.)</b></i>
@@ -188,8 +191,8 @@
 		<div class="text-center" id="queryButton">
 		<button type="submit" class="btn btn-primary btn-sm" id="execXmi2Db" onclick="execXmi2Db()">
 			<span class="glyphicon glyphicon-ok"> </span> Fülle DB mit XMI Inhalten</button>
-		<button type="submit" class="btn btn-primary btn-sm" id="testBtn" onclick="test()">
-			<span class="glyphicon glyphicon-ok"> </span> Test</button>
+		<!--<button type="submit" class="btn btn-primary btn-sm" id="testBtn" onclick="test()">
+			<span class="glyphicon glyphicon-ok"> </span> Test</button>-->
 		<button type="button" class="btn btn-danger btn-sm" id="cancelXmi2Db" onclick="Pascoul.stopTask();">
 			<span class="glyphicon glyphicon-remove"> </span> Abbrechen</button>
 		</div>

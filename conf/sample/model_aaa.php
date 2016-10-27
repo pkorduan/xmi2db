@@ -81,5 +81,5 @@
 #	$packages[] = 'Punktangaben';
 #	$packages[] = 'Reservierungen';
 
-	define('PACKAGES', "'" . implode("';'", $packages) . "'");
+	if ($packages) define('PACKAGES', "'" . implode("';'", $packages) . "'");
 ?>
