@@ -4,6 +4,7 @@
 	$schemas[] = 'xplan1';
 	$schemas[] = 'xplan2';
 	$schemas[] = 'xplan_test';
+	$schemas[] = 'xplan';
 	define('SCHEMAS', "'" . implode("';'", $schemas) . "'");
 
 	# Packages of XPlanung Schema

@@ -73,12 +73,16 @@
 		}
 
 		function execDb2Classes() {
+			var selectedConf = document.getElementById("selectedConf");
+			var conf = selectedConf.options[selectedConf.selectedIndex].value;
+			
 			var umlSchema = document.getElementById("db2classes_umlSchema").value,
 					gmlSchema = document.getElementById("db2classes_gmlSchema").value,
 					createUserInfoColumns = document.getElementById('createUserInfoColumns').checked,
 					url = 'converter/db2classes.php',
 					params = [];
-
+			params.push('conf=' + conf);
+			
 			if (umlSchema) params.push('umlSchema=' + umlSchema);
 			if (gmlSchema) params.push('gmlSchema=' + gmlSchema);
 			if (createUserInfoColumns) params.push('createUserInfoColumns=1');
@@ -88,10 +92,20 @@
 		}
 
 		function execDb2Ogr() {
+			var selectedConf = document.getElementById("selectedConf");
+			var conf = selectedConf.options[selectedConf.selectedIndex].value;
+			
 			var umlSchema = document.getElementById("db2ogr_umlSchema").value,
 					ogrSchema = document.getElementById("db2ogr_ogrSchema").value;
 
-			window.location = 'converter/db2ogr.php?umlSchema=' + umlSchema + '&ogrSchema=' + ogrSchema;
+			window.location = 'converter/db2ogr.php?umlSchema=' + umlSchema + '&ogrSchema=' + ogrSchema + '&conf=' + conf;
+		}
+		
+		function test() {
+			var selectedConf = document.getElementById("selectedConf");
+			var conf = selectedConf.options[selectedConf.selectedIndex].value;
+
+			window.location = 'converter/test.php?conf=' + conf;
 		}
 	</script>
 	<title>UML to DB model</title>
@@ -101,9 +115,9 @@
 		<h2>Ableitung von PostgreSQL-Datenbankmodellen aus UML-Modellen</h2>
 		<?php echo VERSION; ?>
 		<br>
-		Gewählte Konfigurationsdatei in "conf/models":
+		Gewählte Konfigurationsdatei im "conf/custom"-Verzeichnis:
 		<select class="form-control" id="selectedConf">
-			<option value="<?php echo $_REQUEST['conf'].'.php'; ?>"><?php echo $_REQUEST['conf'].'.php'; ?></option>
+			<option value="<?php echo CONF_FILE; ?>"><?php echo CONF_FILE; ?></option>
 		</select>
 		
 		<h3>xmi2db</h3>
@@ -112,7 +126,7 @@
 		<i>Folgende Pakete wurden laut <?php echo $_REQUEST['conf'].'.php'; ?> ausgewählt:</i><br>
 		<ul class="list-unstyled">
 		<?php
-			include('conf/models/'.$_REQUEST['conf'].'.php');
+			include(CONF_FILE);
 			$packages = str_replace("'", "", PACKAGES);
 			$packages = explode(";", $packages);
 			foreach ($packages as $package) {
@@ -145,8 +159,6 @@
 			}
 		?>
 		</select>
-		<!-- hier SCHEMAS; auseinandernehmen (wieder array), dann array liste durchlaufen und wie oben azeigen. Nich "_uml" vergessen! bei db2classes und db2ogr auch machen!
-		Oben beim übergeben dbSchema als Param nicht vergessen!-->	
 		<!-- wird das nochgebraucht?
 		<input type="text" id="xmi2db_umlSchema" name="umlSchema" list="xmi2db_umlSchemaName" size="50"/ value="<?php //echo UML_SCHEMA; ?>">
 		<datalist id="xmi2db_umlSchemaName">
@@ -176,6 +188,8 @@
 		<div class="text-center" id="queryButton">
 		<button type="submit" class="btn btn-primary btn-sm" id="execXmi2Db" onclick="execXmi2Db()">
 			<span class="glyphicon glyphicon-ok"> </span> Fülle DB mit XMI Inhalten</button>
+		<button type="submit" class="btn btn-primary btn-sm" id="testBtn" onclick="test()">
+			<span class="glyphicon glyphicon-ok"> </span> Test</button>
 		<button type="button" class="btn btn-danger btn-sm" id="cancelXmi2Db" onclick="Pascoul.stopTask();">
 			<span class="glyphicon glyphicon-remove"> </span> Abbrechen</button>
 		</div>

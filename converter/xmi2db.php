@@ -44,7 +44,7 @@ class xmi2db {
   
   function includeConf($conf) {
 	$this->conf = $conf;
-	include('../conf/models/'.$conf);
+	include('../'.$conf);
   }
   /**
   * Sets the xmi file to read

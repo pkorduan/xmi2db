@@ -7,6 +7,7 @@
 // | Licence: GPL https://www.gnu.org/licenses/gpl-3.0.de.html            |
 // +----------------------------------------------------------------------+
 	include('../conf/database_conf.php');
+	include('../'.$_REQUEST['conf']);
 	include('../classes/logger.php');
 	include('../classes/databaseobject.php');
 	include('../classes/schema.php');

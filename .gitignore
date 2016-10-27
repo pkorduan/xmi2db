@@ -1,3 +1,4 @@
 conf/*_conf.php
 conf/filter.json
+conf/custom/*
 xmis/*

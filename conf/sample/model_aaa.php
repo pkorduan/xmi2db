@@ -4,10 +4,10 @@
 	$schemas[] = 'aaa1';
 	$schemas[] = 'aaa2';
 	$schemas[] = 'aaa_test';
+	$schemas[] = 'aaa';
 	define('SCHEMAS', "'" . implode("';'", $schemas) . "'");
 
-# Packages of AAA Schema
-	
+	# Packages of AAA Schema
 	$packages[] = 'AFIS-ALKIS-ATKIS Anwendungsschema';
 	$packages[] = 'AAA Basisschema';
 	$packages[] = 'AAA_Basisklassen';
@@ -81,5 +81,5 @@
 #	$packages[] = 'Punktangaben';
 #	$packages[] = 'Reservierungen';
 
-define('PACKAGES', "'" . implode("';'", $packages) . "'");
+	define('PACKAGES', "'" . implode("';'", $packages) . "'");
 ?>

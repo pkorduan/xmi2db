@@ -63,7 +63,7 @@ FROM
 WHERE
 	general_id = '-1' AND
 	lower(s.name) LIKE '" . strtolower($stereotype) . "' AND
-	p.name IN (" . PACKAGES . ")
+	p.name IN (" . str_replace(';', ',', PACKAGES) . ")
 ";
 		$this->logger->log(' <b>Get Top ' . $stereotype . 's: </b>');
 		$this->logger->log(' <textarea cols="5" rows="1">' . $sql . '</textarea>');
@@ -157,7 +157,7 @@ FROM
 	" . $this->schemaName . ".packages pa ON c.package_id = pa.id
 WHERE
 	p.xmi_id = '" . $class['xmi_id'] . "' AND
-	pa.name IN (" . PACKAGES . ")";
+	pa.name IN (" . str_replace(';', ',', PACKAGES) . ")";
 	
 #	if ($this->logger->debug) {
 #		$sql .= "
@@ -191,7 +191,7 @@ FROM
 	" . $this->schemaName . ".stereotypes s ON c.stereotype_id = s.xmi_id
 WHERE
 	lower(s.name) = 'enumeration' AND
-	p.name IN (" . PACKAGES . ")
+	p.name IN (" . str_replace(';', ',', PACKAGES) . ")
 ";
 		$this->logger->log('<br><b>Get Enumerations</b>');
 		$this->logger->log(' <textarea cols="5" rows="1">' . $sql . '</textarea>');
@@ -215,7 +215,7 @@ FROM
 	" . $this->schemaName . ".stereotypes s ON c.stereotype_id = s.xmi_id
 WHERE
 	s.name LIKE '%odeList' AND
-	p.name IN (" . PACKAGES . ")
+	p.name IN (" . str_replace(';', ',', PACKAGES) . ")
 ";
 		$this->logger->log('<b>Get CodeList</b>');
 		$this->logger->log('<pre>' . $sql . '</pre>');
@@ -455,8 +455,8 @@ WHERE
 				" . $this->schemaName . ".packages pa ON ca.package_id = pa.id JOIN
 				" . $this->schemaName . ".packages pb ON cb.package_id = pb.id
 			WHERE
-				pa.name IN (" . PACKAGES . ") AND
-				pb.name IN (" . PACKAGES . ")
+				pa.name IN (" . str_replace(';', ',', PACKAGES) . ") AND
+				pb.name IN (" . str_replace(';', ',', PACKAGES) . ")
 		";
 		$this->logger->log(' <b>Get Associations: </b>');
 		$this->logger->log(' <textarea cols="5" rows="1">' . $sql . '</textarea>');
