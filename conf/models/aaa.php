@@ -1,6 +1,7 @@
 <?php
 	# Schemas of AAA
 	$schemas = array();
+	$schemas[] = 'aaa';
 	$schemas[] = 'aaa1';
 	$schemas[] = 'aaa2';
 	$schemas[] = 'aaa_test';

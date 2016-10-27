@@ -7,6 +7,7 @@
 	// | Licence: GPL https://www.gnu.org/licenses/gpl-3.0.de.html            |
 	// +----------------------------------------------------------------------+
   include('conf/database_conf.php');
+	$model_conf = (empty($_REQUEST['conf']) ? 'aaa' : $_REQUEST['conf']);
 ?><!DOCTYPE html>
 <html lang="de">
 <head>
@@ -103,16 +104,16 @@
 		<br>
 		Gewählte Konfigurationsdatei in "conf/models":
 		<select class="form-control" id="selectedConf">
-			<option value="<?php echo $_REQUEST['conf'].'.php'; ?>"><?php echo $_REQUEST['conf'].'.php'; ?></option>
+			<option value="<?php echo $model_conf .'.php'; ?>"><?php echo $model_conf . '.php'; ?></option>
 		</select>
 		
 		<h3>xmi2db</h3>
 		xmi2db überträgt die UML-Modell Elemente der ausgewählten xmi Datei in das ausgewählte Datenbank Schema. Eingelesen werden nur die Elemente ab dem ausgewählten Basispaket.
 		<h4>Gewählte Pakete</h4>
-		<i>Folgende Pakete wurden laut <?php echo $_REQUEST['conf'].'.php'; ?> ausgewählt:</i><br>
+		<i>Folgende Pakete wurden laut <?php echo $model_conf . '.php'; ?> ausgewählt:</i><br>
 		<ul class="list-unstyled">
 		<?php
-			include('conf/models/'.$_REQUEST['conf'].'.php');
+			include('conf/models/' . $model_conf .'.php');
 			$packages = str_replace("'", "", PACKAGES);
 			$packages = explode(";", $packages);
 			foreach ($packages as $package) {
