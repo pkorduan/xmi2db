@@ -112,7 +112,7 @@
 	</head>
 	<body>
 	<div class="container">
-		<h2>Ableitung von PostgreSQL-Datenbankmodellen aus UML-Modellen_</h2>
+		<h2>Ableitung von PostgreSQL-Datenbankmodellen aus UML-Modellen</h2>
 		<?php echo VERSION; ?>
 		<br>
 		Gewählte Konfigurationsdatei:
