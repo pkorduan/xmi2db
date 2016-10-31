@@ -44,7 +44,7 @@ class xmi2db {
   
   function includeConf($conf) {
 	$this->conf = $conf;
-	include('../conf/models/'.$conf);
+	include('../'.$conf);
   }
   /**
   * Sets the xmi file to read
@@ -603,11 +603,9 @@ class xmi2db {
 	else {
 		$hasSubPackages = true;
 	}
-	$daten = array();
-	$daten[] = "Erster Eintrag";
-	$daten[] = "Zweiter Eintrag";
     foreach ($packages as $package_sub) {
 		//checks if packages_conf is empty, if not it checks if current package is in packages_conf
+		Pascoul::send_message(0, " TEST " . $this->packages_conf[0], $progress++);
 		if (empty($this->packages_conf) xor in_array($package_sub->attributes()->name, $this->packages_conf)) {
 			Pascoul::send_message(0, " Get Queries for sub package " . $package_sub->attributes()->name, $progress++);
 		  //Store top-level package (e.g. "Basisklassen") into DB and use the returned ID to store it's elements in the db
@@ -901,7 +899,9 @@ class xmi2db {
 		$packages_conf = str_replace("'", "", PACKAGES);
 		$packages_conf = explode(";", $packages_conf);
 		//Delete single empty value so that array is really eampty when there are no PACKAGES given in database_conf
-		if ($packages_conf[0]=="") $packages_conf = array_filter($packages_conf);
+		//if ($packages_conf[0]=="") $packages_conf = array_filter($packages_conf);
+		//Delete sole entry in array ('PACKAGES') which means that there is no package configured, thus the array should be empty.
+		if ($packages_conf[0]='PACKAGES') unset($packages_conf[0]);;
 		$this->setConfiguredPackages($packages_conf);
 		
 		$this->buildSchema();

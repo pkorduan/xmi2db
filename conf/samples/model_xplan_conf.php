@@ -4,6 +4,7 @@
 	$schemas[] = 'xplan1';
 	$schemas[] = 'xplan2';
 	$schemas[] = 'xplan_test';
+	$schemas[] = 'xplan';
 	define('SCHEMAS', "'" . implode("';'", $schemas) . "'");
 
 	# Packages of XPlanung Schema
@@ -15,7 +16,7 @@
 	  $packages[] = 'BP_Bebauung';
 	#  $packages[] = 'BP_Erhaltungssatzung_und_Denkmalschutz';
 	#  $packages[] = 'BP_Gemeinbedarf_Spiel_und_Sportanlagen';
-	#  $packages[] = 'BP_Landwirtschaft, Wald- und Grünflächen';
+	#  $packages[] = 'BP_Landwirtschaft, Wald- und GrÃ¼nflÃ¤chen';
 	#  $packages[] = 'BP_Naturschutz_Landschaftsbild_Naturhaushalt';
 	#  $packages[] = 'BP_Raster';
 	#  $packages[] = 'BP_Sonstiges';
@@ -61,5 +62,5 @@
 	#  $packages[] = 'XP_Praesentationsobjekte';
 	#  $packages[] = 'XP_Raster';
 
-	define('PACKAGES', "'" . implode("';'", $packages) . "'");
+	if ($packages) define('PACKAGES', "'" . implode("';'", $packages) . "'");
 ?>

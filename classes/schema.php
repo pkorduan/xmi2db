@@ -37,6 +37,7 @@ class Schema {
 
 	function asSql() {
 		$sql = '-- ' . VERSION . "\n";
+		$sql .= '-- gewählte Pakete: ' . PACKAGES . "\n";
 		$sql  .= 'DROP SCHEMA IF EXISTS ' . $this->schemaName . " CASCADE;\n";
 		$sql .= 'CREATE SCHEMA ' . $this->schemaName . ";\n";
 		$sql .= 'COMMENT ON SCHEMA ' . $this->schemaName . " IS '" . VERSION . "';\n";
@@ -51,6 +52,9 @@ class Schema {
 	* Lade alle Generalisierungen, die selber nicht von anderen abgeleitet sind
 	**/
 	function getTopUmlClasses($stereotype) {
+		if (PACKAGES!='PACKAGES') $packSql = "AND p.name IN (" . str_replace(';', ',', PACKAGES) . ")";
+		else $packSql = "";
+		
 		$sql = "
 SELECT
 	c.id,
@@ -61,9 +65,9 @@ FROM
 	" . $this->schemaName . ".uml_classes c ON p.id = c.package_id LEFT JOIN
 	" . $this->schemaName . ".stereotypes s ON c.stereotype_id = s.xmi_id
 WHERE
-	general_id = '-1' AND
-	lower(s.name) LIKE '" . strtolower($stereotype) . "' AND
-	p.name IN (" . PACKAGES . ")
+--	general_id = '-1' AND
+	lower(s.name) LIKE '" . strtolower($stereotype) . "'"
+	.$packSql."
 ";
 		$this->logger->log(' <b>Get Top ' . $stereotype . 's: </b>');
 		$this->logger->log(' <textarea cols="5" rows="1">' . $sql . '</textarea>');
@@ -145,6 +149,8 @@ WHERE
 	}
 
 	function getSubUmlClasses($stereotype, $class) {
+		if (PACKAGES!='PACKAGES') $packSql = " AND pa.name IN (" . str_replace(';', ',', PACKAGES) . ")";
+		else $packSql = "";
 		$sql = "
 SELECT
 	c.id,
@@ -156,9 +162,9 @@ FROM
 	" . $this->schemaName . ".uml_classes c ON g.child_id = c.xmi_id LEFT JOIN
 	" . $this->schemaName . ".packages pa ON c.package_id = pa.id
 WHERE
-	p.xmi_id = '" . $class['xmi_id'] . "' AND
-	pa.name IN (" . PACKAGES . ")";
-	
+	p.xmi_id = '" . $class['xmi_id'] . "'"
+	.$packSql."
+";
 #	if ($this->logger->debug) {
 #		$sql .= "
 #			AND c.name in ('AA_Objekt', 'AA_NREO', 'AA_Benutzer', 'AX_Benutzer');
@@ -180,6 +186,8 @@ WHERE
 	}
 	
 	function getEnumerations() {
+		if (PACKAGES!='PACKAGES') $packSql = "AND p.name IN (" . str_replace(';', ',', PACKAGES) . ")";
+		else $packSql = "";
 		$sql = "
 SELECT
 	c.id,
@@ -190,8 +198,8 @@ FROM
 	" . $this->schemaName . ".uml_classes c ON p.id = c.package_id LEFT JOIN
 	" . $this->schemaName . ".stereotypes s ON c.stereotype_id = s.xmi_id
 WHERE
-	lower(s.name) = 'enumeration' AND
-	p.name IN (" . PACKAGES . ")
+	lower(s.name) = 'enumeration'"
+	.$packSql."
 ";
 		$this->logger->log('<br><b>Get Enumerations</b>');
 		$this->logger->log(' <textarea cols="5" rows="1">' . $sql . '</textarea>');
@@ -204,6 +212,8 @@ WHERE
 	}
 
 	function getCodeLists() {
+		if (PACKAGES!='PACKAGES') $packSql = "AND p.name IN (" . str_replace(';', ',', PACKAGES) . ")";
+		else $packSql = "";
 		$sql = "
 SELECT
 	c.id,
@@ -214,8 +224,8 @@ FROM
 	" . $this->schemaName . ".uml_classes c ON p.id = c.package_id LEFT JOIN
 	" . $this->schemaName . ".stereotypes s ON c.stereotype_id = s.xmi_id
 WHERE
-	s.name LIKE '%odeList' AND
-	p.name IN (" . PACKAGES . ")
+	s.name LIKE '%odeList'"
+	.$packSql."
 ";
 		$this->logger->log('<b>Get CodeList</b>');
 		$this->logger->log('<pre>' . $sql . '</pre>');
@@ -418,6 +428,10 @@ WHERE
 	}
 
 	function getAssociations() {
+		if (PACKAGES!='PACKAGES') $packSql = " WHERE
+				pa.name IN (" . str_replace(';', ',', PACKAGES) . ") AND
+				pb.name IN (" . str_replace(';', ',', PACKAGES) . ")";
+		else $packSql = "";
 		$sql = "
 			SELECT
 				c.assoc_id,
@@ -453,10 +467,8 @@ WHERE
 				" . $this->schemaName . ".uml_classes ca ON a.participant = ca.xmi_id JOIN
 				" . $this->schemaName . ".uml_classes cb ON b.participant = cb.xmi_id JOIN
 				" . $this->schemaName . ".packages pa ON ca.package_id = pa.id JOIN
-				" . $this->schemaName . ".packages pb ON cb.package_id = pb.id
-			WHERE
-				pa.name IN (" . PACKAGES . ") AND
-				pb.name IN (" . PACKAGES . ")
+				" . $this->schemaName . ".packages pb ON cb.package_id = pb.id"
+				.$packSql."
 		";
 		$this->logger->log(' <b>Get Associations: </b>');
 		$this->logger->log(' <textarea cols="5" rows="1">' . $sql . '</textarea>');

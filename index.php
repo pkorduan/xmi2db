@@ -6,8 +6,6 @@
 	// | Author: Peter Korduan <peter.korduan@gdi-service.de>                 |
 	// | Licence: GPL https://www.gnu.org/licenses/gpl-3.0.de.html            |
 	// +----------------------------------------------------------------------+
-  include('conf/database_conf.php');
-	$model_conf = (empty($_REQUEST['conf']) ? 'aaa' : $_REQUEST['conf']);
 ?><!DOCTYPE html>
 <html lang="de">
 <head>
@@ -74,12 +72,16 @@
 		}
 
 		function execDb2Classes() {
+			var selectedConf = document.getElementById("selectedConf");
+			var conf = selectedConf.options[selectedConf.selectedIndex].value;
+			
 			var umlSchema = document.getElementById("db2classes_umlSchema").value,
 					gmlSchema = document.getElementById("db2classes_gmlSchema").value,
 					createUserInfoColumns = document.getElementById('createUserInfoColumns').checked,
 					url = 'converter/db2classes.php',
 					params = [];
-
+			params.push('conf=' + conf);
+			
 			if (umlSchema) params.push('umlSchema=' + umlSchema);
 			if (gmlSchema) params.push('gmlSchema=' + gmlSchema);
 			if (createUserInfoColumns) params.push('createUserInfoColumns=1');
@@ -89,36 +91,65 @@
 		}
 
 		function execDb2Ogr() {
+			var selectedConf = document.getElementById("selectedConf");
+			var conf = selectedConf.options[selectedConf.selectedIndex].value;
+			
 			var umlSchema = document.getElementById("db2ogr_umlSchema").value,
 					ogrSchema = document.getElementById("db2ogr_ogrSchema").value;
 
-			window.location = 'converter/db2ogr.php?umlSchema=' + umlSchema + '&ogrSchema=' + ogrSchema;
+			window.location = 'converter/db2ogr.php?umlSchema=' + umlSchema + '&ogrSchema=' + ogrSchema + '&conf=' + conf;
+		}
+		
+		function test() {
+			var selectedConf = document.getElementById("selectedConf");
+			var conf = selectedConf.options[selectedConf.selectedIndex].value;
+
+			window.location = 'converter/test.php?conf=' + conf;
 		}
 	</script>
 	<title>UML to DB model</title>
 	</head>
 	<body>
 	<div class="container">
-		<h2>Ableitung von PostgreSQL-Datenbankmodellen aus UML-Modellen</h2>
-		<?php echo VERSION; ?>
+		<h2>Ableitung von PostgreSQL-Datenbankmodellen aus UML-Modellen</h2><?php
+	if (!file_exists('conf/database_conf.php')) {
+	  echo preg_replace(
+			"/\r|\n/",
+			"", 
+			file('README.md')[3]
+		); ?>
+		<br><b>Es wurde noch keine Konfigurationsdatei angelegt!</b><br>
+		Kopiere die Datei conf/samples/database_conf.php nach conf/database_conf.php und passe die Variablen entsprechen an. <?php
+	} else { 
+		include('conf/database_conf.php');
+		echo VERSION; ?>
 		<br>
-		Gewählte Konfigurationsdatei in "conf/models":
-		<select class="form-control" id="selectedConf">
-			<option value="<?php echo $model_conf .'.php'; ?>"><?php echo $model_conf . '.php'; ?></option>
-		</select>
-		
+		<?php
+		if (!file_exists(SCHEMA_CONF_FILE)) { echo SCHEMA_CONF_FILE; ?>
+			<br><b>Es wurde noch keine Konfigurationsdatei für das Schema angelegt!</b>
+			<br>Kopiere die Datei conf/samples/model_aaa_conf.php nach conf/model_aaa_conf.php, passe die Konstante SCHEMA_CONF_FILE in conf/database_conf.php an sowie den Schema- und die Paketnamen in conf/model_aaa_conf.php.<?php
+		}
+		else { ?>
+		Gewählte Konfigurationsdatei:
+			<select class="form-control" id="selectedConf">
+				<option value="<?php echo SCHEMA_CONF_FILE; ?>"><?php echo SCHEMA_CONF_FILE; ?></option>
+			</select><?php
+		} ?>
 		<h3>xmi2db</h3>
 		xmi2db überträgt die UML-Modell Elemente der ausgewählten xmi Datei in das ausgewählte Datenbank Schema. Eingelesen werden nur die Elemente ab dem ausgewählten Basispaket.
 		<h4>Gewählte Pakete</h4>
-		<i>Folgende Pakete wurden laut <?php echo $model_conf . '.php'; ?> ausgewählt:</i><br>
+		<i>Folgende Pakete wurden laut <?php echo SCHEMA_CONF_FILE; ?> ausgewählt:</i><br>
 		<ul class="list-unstyled">
 		<?php
-			include('conf/models/' . $model_conf .'.php');
-			$packages = str_replace("'", "", PACKAGES);
-			$packages = explode(";", $packages);
-			foreach ($packages as $package) {
-				echo '<li class="col-md-6">'.$package.'</li>';
+			include(SCHEMA_CONF_FILE);
+			if (PACKAGES!='PACKAGES') {
+				$packages = str_replace("'", "", PACKAGES);
+				$packages = explode(";", $packages);
+				foreach ($packages as $package) {
+					echo '<li class="col-md-6">'.$package.'</li>';
+				}
 			}
+			else echo "Keine Pakete gewählt!";
 		?>
 		</ul>
 		<i><b>(Beachte: Hierchien sind unbedingt zu beachten bei der Angabe der Pakete in der database_conf.php! Das heißt: Möchte man Pakete in einem XPlan Modell auswählen, muss man das oberste Paket "XPlanGML 4.1" unbedingt mitangeben. Möchte man "BP_Bebauung" wählen, muss auch das Paket "Bebauungsplan" gewählt werden, da sich "BP_Bebauung" in "Bebauungsplan" befindet.)</b></i>
@@ -146,8 +177,6 @@
 			}
 		?>
 		</select>
-		<!-- hier SCHEMAS; auseinandernehmen (wieder array), dann array liste durchlaufen und wie oben azeigen. Nich "_uml" vergessen! bei db2classes und db2ogr auch machen!
-		Oben beim übergeben dbSchema als Param nicht vergessen!-->	
 		<!-- wird das nochgebraucht?
 		<input type="text" id="xmi2db_umlSchema" name="umlSchema" list="xmi2db_umlSchemaName" size="50"/ value="<?php //echo UML_SCHEMA; ?>">
 		<datalist id="xmi2db_umlSchemaName">
@@ -177,6 +206,8 @@
 		<div class="text-center" id="queryButton">
 		<button type="submit" class="btn btn-primary btn-sm" id="execXmi2Db" onclick="execXmi2Db()">
 			<span class="glyphicon glyphicon-ok"> </span> Fülle DB mit XMI Inhalten</button>
+		<!--<button type="submit" class="btn btn-primary btn-sm" id="testBtn" onclick="test()">
+			<span class="glyphicon glyphicon-ok"> </span> Test</button>-->
 		<button type="button" class="btn btn-danger btn-sm" id="cancelXmi2Db" onclick="Pascoul.stopTask();">
 			<span class="glyphicon glyphicon-remove"> </span> Abbrechen</button>
 		</div>
@@ -300,6 +331,8 @@
 			$("#db2ogr_ogrSchema").val(schemaOGR);
 			$("#db2classes_gmlSchema").val(schemaGML);
 		});
-	</script>
+	</script><?php
+	} # end of Konfigurationsdatei ist vorhanden
+?>
 	</body>
 </html>
