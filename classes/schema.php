@@ -65,7 +65,7 @@ FROM
 	" . $this->schemaName . ".uml_classes c ON p.id = c.package_id LEFT JOIN
 	" . $this->schemaName . ".stereotypes s ON c.stereotype_id = s.xmi_id
 WHERE
-	general_id = '-1' AND
+--	general_id = '-1' AND
 	lower(s.name) LIKE '" . strtolower($stereotype) . "'"
 	.$packSql."
 ";
