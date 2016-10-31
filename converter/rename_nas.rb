@@ -66,17 +66,12 @@ while r.read
 		when XML::Reader::TYPE_COMMENT
 			w.write_comment r.value
 		when XML::Reader::TYPE_ELEMENT
-			content = r.read_string
-			#name = r.name
-			#if name == 'land'
-				#name = 'renamed_land'
-			#end
 			w.start_element name
 			r.attribute_count.times do |i|
 				r.move_to_next_attribute
 				w.write_attribute r.name, r.value
 			end
-			w.end_element if content.nil?
+			w.end_element if r.empty_element?
 		when XML::Reader::TYPE_TEXT
 			w.write_raw r.value.encode(:xml => :text)
 		when XML::Reader::TYPE_END_ELEMENT
