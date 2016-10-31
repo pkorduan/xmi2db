@@ -16,7 +16,7 @@
 	  $packages[] = 'BP_Bebauung';
 	#  $packages[] = 'BP_Erhaltungssatzung_und_Denkmalschutz';
 	#  $packages[] = 'BP_Gemeinbedarf_Spiel_und_Sportanlagen';
-	#  $packages[] = 'BP_Landwirtschaft, Wald- und Grünflächen';
+	#  $packages[] = 'BP_Landwirtschaft, Wald- und GrÃ¼nflÃ¤chen';
 	#  $packages[] = 'BP_Naturschutz_Landschaftsbild_Naturhaushalt';
 	#  $packages[] = 'BP_Raster';
 	#  $packages[] = 'BP_Sonstiges';

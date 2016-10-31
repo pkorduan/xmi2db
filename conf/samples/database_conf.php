@@ -1,10 +1,13 @@
 <?php
+	$rel_path = (basename($_SERVER['SCRIPT_NAME']) != 'index.php' ? '../' : '');
+
 	define(
 		'VERSION',
 		preg_replace(
 			"/\r|\n/",
 			"", 
-			file((basename($_SERVER['SCRIPT_NAME']) != 'index.php' ? '../' : '') . 'README.md')[3])
+			file($rel_path . 'README.md')[3]
+		)
 	);
 	error_reporting(E_ALL & ~E_NOTICE);
 
@@ -30,8 +33,8 @@
 
 	define('WITH_UUID_OSSP', false);
 
-	define('FILTER_FILE','../conf/filter.json');
+	define('FILTER_FILE', $rel_path . 'conf/filter_conf.json');
 
 	# Definition of the model conf file
-	define('CONF_FILE','../conf/model_aaa.php');
+	define('SCHEMA_CONF_FILE', $rel_path . 'conf/model_aaa_conf.php');
 ?>

@@ -6,7 +6,6 @@
 	// | Author: Peter Korduan <peter.korduan@gdi-service.de>                 |
 	// | Licence: GPL https://www.gnu.org/licenses/gpl-3.0.de.html            |
 	// +----------------------------------------------------------------------+
-  include('conf/database_conf.php');
 ?><!DOCTYPE html>
 <html lang="de">
 <head>
@@ -112,21 +111,37 @@
 	</head>
 	<body>
 	<div class="container">
-		<h2>Ableitung von PostgreSQL-Datenbankmodellen aus UML-Modellen</h2>
-		<?php echo VERSION; ?>
+		<h2>Ableitung von PostgreSQL-Datenbankmodellen aus UML-Modellen</h2><?php
+	if (!file_exists('conf/database_conf.php')) {
+	  echo preg_replace(
+			"/\r|\n/",
+			"", 
+			file('README.md')[3]
+		); ?>
+		<br><b>Es wurde noch keine Konfigurationsdatei angelegt!</b><br>
+		Kopiere die Datei conf/samples/database_conf.php nach conf/database_conf.php und passe die Variablen entsprechen an. <?php
+	} else { 
+		include('conf/database_conf.php');
+		echo VERSION; ?>
 		<br>
+		<?php
+		if (!file_exists(SCHEMA_CONF_FILE)) { echo SCHEMA_CONF_FILE; ?>
+			<br><b>Es wurde noch keine Konfigurationsdatei für das Schema angelegt!</b>
+			<br>Kopiere die Datei conf/samples/model_aaa_conf.php nach conf/model_aaa_conf.php, passe die Konstante SCHEMA_CONF_FILE in conf/database_conf.php an sowie den Schema- und die Paketnamen in conf/model_aaa_conf.php.<?php
+		}
+		else { ?>
 		Gewählte Konfigurationsdatei:
-		<select class="form-control" id="selectedConf">
-			<option value="<?php echo CONF_FILE; ?>"><?php echo CONF_FILE; ?></option>
-		</select>
-		
+			<select class="form-control" id="selectedConf">
+				<option value="<?php echo SCHEMA_CONF_FILE; ?>"><?php echo SCHEMA_CONF_FILE; ?></option>
+			</select><?php
+		} ?>
 		<h3>xmi2db</h3>
 		xmi2db überträgt die UML-Modell Elemente der ausgewählten xmi Datei in das ausgewählte Datenbank Schema. Eingelesen werden nur die Elemente ab dem ausgewählten Basispaket.
 		<h4>Gewählte Pakete</h4>
-		<i>Folgende Pakete wurden laut <?php echo CONF_FILE; ?> ausgewählt:</i><br>
+		<i>Folgende Pakete wurden laut <?php echo SCHEMA_CONF_FILE; ?> ausgewählt:</i><br>
 		<ul class="list-unstyled">
 		<?php
-			include(CONF_FILE);
+			include(SCHEMA_CONF_FILE);
 			if (PACKAGES!='PACKAGES') {
 				$packages = str_replace("'", "", PACKAGES);
 				$packages = explode(";", $packages);
@@ -316,6 +331,8 @@
 			$("#db2ogr_ogrSchema").val(schemaOGR);
 			$("#db2classes_gmlSchema").val(schemaGML);
 		});
-	</script>
+	</script><?php
+	} # end of Konfigurationsdatei ist vorhanden
+?>
 	</body>
 </html>
