@@ -59,7 +59,6 @@
 			args['url_params']['basepackage'] = basepkg;
 			args['url_params']['file'] = file;
 			args['url_params']['argo'] = argo;
-			args['url_params']['conf'] = conf;
 			
 			//Styling the progress div/box
 			args['html_params'] = new Array ();
@@ -80,7 +79,6 @@
 					createUserInfoColumns = document.getElementById('createUserInfoColumns').checked,
 					url = 'converter/db2classes.php',
 					params = [];
-			params.push('conf=' + conf);
 			
 			if (umlSchema) params.push('umlSchema=' + umlSchema);
 			if (gmlSchema) params.push('gmlSchema=' + gmlSchema);
@@ -97,7 +95,7 @@
 			var umlSchema = document.getElementById("db2ogr_umlSchema").value,
 					ogrSchema = document.getElementById("db2ogr_ogrSchema").value;
 
-			window.location = 'converter/db2ogr.php?umlSchema=' + umlSchema + '&ogrSchema=' + ogrSchema + '&conf=' + conf;
+			window.location = 'converter/db2ogr.php?umlSchema=' + umlSchema + '&ogrSchema=' + ogrSchema;
 		}
 		
 		function test() {
