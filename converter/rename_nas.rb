@@ -72,8 +72,6 @@ while r.read
 				r.move_to_next_attribute
 				w.write_attribute r.name, r.value
 			end
-			# close tag if it is empty
-			# or 
 			w.end_element if start_element_empty
 		when XML::Reader::TYPE_TEXT
 			w.write_raw r.value.encode(:xml => :text)
