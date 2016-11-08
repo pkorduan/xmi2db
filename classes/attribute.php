@@ -125,11 +125,12 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 						'featurecollection',
 						'li_lineage',
 						'sequence',
-						'dq_relativeinternalpositionalaccuracy',
-						'dq_absoluteexternalpositionalaccuracy',
 						'genericname',
 						'query',
-						'transaction'
+						'transaction',
+						'dq_result',
+						'md_identifier',
+						'ci_citation'
 					)) :
 					$database_type = 'text';
 				break;
@@ -147,19 +148,24 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 				case in_array($this->datatype, array(
 						'sc_crs',
 						'doublelist',
-						'measure'
+						'measure',
+						'dq_evaluationmethodtypecode'
 					)) :
 					$database_type = 'character varying';
 				break;
 
 				# enumerations from stereotype
 				case ($this->stereotype == 'enumeration') :
+					if ($this->name == 'advstandardmodell') {
+						#echo '<br>attribut: ' . $this->name . ' datatype: ' . $this->datatype . ' stereotype: ' . $this->stereotype . ' parent: ' . $this->parent->name . ' ogrSchema: ' . $this->parent->ogrSchema->schemaName . ' num enumerations: ' . count($this->parent->ogrSchema->enumerations);
+						# . ' enumtype: ' . $enumType->name . ' wert typ: ' . $enumType->getWertType() . ' database type: ' . $database_type;
+					}
 					if ($with_enum_type) {
 						$database_type = $this->datatype;
 					}
 					else {
-						if (empty($this->parent->ogrSchema)) {
-							$enumType = $this->parent->enumerations[$this->datatype];
+						if (!empty($this->parent->ogrSchema->schemaName)) {
+							$enumType = $this->parent->ogrSchema->enumerations[$this->datatype];
 							$database_type = (empty($enumType)) ? 'chacacter varying' : $enumType->getWertType();
 						}
 					}

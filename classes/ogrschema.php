@@ -63,8 +63,12 @@ class OgrSchema extends Schema {
 			# Erzeuge FeatueType
 			$featureType = new FeatureType($class['name'], $parent, $this->logger, $this->umlSchema, $this->enumerations);
 			$featureType->ogrSchema = $this;
+
 			$featureType->setId($class['id']);
 			$featureType->primaryKey = 'gml_id';
+			$featureType->primaryKeyType = 'character varying(16) NOT NULL';
+			$featureType->primaryKeyNullable = false;
+
 			if ($parent != null)
 				$this->logger->log(' abgeleitet von: <b>' . $parent->alias . '</b>');
 

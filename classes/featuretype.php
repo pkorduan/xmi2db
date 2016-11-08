@@ -11,6 +11,7 @@ class FeatureType {
 		$this->attributes_until_leafs = array();
 		$this->associationEnds = array();
 		$this->primaryKey = '';
+		$this->primaryKeyType = 'text';
 		$this->parent = $parent;
 		$this->withOids = true;
 		$this->values = new Data();
@@ -60,9 +61,14 @@ class FeatureType {
 	}
 
 	function is_filtered($attribute_type, $class_name, $attribute_name) {
-		$is_filtered = (array_key_exists($class_name, $GLOBALS['filter']) and 
-										array_key_exists($attribute_type, $GLOBALS['filter'][$class_name]) and
-										array_key_exists($attribute_name, $GLOBALS['filter'][$class_name][$attribute_type]));
+		$is_filtered = (
+			array_key_exists($class_name, $GLOBALS['filter']) and (
+				$GLOBALS['filter'][$class_name] == 0 or (
+					array_key_exists($attribute_type, $GLOBALS['filter'][$class_name]) and
+					array_key_exists($attribute_name, $GLOBALS['filter'][$class_name][$attribute_type])
+				)
+			)
+		);
 
 		$this->logger->log("<br>Prüfe ob {$attribute_type}: {$attribute_name} in class: {$class_name} gefiltert wird:");
 		if ($is_filtered) {
@@ -76,7 +82,20 @@ class FeatureType {
 
 	function getAttributesUntilLeafs($type, $parts) {
 		$return_attributes = array();
-		$attributes = $this->umlSchema->getClassAttributes($type);
+		if (substr($type, 0, 3) == 'DQ_') {
+			/* Damit die DQ_ Elemente gefunden werden mussen Sie in classes existieren.
+			* Hier Beispiele zum anlegen der uml_classes
+			* INSERT INTO aaa_uml.uml_classes (xmi_id, name, stereotype_id)
+			*	values ('eaxmiid51', 'DQ_AbsoluteExternalPositionalAccuracy', 'EAID_BED119C1_311A_4a74_996D_121184388A0F')
+
+			*	INSERT INTO aaa_uml.uml_classes (xmi_id, name, stereotype_id)
+			*	values ('eaxmiid47', 'DQ_RelativeInternalPositionalAccuracy', 'EAID_BED119C1_311A_4a74_996D_121184388A0F')
+			*/
+			$attributes = $this->umlSchema->getExternalClassAttributes($type);
+		}
+		else {
+			$attributes = $this->umlSchema->getClassAttributes($type);
+		}
 		foreach ($attributes AS $attribute) {
 			if (!$this->is_filtered('attribute', $type, $attribute['attribute_name'])) {
 				if (!empty($attribute['attribute_name'])) {
@@ -85,6 +104,7 @@ class FeatureType {
 					}
 					else {
 						$parent = new Datatype($attribute['class_name'], 'datatype', $this->logger, $this->enumerations);
+						$parent->ogrSchema = $this->ogrSchema;
 					}
 
 					$attributeObj = new Attribute(
@@ -344,7 +364,7 @@ CREATE TABLE IF NOT EXISTS " . $this->name . " (
 				$part .= " uuid NOT NULL DEFAULT uuid_generate_v1mc()";
 			}
 			else {
-				$part .= " text";
+				$part .= " " . $this->primaryKeyType;
 			}
 			$attribute_parts[] = $part;
 		}
@@ -441,7 +461,7 @@ CREATE TABLE IF NOT EXISTS " . $this->name . " (
 		$attribute_parts[] .= "	identifier character varying";
 
 		# Ausgabe id
-		$attribute_parts[] .= "\t" . $this->primaryKey . ' text';
+		$attribute_parts[] .= "\t" . $this->primaryKey . ' ' . $this->primaryKeyType;
 
 		# Ausgabe Attribute
 		$attribute_parts = array_merge(

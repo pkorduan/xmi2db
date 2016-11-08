@@ -36,8 +36,16 @@ class Schema {
 	}
 
 	function asSql() {
+
+		if (defined('PACKAGES')) {
+			$packages = str_replace(';', ', ', PACKAGES);
+		}
+		else {
+			$packages = 'alle';
+		}
+		
 		$sql = '-- ' . VERSION . "\n";
-		$sql .= '-- gewählte Pakete: ' . PACKAGES . "\n";
+		$sql .= '-- gewählte Pakete: ' . $packages . "\n";
 		$sql  .= 'DROP SCHEMA IF EXISTS ' . $this->schemaName . " CASCADE;\n";
 		$sql .= 'CREATE SCHEMA ' . $this->schemaName . ";\n";
 		$sql .= 'COMMENT ON SCHEMA ' . $this->schemaName . " IS '" . VERSION . "';\n";
@@ -52,7 +60,7 @@ class Schema {
 	* Lade alle Generalisierungen, die selber nicht von anderen abgeleitet sind
 	**/
 	function getTopUmlClasses($stereotype) {
-		if (PACKAGES!='PACKAGES') $packSql = "AND p.name IN (" . str_replace(';', ',', PACKAGES) . ")";
+		if (defined('PACKAGES')) $packSql = "AND p.name IN (" . str_replace(';', ',', PACKAGES) . ")";
 		else $packSql = "";
 		
 		$sql = "
@@ -149,7 +157,7 @@ WHERE
 	}
 
 	function getSubUmlClasses($stereotype, $class) {
-		if (PACKAGES!='PACKAGES') $packSql = " AND pa.name IN (" . str_replace(';', ',', PACKAGES) . ")";
+		if (defined('PACKAGES')) $packSql = " AND pa.name IN (" . str_replace(';', ',', PACKAGES) . ")";
 		else $packSql = "";
 		$sql = "
 SELECT
@@ -186,7 +194,7 @@ WHERE
 	}
 	
 	function getEnumerations() {
-		if (PACKAGES!='PACKAGES') $packSql = "AND p.name IN (" . str_replace(';', ',', PACKAGES) . ")";
+		if (defined('PACKAGES')) $packSql = "AND p.name IN (" . str_replace(';', ',', PACKAGES) . ")";
 		else $packSql = "";
 		$sql = "
 SELECT
@@ -212,7 +220,7 @@ WHERE
 	}
 
 	function getCodeLists() {
-		if (PACKAGES!='PACKAGES') $packSql = "AND p.name IN (" . str_replace(';', ',', PACKAGES) . ")";
+		if (defined('PACKAGES')) $packSql = "AND p.name IN (" . str_replace(';', ',', PACKAGES) . ")";
 		else $packSql = "";
 		$sql = "
 SELECT
@@ -396,27 +404,28 @@ WHERE
 	# Lade AssociationEnds for classes
 	function getAssociationEnds($class) {
 		$sql = "
-SELECT
-	ca.name a_class_name,
-	b.id b_id,
-	CASE WHEN b.name = '<undefined>' AND NOT b.\"isNavigable\" THEN 'inversZu_' || a.name || '_' || cb.name ELSE b.name END AS b_name,
-	-- b.name b_name,
-	b.multiplicity_range_lower b_multiplicity_range_lower,
-	b.multiplicity_range_upper b_multiplicity_range_upper,
-	a.id a_id,
-	a.name a_name,
-	a.multiplicity_range_lower a_multiplicity_range_lower,
-	a.multiplicity_range_upper a_multiplicity_range_upper,
-	cb.name b_class_name
-FROM
-	" . $this->schemaName . ".uml_classes ca JOIN
-	" . $this->schemaName . ".association_ends a ON (ca.xmi_id = a.participant) JOIN
-	" . $this->schemaName . ".association_ends b ON (a.assoc_id = b.assoc_id) JOIN
-	" . $this->schemaName . ".uml_classes cb ON (cb.xmi_id = b.participant)
-WHERE
-	a.id != b.id
-	AND ca.name = '" . $class['name'] . "'
-	-- AND b.\"isNavigable\"
+			SELECT
+				ca.name a_class_name,
+				b.id b_id,
+				CASE WHEN b.name = '<undefined>' AND NOT b.\"isNavigable\" THEN 'inversZu_' || a.name || '_' || cb.name ELSE b.name END AS b_name,
+				-- b.name b_name,
+				b.multiplicity_range_lower b_multiplicity_range_lower,
+				b.multiplicity_range_upper b_multiplicity_range_upper,
+				a.id a_id,
+				a.name a_name,
+				a.multiplicity_range_lower a_multiplicity_range_lower,
+				a.multiplicity_range_upper a_multiplicity_range_upper,
+				cb.name b_class_name
+			FROM
+				" . $this->schemaName . ".uml_classes ca JOIN
+				" . $this->schemaName . ".association_ends a ON (ca.xmi_id = a.participant) JOIN
+				" . $this->schemaName . ".association_ends b ON (a.assoc_id = b.assoc_id) JOIN
+				" . $this->schemaName . ".uml_classes cb ON (cb.xmi_id = b.participant)
+			WHERE
+				a.id != b.id
+				AND ca.name = '" . $class['name'] . "'
+				AND b.name NOT LIKE 'inversZu_%'
+				-- AND b.\"isNavigable\"
 		";
 		$this->logger->log(' <br><b>Get 1:n Association Ends for Class: ' . $class['name'] . '</b>');
 		$this->logger->log(' <textarea cols="5" rows="1">' . $sql . '</textarea>');
@@ -428,7 +437,7 @@ WHERE
 	}
 
 	function getAssociations() {
-		if (PACKAGES!='PACKAGES') $packSql = " WHERE
+		if (defined('PACKAGES')) $packSql = " WHERE
 				pa.name IN (" . str_replace(';', ',', PACKAGES) . ") AND
 				pb.name IN (" . str_replace(';', ',', PACKAGES) . ")";
 		else $packSql = "";
@@ -982,8 +991,95 @@ IS '" . $table_orig .
 		return $sql;
 	}
 
+	function getExternalClassAttributes($type) {
+		$this->logger->log('<br><b>Get Attributes for external class: ' . $type . '</b>');
+		$attributes = array();
+
+		switch (true) {
+			case (in_array($type, array('DQ_AbsoluteExternalPositionalAccuracy', 'DQ_RelativeExternalPositionalAccuracy'))) : {
+				#*******************************
+				# DQ_Element
+				#*******************************
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'nameOfMeasure',
+					'attribute_datatype' => 'CharacterString',
+					'attribute_stereotype' => '',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '-1'
+				);
+
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'measureIdentification',
+					'attribute_datatype' => 'MD_Identifier',
+					'attribute_stereotype' => '',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '1'
+				);
+
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'measureDescription',
+					'attribute_datatype' => 'CharacterString',
+					'attribute_stereotype' => '',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '1'
+				);
+
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'evaluationMethodType',
+					'attribute_datatype' => 'DQ_EvaluationMethodTypeCode',
+					'attribute_stereotype' => '',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '1'
+				);
+				
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'evaluationMethodDescription',
+					'attribute_datatype' => 'CharacterString',
+					'attribute_stereotype' => '',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '1'
+				);
+
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'evaluationProcedure',
+					'attribute_datatype' => 'CI_Citation',
+					'attribute_stereotype' => '',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '1'
+				);
+
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'dateTime',
+					'attribute_datatype' => 'DateTime',
+					'attribute_stereotype' => '',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '-1'
+				);
+
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'result',
+					'attribute_datatype' => 'DQ_Result',
+					'attribute_stereotype' => '',
+					'multiplicity_range_lower' => '1',
+					'multiplicity_range_upper' => '2'
+				);
+			} break;
+		}
+		$this->logger->log(' <textarea cols="5" rows="1">' . json_encode($attributes) . '</textarea>');
+		return $attributes;
+	}
+
 	function createExternalDataTypes($dbSchema) {
 		$this->logger->log('<b>Create external data types:</b>');
+
 		#*******************************
 		# SC_CRS
 		#*******************************
