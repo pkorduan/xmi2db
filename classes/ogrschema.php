@@ -77,7 +77,7 @@ class OgrSchema extends Schema {
 				$featureType->attribute_filter = array();
 
 			$this->logger->log('<br><b>Hole Attribute und verfolge dabei Datentypen bis zum Ende.</b>');
-			$featureType->getAttributesUntilLeafs($featureType->alias, array());
+			$featureType->getAttributesUntilLeafs($featureType->alias, $stereotype, array());
 
 			$featureType->flattenAttributes();
 
@@ -121,7 +121,7 @@ class OgrSchema extends Schema {
 		if ($parent != null)
 			$this->logger->log(' abgeleitet von: <b>' . $parent->alias . '</b>');
 
-		$featureType->getAttributesUntilLeafs($featureType->alias, array());
+		$featureType->getAttributesUntilLeafs($featureType->alias, $stereotype, array());
 
 		$featureType->flattenAttributes();
 

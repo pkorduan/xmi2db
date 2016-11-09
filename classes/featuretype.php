@@ -80,7 +80,7 @@ class FeatureType {
 		return $is_filtered;
 	}
 
-	function getAttributesUntilLeafs($type, $parts) {
+	function getAttributesUntilLeafs($type, $stereotype, $parts) {
 		$return_attributes = array();
 		if (substr($type, 0, 3) == 'DQ_') {
 			/* Damit die DQ_ Elemente gefunden werden mussen Sie in classes existieren.
@@ -103,12 +103,14 @@ class FeatureType {
 						$parent = $this;
 					}
 					else {
-						$parent = new Datatype($attribute['class_name'], 'datatype', $this->logger, $this->enumerations);
+						#if ($attribute['class_name'] == 'AA_Modellart') echo '<br>  class: ' . $attribute['class_name'] . ' class stereotype: ' . $stereotype . ' attribute name: ' . $attribute['attribute_name'] . ' datatype: ' . $attribute['attribute_datatype'] . ' stereotyp: ' . $attribute['attribute_stereotype'];
+
+						$parent = new Datatype($attribute['class_name'], $stereotype, $this->logger, $this->enumerations);
 						$parent->ogrSchema = $this->ogrSchema;
 					}
 
 					$attributeObj = new Attribute(
-						$attribute['attribute_name'],
+						($attribute['attribute_name'] == 'position' and GEOMETRY_COLUMN_NAME != '') ? GEOMETRY_COLUMN_NAME : $attribute['attribute_name'],
 						$attribute['attribute_datatype'],
 						$parent,
 						$parts
@@ -118,7 +120,7 @@ class FeatureType {
 					$new_path = $parts;
 					array_push($new_path, $attributeObj);
 					if (in_array(strtolower($attribute['attribute_stereotype']), array('datatype', 'union'))) {
-						foreach ($this->getAttributesUntilLeafs($attribute['attribute_datatype'], $new_path) AS $child_attribute) {
+						foreach ($this->getAttributesUntilLeafs($attribute['attribute_datatype'], $attribute['attribute_stereotype'], $new_path) AS $child_attribute) {
 							$return_attributes[] = $child_attribute;
 						}
 					}
