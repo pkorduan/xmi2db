@@ -116,7 +116,17 @@ class FeatureType {
 						$parts
 					);
 					$attributeObj->setStereoType($attribute['attribute_stereotype']);
-					$attributeObj->setMultiplicity($attribute['multiplicity_range_lower'], $attribute['multiplicity_range_upper']);
+					# Union Typen können nicht not null sein, weil immer eines der Attribute
+					# des Union Types verwendet wird. Also andere weggelassen werden.
+					# Sonderfall, wenn ein Union Typ nur ein Attribut hätte, aber das wäre
+					# für einen Union Typ sinnlos, weil er ja dafür da ist, dass man ein
+					# Attribut aus verschiedenen auswählt.
+					#if ($type == 'AX_Lagebezeichnung') echo '<br>typ: ' . $type . ' attribute: ' . $attributeObj->name . ' stereotype: ' . $stereotype;
+					
+					$attributeObj->setMultiplicity(
+						(($attribute['attribute_name'] == 'position' or $stereotype == 'union') ? 0 : $attribute['multiplicity_range_lower']),
+						$attribute['multiplicity_range_upper']
+					);
 					$new_path = $parts;
 					array_push($new_path, $attributeObj);
 					if (in_array(strtolower($attribute['attribute_stereotype']), array('datatype', 'union'))) {

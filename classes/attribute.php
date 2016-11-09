@@ -324,41 +324,30 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 			$not_null = $this->not_null;
 		}
 		else {
-			# Union Typen können nicht not null sein, weil immer eines der Attribute
-			# des Union Types verwendet wird. Also andere weggelassen werden.
-			# Sonderfall, wenn ein Union Typ nur ein Attribut hätte, aber das wäre
-			# für einen Union Typ sinnlos, weil er ja dafür da ist, dass man ein
-			# Attribut aus verschiedenen auswählt.
-			#if ($this->name == 'sonstigesmodell') echo '<br>attribut: ' . $this->name . ' parent: ' . $this->parent->name . ' stereotype: ' . $this->parent->stereotype;
-			if ($this->parent->stereotype == 'union') {
-				$not_null = false;
+			if (is_array($this->parts) and !empty($this->parts)) {
+				# Ermittle NOT NULL aus Multipliziät des Attributes und seiner Vorgänger
+				# Nur wenn alle Attribute im Pfad die Kardinaltität > 0 haben,
+				# darf das Blattelement auf NOT NULL gesetzt werden.
+#				$not_null = true;
+#				foreach($this->parts AS $attribute) {
+#					if (intval($attribute->multiplicity_lower) == 0) {
+#						$not_null = false; # Attribut darf NULL sein.
+#					}
+#				}
+		
+				$not_null = !in_array(
+					false,
+					array_map(
+						function($attribute) {
+							return intval($attribute->multiplicity_lower) > 0;
+						},
+						$this->parts
+					)
+				);
 			}
 			else {
-				if (is_array($this->parts) and !empty($this->parts)) {
-					# Ermittle NOT NULL aus Multipliziät des Attributes und seiner Vorgänger
-					# Nur wenn alle Attribute im Pfad die Kardinaltität > 0 haben,
-					# darf das Blattelement auf NOT NULL gesetzt werden.
-	#				$not_null = true;
-	#				foreach($this->parts AS $attribute) {
-	#					if (intval($attribute->multiplicity_lower) == 0) {
-	#						$not_null = false; # Attribut darf NULL sein.
-	#					}
-	#				}
-				
-					$not_null = !in_array(
-						false,
-						array_map(
-							function($attribute) {
-								return intval($attribute->multiplicity_lower) > 0;
-							},
-							$this->parts
-						)
-					);
-				}
-				else {
-					# Ermittle NOT NULL nur aus multiplicity_lower des Attributes
-					$not_null = (intval($this->multiplicity_lower) > 0);
-				}
+				# Ermittle NOT NULL nur aus multiplicity_lower des Attributes
+				$not_null = (intval($this->multiplicity_lower) > 0);
 			}
 		}
 		return ($not_null ? ' NOT NULL' : '');
