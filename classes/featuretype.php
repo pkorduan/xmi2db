@@ -472,8 +472,8 @@ CREATE TABLE IF NOT EXISTS " . $this->name . " (
 		# identifier Spalte
 		$attribute_parts[] .= "	identifier character varying";
 
-		# Ausgabe id
-		$attribute_parts[] .= "\t" . $this->primaryKey . ' ' . $this->primaryKeyType;
+		# gml_id Spalte
+		$attribute_parts[] .= "	gml_id character varying(16)";
 
 		# Ausgabe Attribute
 		$attribute_parts = array_merge(

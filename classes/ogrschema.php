@@ -65,8 +65,8 @@ class OgrSchema extends Schema {
 			$featureType->ogrSchema = $this;
 
 			$featureType->setId($class['id']);
-			$featureType->primaryKey = 'gml_id';
-			$featureType->primaryKeyType = 'character varying(16) NOT NULL';
+			$featureType->primaryKey = 'ogc_fid';
+			$featureType->primaryKeyType = 'serial NOT NULL';
 			$featureType->primaryKeyNullable = false;
 
 			if ($parent != null)
