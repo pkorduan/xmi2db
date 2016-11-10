@@ -29,11 +29,13 @@
 	$ogrSchemaVar = ($_REQUEST['ogrSchema'] != '') ? $_REQUEST['ogrSchema'] : 'aaa_ogr';
 	define('OGR_SCHEMA', $ogrSchemaVar);
 
-	define('OGR_GEOMETRY_COLUMN_NAME', 'wkb_geometry');
+	$geometryColumnVar = ($_REQUEST['geometryColumn'] != '') ? $_REQUEST['geometryColumn'] : 'wkb_geometry';
+	define('GEOMETRY_COLUMN_NAME', $geometryColumnVar);
 
 	define('WITH_UUID_OSSP', false);
 
 	define('FILTER_FILE', $rel_path . 'conf/filter_conf.json');
+	define('FILTER_INFO', 'Ohne Attribute objektkoordinaten.');
 
 	# Definition of the model conf file
 	define('SCHEMA_CONF_FILE', $rel_path . 'conf/model_aaa_conf.php');

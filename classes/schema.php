@@ -46,6 +46,7 @@ class Schema {
 		
 		$sql = '-- ' . VERSION . "\n";
 		$sql .= '-- gewählte Pakete: ' . $packages . "\n";
+		$sql .= '-- gewählte Filter: ' . FILTER_INFO . "\n";
 		$sql  .= 'DROP SCHEMA IF EXISTS ' . $this->schemaName . " CASCADE;\n";
 		$sql .= 'CREATE SCHEMA ' . $this->schemaName . ";\n";
 		$sql .= 'COMMENT ON SCHEMA ' . $this->schemaName . " IS '" . VERSION . "';\n";

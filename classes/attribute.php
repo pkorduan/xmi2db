@@ -368,6 +368,8 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 	}
 
 	function asFlattenedSql() {
+		#if (substr($this->get_database_type(), 0, 8) == 'geometry' and $this->name <> 'wkb_geometry') echo '<br>Klasse: ' . $this->parent->name . ' Geometriespalte: ' . $this->name . ' type: ' . $this->get_database_type();
+
 		$sql = "	" .
 			$this->short_name . " " . $this->get_database_type(false, false) . $this->getBrackets() . $this->getNotNull();
 
