@@ -352,11 +352,20 @@ class FeatureType {
 		$output = array();
 		if (!empty($this->attributes)) {
 			foreach ($this->attributes AS $attribute) {
+				$this->logger->log('<br>Attribut Pfad: ' . $attribute->path_name);
+				if (RENAME_ZEIGT_AUF_EXTERNES) {
+					$zeigt_auf_externes_pos = strpos($attribute->path_name, 'zeigtAufExternes');
+					if ($zeigt_auf_externes_pos !== false) {
+						$this->logger->log('<br>zeigtAufExternes gefunden.');
+						$zeigt_auf_externes_path_name = substr($attribute->path_name, 0, $zeigt_auf_externes_pos + 16);
+						if (!array_key_exists($zeigt_auf_externes_path_name, $output)) {
+							$this->logger->log('<br>Add ' . $zeigt_auf_externes_path_name . ' to umbennn Liste: ');
+							$output[$zeigt_auf_externes_path_name] = 'zeigtaufexternes_';
+						}
+					}
+				}
 				if ($attribute->short_name != end($attribute->parts)->name) {
-				#	if (strpos(strtolower($attribute->path_name), 'zeigtaufexternes') === false) {
-						# collect renamed attributes
-						$output[$attribute->path_name] = $attribute->short_name;
-				#	}
+					$output[$attribute->path_name] = $attribute->short_name;
 				}
 			}
 		}

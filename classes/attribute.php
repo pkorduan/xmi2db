@@ -262,7 +262,10 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 				break;
 
 				case ($this->datatype == 'gm_curve'):
-					$database_type = 'geometry(LINESTRING)';
+					if (LINESTRING_AS_GEOMETRY)
+						$database_type = 'geometry';
+					else
+						$database_type = 'geometry(LINESTRING)';
 				break;
 
 				case in_array($this->datatype, array(
@@ -270,7 +273,10 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 						'xp_liniengeometrie',
 						'gm_compositecurve'
 					)):
-					$database_type = 'geometry(MULTILINESTRING)';
+					if (LINESTRING_AS_GEOMETRY)
+						$database_type = 'geometry';
+					else
+						$database_type = 'geometry(MULTILINESTRING)';
 				break;
 
 				case ($this->datatype == 'gm_surface'):

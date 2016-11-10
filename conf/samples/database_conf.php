@@ -31,11 +31,14 @@
 
 	$geometryColumnVar = ($_REQUEST['geometryColumn'] != '') ? $_REQUEST['geometryColumn'] : 'wkb_geometry';
 	define('GEOMETRY_COLUMN_NAME', $geometryColumnVar);
+	define('LINESTRING_AS_GEOMETRY', true);
 
 	define('WITH_UUID_OSSP', false);
 
 	define('FILTER_FILE', $rel_path . 'conf/filter_conf.json');
 	define('FILTER_INFO', 'Ohne Attribute objektkoordinaten.');
+
+	define('RENAME_ZEIGT_AUF_EXTERNES', true);
 
 	# Definition of the model conf file
 	define('SCHEMA_CONF_FILE', $rel_path . 'conf/model_aaa_conf.php');
