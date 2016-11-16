@@ -215,7 +215,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 
 				# boolean
 				case ($this->datatype == 'boolean'):
-					$database_type = 'boolean';
+					$database_type = 'character varying';
 				break;
 
 				# double precision
