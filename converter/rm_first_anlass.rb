@@ -15,7 +15,7 @@ end
 
 outfile = ARGV[1] || ''
 if !File.exist? outfile
-	outfile  = "#{File.dirname(infile)}/#{File.basename(infile, ".*")}_renamed#{File.extname(infile)}"
+	outfile  = "#{File.dirname(infile)}/#{File.basename(infile, ".*")}_rm#{File.extname(infile)}"
 end
 
 start = Time.now
@@ -103,6 +103,6 @@ end
 
 finish = Time.now
 
-puts "Ausgabedatei: #{outfile}"
-puts "Ausfuehrungszeit: #{(finish - start).round(2)} Sekunden"
-puts "Loeschungen: #{num_anlass}"
+#puts "Ausgabedatei: #{outfile}"
+#puts "Ausfuehrungszeit: #{(finish - start).round(2)} Sekunden"
+#puts "Loeschungen: #{num_anlass}"
