@@ -5,7 +5,7 @@ require 'json'
 
 def usage
 	puts 'Usage: ruby rename_nas.rb infile [outfile]'
-	puts 'Benennt Elemente in NAS-Datei infile für PostNAS Konverter in outfile um.'
+	puts 'Benennt Elemente in NAS-Datei infile fuer PostNAS Konverter in outfile um.'
 end
 
 
