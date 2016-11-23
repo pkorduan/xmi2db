@@ -1,8 +1,11 @@
--- Version vom 17.10.2016
+-- Version vom 22.11.2016 11:24
+-- gewählte Pakete: 'Data quality information', 'AAA Basisschema', 'AAA_Basisklassen', 'AAA_GemeinsameGeometrie', 'AAA_Nutzerprofile', 'AAA_Operationen', 'AAA_Praesentationsobjekte', 'AAA_Praesentationsobjekte 3D', 'AAA_Projektsteuerung', 'AAA_Punktmengenobjekte', 'AAA_Spatial Schema', 'AAA_Spatial Schema 3D', 'AAA_Unabhaengige Geometrie', 'AAA_Unabhaengige Geometrie 3D', 'Codelisten', 'AFIS-ALKIS-ATKIS Fachschema', 'Bauwerke, Einrichtungen und sonstige Angaben', 'Bauwerke und Einrichtungen in Siedlungsflächen', 'Bauwerke, Anlagen und Einrichtungen für den Verkehr', 'Besondere Angaben zum Gewässer', 'Besondere Angaben zum Verkehr', 'Besondere Anlagen auf Siedlungsflächen', 'Besondere Eigenschaften von Gewässern', 'Besondere Vegetationsmerkmale', 'Eigentümer', 'Personen- und Bestandsdaten', 'Flurstücke, Lage, Punkte', 'Angaben zu Festpunkten der Landesvermessung', 'Angaben zum Flurstück', 'Angaben zum Netzpunkt', 'Angaben zum Punktort', 'Angaben zur Historie', 'Angaben zur Lage', 'Angaben zur Reservierung', 'Fortführungsnachweis', 'Gebäude', 'Angaben zum Gebäude', 'Gesetzliche Festlegungen, Gebietseinheiten, Kataloge', 'Administrative Gebietseinheiten', 'Bodenschätzung, Bewertung', 'Geographische Gebietseinheiten', 'Kataloge', 'Öffentlich-rechtliche und sonstige Festlegungen', 'Migration', 'Migrationsobjekte', 'Nutzerprofile', 'Angaben zu Nutzerprofilen', 'Relief', 'Primäres DGM', 'Reliefformen', 'Sekundäres DGM', 'Tatsächliche Nutzung', 'Gewässer', 'Siedlung', 'Vegetation', 'Verkehr', 'NAS-Operationen', 'AFIS-ALKIS-ATKIS-Ausgabekatalog', 'AFIS-ALKIS-ATKIS-Ausgaben', 'AFIS-Einzelpunktnachweise', 'AFIS-Punktlisten', 'ALKIS-Ausgaben', 'Komplexe Datentypen für Ausgaben', 'ALKIS-Auswertungen', 'Angaben im Kopf der Ausgaben', 'Externe Datentypen', 'Flurstücksangaben', 'Fortführungsfälle', 'Gebäudeangaben', 'Personen- und Bestandsangaben', 'Punktangaben', 'Reservierungen'
+-- gewählte Filter: Ohne Attribute objektkoordinaten.
 DROP SCHEMA IF EXISTS aaa_ogr CASCADE;
 CREATE SCHEMA aaa_ogr;
-COMMENT ON SCHEMA aaa_ogr IS 'Version vom 17.10.2016';
+COMMENT ON SCHEMA aaa_ogr IS 'Version vom 22.11.2016 11:24';
 SET search_path = aaa_ogr, public;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 
 CREATE TABLE IF NOT EXISTS aa_advstandardmodell (
@@ -5662,60 +5665,52 @@ INSERT INTO ax_k_zeile_punktart (wert,beschreibung) VALUES
 CREATE TABLE IF NOT EXISTS ax_benutzer (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	name text[],
 	uri character varying[],
 	art text,
-	direkt boolean NOT NULL,
-	email character varying NOT NULL,
-	http character varying NOT NULL,
-	manuell text NOT NULL,
+	direkt character varying,
+	email character varying,
+	http character varying,
+	manuell text,
 	ausgabemasstab double precision,
-	ausgabemedium character varying,
-	datenformat character varying,
+	ausgabemedium integer,
+	datenformat integer,
 	formatangabe text,
 	letzteabgabeart integer,
 	letzteabgabezugriff timestamp without time zone,
 	nbaquittierungerhalten timestamp without time zone,
-	nbauebernahmeerfolgreich boolean,
+	nbauebernahmeerfolgreich character varying,
 	profilkennung text NOT NULL,
 	vorletzteabgabezugriff timestamp without time zone,
 	zahlungsweise text,
 	zeitlicheberechtigung date,
-	inverszu_wer text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	ist text NOT NULL,
 	gehoertzu text NOT NULL,
-CONSTRAINT ax_benutzer_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_benutzer_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_benutzer IS 'FeatureType: "AX_Benutzer"';
 COMMENT ON COLUMN ax_benutzer.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_benutzer.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_benutzer.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_benutzer.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_benutzer.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_benutzer.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_benutzer.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_benutzer.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_benutzer.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_benutzer.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_benutzer.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_benutzer.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_benutzer.art IS 'art    0..1';
-COMMENT ON COLUMN ax_benutzer.direkt IS 'empfaenger AA_Empfaenger|direkt  Boolean 1';
-COMMENT ON COLUMN ax_benutzer.email IS 'empfaenger AA_Empfaenger|email  URI 1';
-COMMENT ON COLUMN ax_benutzer.http IS 'empfaenger AA_Empfaenger|http  URI 1';
-COMMENT ON COLUMN ax_benutzer.manuell IS 'empfaenger AA_Empfaenger|manuell   1';
+COMMENT ON COLUMN ax_benutzer.direkt IS 'empfaenger AA_Empfaenger|direkt  Boolean 0..1';
+COMMENT ON COLUMN ax_benutzer.email IS 'empfaenger AA_Empfaenger|email  URI 0..1';
+COMMENT ON COLUMN ax_benutzer.http IS 'empfaenger AA_Empfaenger|http  URI 0..1';
+COMMENT ON COLUMN ax_benutzer.manuell IS 'empfaenger AA_Empfaenger|manuell   0..1';
 COMMENT ON COLUMN ax_benutzer.ausgabemasstab IS 'folgeverarbeitung AX_FOLGEVA|ausgabemasstab  Real 0..1';
 COMMENT ON COLUMN ax_benutzer.ausgabemedium IS 'folgeverarbeitung AX_FOLGEVA|ausgabemedium enumeration AX_Ausgabemedium_Benutzer 0..1';
 COMMENT ON COLUMN ax_benutzer.datenformat IS 'folgeverarbeitung AX_FOLGEVA|datenformat enumeration AX_Datenformat_Benutzer 0..1';
@@ -5734,12 +5729,12 @@ COMMENT ON COLUMN ax_benutzer.gehoertzu IS 'Assoziation zu: FeatureType AX_Benut
 CREATE TABLE IF NOT EXISTS ax_benutzergruppemitzugriffskontrolle (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -5748,32 +5743,24 @@ CREATE TABLE IF NOT EXISTS ax_benutzergruppemitzugriffskontrolle (
 	land text NOT NULL,
 	stelle text NOT NULL,
 	selektionskriterien text[] NOT NULL,
-	zugriffhistorie boolean NOT NULL,
+	zugriffhistorie character varying NOT NULL,
 	zugriffsartfortfuehrungsanlass text[],
 	zugriffsartproduktkennungbenutzung text[],
 	zugriffsartproduktkennungfuehrung text[],
 	bestehtaus text[],
-	inverszu_bearbeitbardurch text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_benutzergruppemitzugriffskontrolle_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_benutzergruppemitzugriffskontrolle_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_benutzergruppemitzugriffskontrolle IS 'FeatureType: "AX_BenutzergruppeMitZugriffskontrolle"';
 COMMENT ON COLUMN ax_benutzergruppemitzugriffskontrolle.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_benutzergruppemitzugriffskontrolle.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_benutzergruppemitzugriffskontrolle.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_benutzergruppemitzugriffskontrolle.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_benutzergruppemitzugriffskontrolle.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_benutzergruppemitzugriffskontrolle.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_benutzergruppemitzugriffskontrolle.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_benutzergruppemitzugriffskontrolle.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_benutzergruppemitzugriffskontrolle.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_benutzergruppemitzugriffskontrolle.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_benutzergruppemitzugriffskontrolle.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_benutzergruppemitzugriffskontrolle.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_benutzergruppemitzugriffskontrolle.bezeichnung IS 'bezeichnung    1';
 COMMENT ON COLUMN ax_benutzergruppemitzugriffskontrolle.koordinatenreferenzsystem IS 'koordinatenreferenzsystem   SC_CRS 0..1';
 COMMENT ON COLUMN ax_benutzergruppemitzugriffskontrolle.land IS 'zustaendigeStelle AX_Dienststelle_Schluessel|land   1';
@@ -5787,12 +5774,12 @@ COMMENT ON COLUMN ax_benutzergruppemitzugriffskontrolle.zugriffsartproduktkennun
 CREATE TABLE IF NOT EXISTS ax_benutzergruppenba (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	name text[],
 	uri character varying[],
@@ -5800,34 +5787,26 @@ CREATE TABLE IF NOT EXISTS ax_benutzergruppenba (
 	koordinatenreferenzsystem character varying,
 	land text NOT NULL,
 	stelle text NOT NULL,
-	bereichzeitlich_art character varying,
+	bereichzeitlich_art integer,
 	ersterstichtag date,
 	intervall date,
 	seitenlaenge integer,
-	quittierung boolean,
+	quittierung character varying,
 	selektionskriterien text[] NOT NULL,
 	bestehtaus text[],
-	inverszu_bearbeitbardurch text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_benutzergruppenba_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_benutzergruppenba_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_benutzergruppenba IS 'FeatureType: "AX_BenutzergruppeNBA"';
 COMMENT ON COLUMN ax_benutzergruppenba.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_benutzergruppenba.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_benutzergruppenba.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_benutzergruppenba.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_benutzergruppenba.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_benutzergruppenba.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_benutzergruppenba.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_benutzergruppenba.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_benutzergruppenba.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_benutzergruppenba.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_benutzergruppenba.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_benutzergruppenba.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_benutzergruppenba.bezeichnung IS 'bezeichnung    1';
 COMMENT ON COLUMN ax_benutzergruppenba.koordinatenreferenzsystem IS 'koordinatenreferenzsystem   SC_CRS 0..1';
 COMMENT ON COLUMN ax_benutzergruppenba.land IS 'zustaendigeStelle AX_Dienststelle_Schluessel|land   1';
@@ -5842,12 +5821,12 @@ COMMENT ON COLUMN ax_benutzergruppenba.selektionskriterien IS 'selektionskriteri
 CREATE TABLE IF NOT EXISTS ap_darstellung (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	name text[],
 	uri character varying[],
@@ -5856,26 +5835,19 @@ CREATE TABLE IF NOT EXISTS ap_darstellung (
 	positionierungsregel text,
 	signaturnummer character varying,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	dientzurdarstellungvon text[],
-CONSTRAINT ap_darstellung_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ap_darstellung_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ap_darstellung IS 'FeatureType: "AP_Darstellung"';
 COMMENT ON COLUMN ap_darstellung.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ap_darstellung.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ap_darstellung.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ap_darstellung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ap_darstellung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ap_darstellung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ap_darstellung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ap_darstellung.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ap_darstellung.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ap_darstellung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ap_darstellung.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ap_darstellung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ap_darstellung.art IS 'art   CharacterString 0..1';
 COMMENT ON COLUMN ap_darstellung.darstellungsprioritaet IS 'darstellungsprioritaet   Integer 0..1';
 COMMENT ON COLUMN ap_darstellung.positionierungsregel IS 'positionierungsregel    0..1';
@@ -5885,12 +5857,12 @@ COMMENT ON COLUMN ap_darstellung.dientzurdarstellungvon IS 'Assoziation zu: Feat
 CREATE TABLE IF NOT EXISTS aa_projektsteuerung (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	name text[],
 	uri character varying[],
@@ -5898,75 +5870,59 @@ CREATE TABLE IF NOT EXISTS aa_projektsteuerung (
 	art text NOT NULL,
 	parameterwert text,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_verweistauf text,
 	enthaelt text[] NOT NULL,
-CONSTRAINT aa_projektsteuerung_pkey PRIMARY KEY (gml_id)
+CONSTRAINT aa_projektsteuerung_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE aa_projektsteuerung IS 'FeatureType: "AA_Projektsteuerung"';
 COMMENT ON COLUMN aa_projektsteuerung.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN aa_projektsteuerung.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN aa_projektsteuerung.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN aa_projektsteuerung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN aa_projektsteuerung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN aa_projektsteuerung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN aa_projektsteuerung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN aa_projektsteuerung.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN aa_projektsteuerung.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN aa_projektsteuerung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN aa_projektsteuerung.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN aa_projektsteuerung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN aa_projektsteuerung.anlassdesprozesses IS 'anlassDesProzesses  codelist AA_Anlassart 1..*';
 COMMENT ON COLUMN aa_projektsteuerung.art IS 'art   GenericName 1';
 COMMENT ON COLUMN aa_projektsteuerung.parameterwert IS 'gebuehren AA_Gebuehrenangaben|parameterWert   1';
-COMMENT ON COLUMN aa_projektsteuerung.inverszu_verweistauf IS 'Assoziation zu: FeatureType AA_Antrag (aa_antrag) 0..1';
 COMMENT ON COLUMN aa_projektsteuerung.enthaelt IS 'Assoziation zu: FeatureType AA_Vorgang (aa_vorgang) 1..*';
 
 CREATE TABLE IF NOT EXISTS aa_meilenstein (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	abgeschlossen boolean,
-	begonnen boolean,
+	abgeschlossen character varying,
+	begonnen character varying,
 	bemerkung text,
-	erfolgreich boolean,
+	erfolgreich character varying,
 	kategorie text,
 	wannabgeschlossen timestamp without time zone,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	wer text,
 	vonantrag text[],
 	vonaktivitaet text[],
 	vonvorgang text[],
-CONSTRAINT aa_meilenstein_pkey PRIMARY KEY (gml_id)
+CONSTRAINT aa_meilenstein_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE aa_meilenstein IS 'FeatureType: "AA_Meilenstein"';
 COMMENT ON COLUMN aa_meilenstein.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN aa_meilenstein.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN aa_meilenstein.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN aa_meilenstein.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN aa_meilenstein.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN aa_meilenstein.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN aa_meilenstein.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN aa_meilenstein.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN aa_meilenstein.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN aa_meilenstein.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN aa_meilenstein.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN aa_meilenstein.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN aa_meilenstein.abgeschlossen IS 'abgeschlossen   Boolean 0..1';
 COMMENT ON COLUMN aa_meilenstein.begonnen IS 'begonnen   Boolean 0..1';
 COMMENT ON COLUMN aa_meilenstein.bemerkung IS 'bemerkung    0..1';
@@ -5981,42 +5937,35 @@ COMMENT ON COLUMN aa_meilenstein.vonvorgang IS 'Assoziation zu: FeatureType AA_V
 CREATE TABLE IF NOT EXISTS aa_antrag (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	name text[],
 	uri character varying[],
-	antragunterbrochen boolean NOT NULL,
+	antragunterbrochen character varying NOT NULL,
 	art text NOT NULL,
 	erlaeuterungzumstatus text,
 	kennzeichen text NOT NULL,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	verweistauf text[] NOT NULL,
 	bearbeitungsstatus text,
 	gebiet text,
-CONSTRAINT aa_antrag_pkey PRIMARY KEY (gml_id)
+CONSTRAINT aa_antrag_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE aa_antrag IS 'FeatureType: "AA_Antrag"';
 COMMENT ON COLUMN aa_antrag.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN aa_antrag.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN aa_antrag.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN aa_antrag.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN aa_antrag.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN aa_antrag.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN aa_antrag.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN aa_antrag.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN aa_antrag.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN aa_antrag.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN aa_antrag.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN aa_antrag.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN aa_antrag.antragunterbrochen IS 'antragUnterbrochen   Boolean 1';
 COMMENT ON COLUMN aa_antrag.art IS 'art   GenericName 1';
 COMMENT ON COLUMN aa_antrag.erlaeuterungzumstatus IS 'erlaeuterungZumStatus    0..1';
@@ -6028,102 +5977,82 @@ COMMENT ON COLUMN aa_antrag.gebiet IS 'Assoziation zu: FeatureType AA_Antragsgeb
 CREATE TABLE IF NOT EXISTS aa_aktivitaet (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	name text[],
 	uri character varying[],
 	art text NOT NULL,
 	erlaeuterung text,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	status text NOT NULL,
-	inverszu_enthaelt text,
-CONSTRAINT aa_aktivitaet_pkey PRIMARY KEY (gml_id)
+CONSTRAINT aa_aktivitaet_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE aa_aktivitaet IS 'FeatureType: "AA_Aktivitaet"';
 COMMENT ON COLUMN aa_aktivitaet.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN aa_aktivitaet.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN aa_aktivitaet.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN aa_aktivitaet.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN aa_aktivitaet.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN aa_aktivitaet.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN aa_aktivitaet.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN aa_aktivitaet.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN aa_aktivitaet.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN aa_aktivitaet.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN aa_aktivitaet.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN aa_aktivitaet.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN aa_aktivitaet.art IS 'art   GenericName 1';
 COMMENT ON COLUMN aa_aktivitaet.erlaeuterung IS 'erlaeuterung    0..1';
 COMMENT ON COLUMN aa_aktivitaet.status IS 'Assoziation zu: FeatureType AA_Meilenstein (aa_meilenstein) 1';
-COMMENT ON COLUMN aa_aktivitaet.inverszu_enthaelt IS 'Assoziation zu: FeatureType AA_Vorgang (aa_vorgang) 0..1';
 
 CREATE TABLE IF NOT EXISTS aa_vorgang (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	name text[],
 	uri character varying[],
 	art text NOT NULL,
 	erlaeuterung text,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	bearbeitbardurch text NOT NULL,
-	inverszu_enthaelt text,
 	status text NOT NULL,
 	enthaelt text[],
 	synchronisiertmit text,
-	inverszu_synchronisiertmit text,
-CONSTRAINT aa_vorgang_pkey PRIMARY KEY (gml_id)
+CONSTRAINT aa_vorgang_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE aa_vorgang IS 'FeatureType: "AA_Vorgang"';
 COMMENT ON COLUMN aa_vorgang.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN aa_vorgang.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN aa_vorgang.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN aa_vorgang.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN aa_vorgang.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN aa_vorgang.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN aa_vorgang.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN aa_vorgang.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN aa_vorgang.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN aa_vorgang.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN aa_vorgang.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN aa_vorgang.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN aa_vorgang.art IS 'art   GenericName 1';
 COMMENT ON COLUMN aa_vorgang.erlaeuterung IS 'erlaeuterung    0..1';
 COMMENT ON COLUMN aa_vorgang.bearbeitbardurch IS 'Assoziation zu: FeatureType AA_Benutzergruppe (aa_benutzergruppe) 1';
-COMMENT ON COLUMN aa_vorgang.inverszu_enthaelt IS 'Assoziation zu: FeatureType AA_Projektsteuerung (aa_projektsteuerung) 0..1';
 COMMENT ON COLUMN aa_vorgang.status IS 'Assoziation zu: FeatureType AA_Meilenstein (aa_meilenstein) 1';
 COMMENT ON COLUMN aa_vorgang.enthaelt IS 'Assoziation zu: FeatureType AA_Aktivitaet (aa_aktivitaet) 0..*';
 COMMENT ON COLUMN aa_vorgang.synchronisiertmit IS 'Assoziation zu: FeatureType AA_Vorgang (aa_vorgang) 0..1';
-COMMENT ON COLUMN aa_vorgang.inverszu_synchronisiertmit IS 'Assoziation zu: FeatureType AA_Vorgang (aa_vorgang) 0..1';
 
 CREATE TABLE IF NOT EXISTS ax_person (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -6140,14 +6069,6 @@ CREATE TABLE IF NOT EXISTS ax_person (
 	vorname text,
 	wohnortodersitz text,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_zeigtauf text[],
 	zeigtauf text,
 	weistauf text[],
 	hat text[],
@@ -6156,19 +6077,18 @@ CREATE TABLE IF NOT EXISTS ax_person (
 	wirdvertretenvon text[],
 	uebtaus text[],
 	besitzt text[],
-	inverszu_ist text[],
-CONSTRAINT ax_person_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_person_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_person IS 'FeatureType: "AX_Person"';
 COMMENT ON COLUMN ax_person.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_person.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_person.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_person.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_person.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_person.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_person.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_person.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_person.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_person.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_person.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_person.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_person.akademischergrad IS 'akademischerGrad    0..1';
 COMMENT ON COLUMN ax_person.anrede IS 'anrede  enumeration AX_Anrede_Person 0..1';
 COMMENT ON COLUMN ax_person.beruf IS 'beruf    0..1';
@@ -6181,7 +6101,6 @@ COMMENT ON COLUMN ax_person.herkunft IS 'qualitaetsangaben AX_DQOhneDatenerhebun
 COMMENT ON COLUMN ax_person.sonstigeeigenschaften IS 'sonstigeEigenschaften    0..1';
 COMMENT ON COLUMN ax_person.vorname IS 'vorname    0..1';
 COMMENT ON COLUMN ax_person.wohnortodersitz IS 'wohnortOderSitz    0..1';
-COMMENT ON COLUMN ax_person.inverszu_zeigtauf IS 'Assoziation zu: FeatureType AX_Person (ax_person) 0..*';
 COMMENT ON COLUMN ax_person.zeigtauf IS 'Assoziation zu: FeatureType AX_Person (ax_person) 0..1';
 COMMENT ON COLUMN ax_person.weistauf IS 'Assoziation zu: FeatureType AX_Namensnummer (ax_namensnummer) 0..*';
 COMMENT ON COLUMN ax_person.hat IS 'Assoziation zu: FeatureType AX_Anschrift (ax_anschrift) 0..*';
@@ -6190,17 +6109,16 @@ COMMENT ON COLUMN ax_person.gehoertzu IS 'Assoziation zu: FeatureType AX_Persone
 COMMENT ON COLUMN ax_person.wirdvertretenvon IS 'Assoziation zu: FeatureType AX_Vertretung (ax_vertretung) 0..*';
 COMMENT ON COLUMN ax_person.uebtaus IS 'Assoziation zu: FeatureType AX_Vertretung (ax_vertretung) 0..*';
 COMMENT ON COLUMN ax_person.besitzt IS 'Assoziation zu: FeatureType AX_Gebaeude (ax_gebaeude) 0..*';
-COMMENT ON COLUMN ax_person.inverszu_ist IS 'Assoziation zu: FeatureType AX_Benutzer (ax_benutzer) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_namensnummer (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -6213,31 +6131,22 @@ CREATE TABLE IF NOT EXISTS ax_namensnummer (
 	nummer text,
 	strichblattnummer integer,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	benennt text,
-	inverszu_bestehtausrechtsverhaeltnissenzu  text[],
 	bestehtausrechtsverhaeltnissenzu  text,
-	inverszu_hatvorgaenger  text[],
 	hatvorgaenger  text[],
 	istbestandteilvon text NOT NULL,
-CONSTRAINT ax_namensnummer_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_namensnummer_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_namensnummer IS 'FeatureType: "AX_Namensnummer"';
 COMMENT ON COLUMN ax_namensnummer.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_namensnummer.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_namensnummer.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_namensnummer.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_namensnummer.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_namensnummer.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_namensnummer.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_namensnummer.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_namensnummer.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_namensnummer.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_namensnummer.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_namensnummer.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_namensnummer.nenner IS 'anteil AX_Anteil|nenner  Real 1';
 COMMENT ON COLUMN ax_namensnummer.zaehler IS 'anteil AX_Anteil|zaehler  Real 1';
 COMMENT ON COLUMN ax_namensnummer.artderrechtsgemeinschaft IS 'artDerRechtsgemeinschaft  enumeration AX_ArtDerRechtsgemeinschaft_Namensnummer 0..1';
@@ -6247,21 +6156,19 @@ COMMENT ON COLUMN ax_namensnummer.laufendenummernachdin1421 IS 'laufendeNummerNa
 COMMENT ON COLUMN ax_namensnummer.nummer IS 'nummer    0..1';
 COMMENT ON COLUMN ax_namensnummer.strichblattnummer IS 'strichblattnummer   Integer 0..1';
 COMMENT ON COLUMN ax_namensnummer.benennt IS 'Assoziation zu: FeatureType AX_Person (ax_person) 0..1';
-COMMENT ON COLUMN ax_namensnummer.inverszu_bestehtausrechtsverhaeltnissenzu  IS 'Assoziation zu: FeatureType AX_Namensnummer (ax_namensnummer) 0..*';
 COMMENT ON COLUMN ax_namensnummer.bestehtausrechtsverhaeltnissenzu  IS 'Assoziation zu: FeatureType AX_Namensnummer (ax_namensnummer) 0..1';
-COMMENT ON COLUMN ax_namensnummer.inverszu_hatvorgaenger  IS 'Assoziation zu: FeatureType AX_Namensnummer (ax_namensnummer) 0..*';
 COMMENT ON COLUMN ax_namensnummer.hatvorgaenger  IS 'Assoziation zu: FeatureType AX_Namensnummer (ax_namensnummer) 0..*';
 COMMENT ON COLUMN ax_namensnummer.istbestandteilvon IS 'Assoziation zu: FeatureType AX_Buchungsblatt (ax_buchungsblatt) 1';
 
 CREATE TABLE IF NOT EXISTS ax_anschrift (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -6279,27 +6186,20 @@ CREATE TABLE IF NOT EXISTS ax_anschrift (
 	telefon text[],
 	weitereadressen text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	gehoertzu text[],
 	beziehtsichauf text[],
-CONSTRAINT ax_anschrift_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_anschrift_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_anschrift IS 'FeatureType: "AX_Anschrift"';
 COMMENT ON COLUMN ax_anschrift.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_anschrift.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_anschrift.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_anschrift.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_anschrift.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_anschrift.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_anschrift.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_anschrift.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_anschrift.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_anschrift.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_anschrift.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_anschrift.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_anschrift.bestimmungsland IS 'bestimmungsland    0..1';
 COMMENT ON COLUMN ax_anschrift.fax IS 'fax    0..*';
 COMMENT ON COLUMN ax_anschrift.hausnummer IS 'hausnummer    0..1';
@@ -6319,12 +6219,12 @@ COMMENT ON COLUMN ax_anschrift.beziehtsichauf IS 'Assoziation zu: FeatureType AX
 CREATE TABLE IF NOT EXISTS ax_verwaltung (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -6335,27 +6235,20 @@ CREATE TABLE IF NOT EXISTS ax_verwaltung (
 	notariat text,
 	herkunft text,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	haengtan text NOT NULL,
 	beziehtsichauf text[],
-CONSTRAINT ax_verwaltung_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_verwaltung_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_verwaltung IS 'FeatureType: "AX_Verwaltung"';
 COMMENT ON COLUMN ax_verwaltung.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_verwaltung.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_verwaltung.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_verwaltung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_verwaltung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_verwaltung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_verwaltung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_verwaltung.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_verwaltung.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_verwaltung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_verwaltung.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_verwaltung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_verwaltung.beginnderbestellung IS 'beginnDerBestellung   Date 0..1';
 COMMENT ON COLUMN ax_verwaltung.bestellungsbeschluss IS 'bestellungsbeschluss    0..1';
 COMMENT ON COLUMN ax_verwaltung.endederbestellung IS 'endeDerBestellung   Date 0..1';
@@ -6368,12 +6261,12 @@ COMMENT ON COLUMN ax_verwaltung.beziehtsichauf IS 'Assoziation zu: FeatureType A
 CREATE TABLE IF NOT EXISTS ax_buchungsstelle (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -6387,39 +6280,27 @@ CREATE TABLE IF NOT EXISTS ax_buchungsstelle (
 	nummerimaufteilungsplan text,
 	zeitpunktdereintragung date,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	wirdverwaltetvon text,
-	inverszu_an text[],
 	an text[],
-	inverszu_durch text[],
 	durch text[],
-	inverszu_zu text[],
 	zu text[],
-	inverszu_hatvorgaenger text[],
 	hatvorgaenger text[],
 	istbestandteilvon text NOT NULL,
 	beziehtsichauf text[],
 	verweistauf text[],
 	grundstueckbestehtaus text[],
-	inverszu_istgebucht text[],
-CONSTRAINT ax_buchungsstelle_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_buchungsstelle_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_buchungsstelle IS 'FeatureType: "AX_Buchungsstelle"';
 COMMENT ON COLUMN ax_buchungsstelle.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_buchungsstelle.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_buchungsstelle.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_buchungsstelle.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_buchungsstelle.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_buchungsstelle.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_buchungsstelle.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_buchungsstelle.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_buchungsstelle.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_buchungsstelle.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_buchungsstelle.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_buchungsstelle.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_buchungsstelle.nenner IS 'anteil AX_Anteil|nenner  Real 1';
 COMMENT ON COLUMN ax_buchungsstelle.zaehler IS 'anteil AX_Anteil|zaehler  Real 1';
 COMMENT ON COLUMN ax_buchungsstelle.beschreibungdessondereigentums IS 'beschreibungDesSondereigentums    0..1';
@@ -6430,66 +6311,54 @@ COMMENT ON COLUMN ax_buchungsstelle.laufendenummer IS 'laufendeNummer    1';
 COMMENT ON COLUMN ax_buchungsstelle.nummerimaufteilungsplan IS 'nummerImAufteilungsplan    0..1';
 COMMENT ON COLUMN ax_buchungsstelle.zeitpunktdereintragung IS 'zeitpunktDerEintragung   Date 0..1';
 COMMENT ON COLUMN ax_buchungsstelle.wirdverwaltetvon IS 'Assoziation zu: FeatureType AX_Verwaltung (ax_verwaltung) 0..1';
-COMMENT ON COLUMN ax_buchungsstelle.inverszu_an IS 'Assoziation zu: FeatureType AX_Buchungsstelle (ax_buchungsstelle) 0..*';
 COMMENT ON COLUMN ax_buchungsstelle.an IS 'Assoziation zu: FeatureType AX_Buchungsstelle (ax_buchungsstelle) 0..*';
-COMMENT ON COLUMN ax_buchungsstelle.inverszu_durch IS 'Assoziation zu: FeatureType AX_Buchungsstelle (ax_buchungsstelle) 0..*';
 COMMENT ON COLUMN ax_buchungsstelle.durch IS 'Assoziation zu: FeatureType AX_Buchungsstelle (ax_buchungsstelle) 0..*';
-COMMENT ON COLUMN ax_buchungsstelle.inverszu_zu IS 'Assoziation zu: FeatureType AX_Buchungsstelle (ax_buchungsstelle) 0..*';
 COMMENT ON COLUMN ax_buchungsstelle.zu IS 'Assoziation zu: FeatureType AX_Buchungsstelle (ax_buchungsstelle) 0..*';
-COMMENT ON COLUMN ax_buchungsstelle.inverszu_hatvorgaenger IS 'Assoziation zu: FeatureType AX_Buchungsstelle (ax_buchungsstelle) 0..*';
 COMMENT ON COLUMN ax_buchungsstelle.hatvorgaenger IS 'Assoziation zu: FeatureType AX_Buchungsstelle (ax_buchungsstelle) 0..*';
 COMMENT ON COLUMN ax_buchungsstelle.istbestandteilvon IS 'Assoziation zu: FeatureType AX_Buchungsblatt (ax_buchungsblatt) 1';
 COMMENT ON COLUMN ax_buchungsstelle.beziehtsichauf IS 'Assoziation zu: FeatureType AX_Buchungsblatt (ax_buchungsblatt) 0..*';
 COMMENT ON COLUMN ax_buchungsstelle.verweistauf IS 'Assoziation zu: FeatureType AX_Flurstueck (ax_flurstueck) 0..*';
 COMMENT ON COLUMN ax_buchungsstelle.grundstueckbestehtaus IS 'Assoziation zu: FeatureType AX_Flurstueck (ax_flurstueck) 0..*';
-COMMENT ON COLUMN ax_buchungsstelle.inverszu_istgebucht IS 'Assoziation zu: FeatureType AX_HistorischesFlurstueckOhneRaumbezug (ax_historischesflurstueckohneraumbezug) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_personengruppe (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
 	namederpersonengruppe text NOT NULL,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	bestehtaus text[],
-CONSTRAINT ax_personengruppe_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_personengruppe_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_personengruppe IS 'FeatureType: "AX_Personengruppe"';
 COMMENT ON COLUMN ax_personengruppe.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_personengruppe.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_personengruppe.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_personengruppe.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_personengruppe.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_personengruppe.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_personengruppe.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_personengruppe.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_personengruppe.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_personengruppe.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_personengruppe.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_personengruppe.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_personengruppe.namederpersonengruppe IS 'nameDerPersonengruppe    1';
 COMMENT ON COLUMN ax_personengruppe.bestehtaus IS 'Assoziation zu: FeatureType AX_Person (ax_person) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_buchungsblatt (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -6499,46 +6368,35 @@ CREATE TABLE IF NOT EXISTS ax_buchungsblatt (
 	buchungsblattkennzeichen text NOT NULL,
 	buchungsblattnummermitbuchstabenerweiterung text NOT NULL,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_istbestandteilvon text[],
 	bestehtaus text[],
-	inverszu_beziehtsichauf text[],
-CONSTRAINT ax_buchungsblatt_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_buchungsblatt_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_buchungsblatt IS 'FeatureType: "AX_Buchungsblatt"';
 COMMENT ON COLUMN ax_buchungsblatt.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_buchungsblatt.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_buchungsblatt.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_buchungsblatt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_buchungsblatt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_buchungsblatt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_buchungsblatt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_buchungsblatt.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_buchungsblatt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_buchungsblatt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_buchungsblatt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_buchungsblatt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_buchungsblatt.blattart IS 'blattart  enumeration AX_Blattart_Buchungsblatt 1';
 COMMENT ON COLUMN ax_buchungsblatt.bezirk IS 'buchungsblattbezirk AX_Buchungsblattbezirk_Schluessel|bezirk   1';
 COMMENT ON COLUMN ax_buchungsblatt.land IS 'buchungsblattbezirk AX_Buchungsblattbezirk_Schluessel|land   1';
 COMMENT ON COLUMN ax_buchungsblatt.buchungsblattkennzeichen IS 'buchungsblattkennzeichen    1';
 COMMENT ON COLUMN ax_buchungsblatt.buchungsblattnummermitbuchstabenerweiterung IS 'buchungsblattnummerMitBuchstabenerweiterung    1';
-COMMENT ON COLUMN ax_buchungsblatt.inverszu_istbestandteilvon IS 'Assoziation zu: FeatureType AX_Namensnummer (ax_namensnummer) 0..*';
 COMMENT ON COLUMN ax_buchungsblatt.bestehtaus IS 'Assoziation zu: FeatureType AX_Buchungsstelle (ax_buchungsstelle) 0..*';
-COMMENT ON COLUMN ax_buchungsblatt.inverszu_beziehtsichauf IS 'Assoziation zu: FeatureType AX_Buchungsstelle (ax_buchungsstelle) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_vertretung (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -6547,28 +6405,21 @@ CREATE TABLE IF NOT EXISTS ax_vertretung (
 	beginndervertretung date,
 	endedervertretung date,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	vertritt text[],
 	haengtan text NOT NULL,
 	beziehtsichauf text[],
-CONSTRAINT ax_vertretung_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_vertretung_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_vertretung IS 'FeatureType: "AX_Vertretung"';
 COMMENT ON COLUMN ax_vertretung.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_vertretung.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_vertretung.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_vertretung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_vertretung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_vertretung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_vertretung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_vertretung.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_vertretung.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_vertretung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_vertretung.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_vertretung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_vertretung.angabenzurvertretung IS 'angabenZurVertretung    0..1';
 COMMENT ON COLUMN ax_vertretung.artdervertretung IS 'artDerVertretung    0..*';
 COMMENT ON COLUMN ax_vertretung.beginndervertretung IS 'beginnDerVertretung   Date 0..1';
@@ -6580,12 +6431,12 @@ COMMENT ON COLUMN ax_vertretung.beziehtsichauf IS 'Assoziation zu: FeatureType A
 CREATE TABLE IF NOT EXISTS ax_skizze (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -6593,25 +6444,18 @@ CREATE TABLE IF NOT EXISTS ax_skizze (
 	skizzenart integer,
 	skizzenname character varying NOT NULL,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_skizze_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_skizze_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_skizze IS 'FeatureType: "AX_Skizze"';
 COMMENT ON COLUMN ax_skizze.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_skizze.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_skizze.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_skizze.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_skizze.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_skizze.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_skizze.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_skizze.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_skizze.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_skizze.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_skizze.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_skizze.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_skizze.bemerkungen IS 'bemerkungen    0..1';
 COMMENT ON COLUMN ax_skizze.skizzenart IS 'skizzenart  enumeration AX_Skizzenart_Skizze 0..1';
 COMMENT ON COLUMN ax_skizze.skizzenname IS 'skizzenname   URI 1';
@@ -6619,49 +6463,42 @@ COMMENT ON COLUMN ax_skizze.skizzenname IS 'skizzenname   URI 1';
 CREATE TABLE IF NOT EXISTS ax_schwere (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	name text[],
 	uri character varying[],
 	aufstellhoehe double precision,
 	hinweise text,
 	bestimmungsdatum date,
-	datenerhebung character varying,
-	genauigkeitsstufe character varying,
+	datenerhebung integer,
+	genauigkeitsstufe integer,
 	genauigkeitswert integer,
-	messmethode character varying,
-	vertrauenswuerdigkeit character varying,
-	schwereanomalie_art character varying[],
+	messmethode integer,
+	vertrauenswuerdigkeit integer,
+	schwereanomalie_art integer[],
 	wert character varying[],
 	schwerestatus integer,
 	schweresystem integer NOT NULL,
 	schwerewert double precision NOT NULL,
 	ueberpruefungsdatum date,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_schwere_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_schwere_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_schwere IS 'FeatureType: "AX_Schwere"';
 COMMENT ON COLUMN ax_schwere.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_schwere.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_schwere.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_schwere.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_schwere.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_schwere.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_schwere.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_schwere.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_schwere.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_schwere.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_schwere.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_schwere.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_schwere.aufstellhoehe IS 'aufstellhoehe   Distance 0..1';
 COMMENT ON COLUMN ax_schwere.hinweise IS 'hinweise    0..1';
 COMMENT ON COLUMN ax_schwere.bestimmungsdatum IS 'qualitaetsangaben AX_DQSchwere|bestimmungsdatum  Date 0..1';
@@ -6680,17 +6517,17 @@ COMMENT ON COLUMN ax_schwere.ueberpruefungsdatum IS 'ueberpruefungsdatum   Date 
 CREATE TABLE IF NOT EXISTS ax_historischesflurstueckalb (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
 	amtlicheflaeche double precision NOT NULL,
-	blattart character varying[],
+	blattart integer[],
 	buchungsart text[],
 	bezirk text[],
 	buchungsblattbezirk_land text[],
@@ -6707,29 +6544,21 @@ CREATE TABLE IF NOT EXISTS ax_historischesflurstueckalb (
 	gemarkung_land text NOT NULL,
 	laufendenummerderfortfuehrung text,
 	nachfolgerflurstueckskennzeichen text[],
-	objektkoordinaten geometry(POINT),
 	vorgaengerflurstueckskennzeichen text[],
 	zeitpunktderentstehungdesbezugsflurstuecks date,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_historischesflurstueckalb_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_historischesflurstueckalb_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_historischesflurstueckalb IS 'FeatureType: "AX_HistorischesFlurstueckALB"';
 COMMENT ON COLUMN ax_historischesflurstueckalb.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_historischesflurstueckalb.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_historischesflurstueckalb.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_historischesflurstueckalb.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_historischesflurstueckalb.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_historischesflurstueckalb.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_historischesflurstueckalb.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_historischesflurstueckalb.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_historischesflurstueckalb.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_historischesflurstueckalb.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_historischesflurstueckalb.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_historischesflurstueckalb.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_historischesflurstueckalb.amtlicheflaeche IS 'amtlicheFlaeche   Area 1';
 COMMENT ON COLUMN ax_historischesflurstueckalb.blattart IS 'buchung AX_Buchung_HistorischesFlurstueck|blattart enumeration AX_Blattart_HistorischesFlurstueck 1';
 COMMENT ON COLUMN ax_historischesflurstueckalb.buchungsart IS 'buchung AX_Buchung_HistorischesFlurstueck|buchungsart   1';
@@ -6748,23 +6577,22 @@ COMMENT ON COLUMN ax_historischesflurstueckalb.gemarkungsnummer IS 'gemarkung AX
 COMMENT ON COLUMN ax_historischesflurstueckalb.gemarkung_land IS 'gemarkung AX_Gemarkung_Schluessel|land   1';
 COMMENT ON COLUMN ax_historischesflurstueckalb.laufendenummerderfortfuehrung IS 'laufendeNummerDerFortfuehrung    0..1';
 COMMENT ON COLUMN ax_historischesflurstueckalb.nachfolgerflurstueckskennzeichen IS 'nachfolgerFlurstueckskennzeichen    0..*';
-COMMENT ON COLUMN ax_historischesflurstueckalb.objektkoordinaten IS 'objektkoordinaten   GM_Point 0..1';
 COMMENT ON COLUMN ax_historischesflurstueckalb.vorgaengerflurstueckskennzeichen IS 'vorgaengerFlurstueckskennzeichen    0..*';
 COMMENT ON COLUMN ax_historischesflurstueckalb.zeitpunktderentstehungdesbezugsflurstuecks IS 'zeitpunktDerEntstehungDesBezugsflurstuecks   Date 0..1';
 
 CREATE TABLE IF NOT EXISTS ax_historischesflurstueckohneraumbezug (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	abweichenderrechtszustand boolean,
+	abweichenderrechtszustand character varying,
 	amtlicheflaeche double precision NOT NULL,
 	flurnummer integer,
 	flurstuecksfolge character varying,
@@ -6779,8 +6607,7 @@ CREATE TABLE IF NOT EXISTS ax_historischesflurstueckohneraumbezug (
 	gemeindezugehoerigkeit_land text,
 	regierungsbezirk text,
 	nachfolgerflurstueckskennzeichen text[],
-	objektkoordinaten geometry(POINT),
-	rechtsbehelfsverfahren boolean,
+	rechtsbehelfsverfahren character varying,
 	angabenzumabschnittbemerkung text[],
 	angabenzumabschnittflurstueck text[],
 	angabenzumabschnittnummeraktenzeichen text[],
@@ -6789,32 +6616,24 @@ CREATE TABLE IF NOT EXISTS ax_historischesflurstueckohneraumbezug (
 	kennungschluessel text[],
 	vorgaengerflurstueckskennzeichen text[],
 	zeitpunktderentstehung date,
-	zweifelhafterflurstuecksnachweis boolean,
+	zweifelhafterflurstuecksnachweis character varying,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	istgebucht text,
-	inverszu_gehoertanteiligzu  text[],
 	gehoertanteiligzu  text[],
 	zeigtauf text[],
 	weistauf text[],
-CONSTRAINT ax_historischesflurstueckohneraumbezug_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_historischesflurstueckohneraumbezug_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_historischesflurstueckohneraumbezug IS 'FeatureType: "AX_HistorischesFlurstueckOhneRaumbezug"';
 COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.abweichenderrechtszustand IS 'abweichenderRechtszustand   Boolean 0..1';
 COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.amtlicheflaeche IS 'amtlicheFlaeche   Area 1';
 COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.flurnummer IS 'flurnummer   Integer 0..1';
@@ -6830,7 +6649,6 @@ COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.kreis IS 'gemeindezugeh
 COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.gemeindezugehoerigkeit_land IS 'gemeindezugehoerigkeit AX_Gemeindekennzeichen|land   1';
 COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.regierungsbezirk IS 'gemeindezugehoerigkeit AX_Gemeindekennzeichen|regierungsbezirk   0..1';
 COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.nachfolgerflurstueckskennzeichen IS 'nachfolgerFlurstueckskennzeichen    0..*';
-COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.objektkoordinaten IS 'objektkoordinaten   GM_Point 0..1';
 COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.rechtsbehelfsverfahren IS 'rechtsbehelfsverfahren   Boolean 0..1';
 COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.angabenzumabschnittbemerkung IS 'sonstigeEigenschaften AX_SonstigeEigenschaften_Flurstueck|angabenZumAbschnittBemerkung   0..1';
 COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.angabenzumabschnittflurstueck IS 'sonstigeEigenschaften AX_SonstigeEigenschaften_Flurstueck|angabenZumAbschnittFlurstueck   0..1';
@@ -6842,7 +6660,6 @@ COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.vorgaengerflurstueckske
 COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.zeitpunktderentstehung IS 'zeitpunktDerEntstehung   Date 0..1';
 COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.zweifelhafterflurstuecksnachweis IS 'zweifelhafterFlurstuecksnachweis   Boolean 0..1';
 COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.istgebucht IS 'Assoziation zu: FeatureType AX_Buchungsstelle (ax_buchungsstelle) 0..1';
-COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.inverszu_gehoertanteiligzu  IS 'Assoziation zu: FeatureType AX_HistorischesFlurstueckOhneRaumbezug (ax_historischesflurstueckohneraumbezug) 0..*';
 COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.gehoertanteiligzu  IS 'Assoziation zu: FeatureType AX_HistorischesFlurstueckOhneRaumbezug (ax_historischesflurstueckohneraumbezug) 0..*';
 COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.zeigtauf IS 'Assoziation zu: FeatureType AX_LagebezeichnungOhneHausnummer (ax_lagebezeichnungohnehausnummer) 0..*';
 COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.weistauf IS 'Assoziation zu: FeatureType AX_LagebezeichnungMitHausnummer (ax_lagebezeichnungmithausnummer) 0..*';
@@ -6850,46 +6667,39 @@ COMMENT ON COLUMN ax_historischesflurstueckohneraumbezug.weistauf IS 'Assoziatio
 CREATE TABLE IF NOT EXISTS ax_lagebezeichnungohnehausnummer (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	unverschluesselt text NOT NULL,
-	gemeinde text NOT NULL,
-	kreis text NOT NULL,
-	lage text NOT NULL,
-	land text NOT NULL,
+	unverschluesselt text,
+	gemeinde text,
+	kreis text,
+	lage text,
+	land text,
 	regierungsbezirk text,
 	ortsteil text,
 	zusatzzurlagebezeichnung text,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	gehoertzu text[],
 	beschreibt text[],
-CONSTRAINT ax_lagebezeichnungohnehausnummer_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_lagebezeichnungohnehausnummer_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_lagebezeichnungohnehausnummer IS 'FeatureType: "AX_LagebezeichnungOhneHausnummer"';
 COMMENT ON COLUMN ax_lagebezeichnungohnehausnummer.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_lagebezeichnungohnehausnummer.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_lagebezeichnungohnehausnummer.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_lagebezeichnungohnehausnummer.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_lagebezeichnungohnehausnummer.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_lagebezeichnungohnehausnummer.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_lagebezeichnungohnehausnummer.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_lagebezeichnungohnehausnummer.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_lagebezeichnungohnehausnummer.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_lagebezeichnungohnehausnummer.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_lagebezeichnungohnehausnummer.unverschluesselt IS 'lagebezeichnung AX_Lagebezeichnung|unverschluesselt   1';
+COMMENT ON COLUMN ax_lagebezeichnungohnehausnummer.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_lagebezeichnungohnehausnummer.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_lagebezeichnungohnehausnummer.unverschluesselt IS 'lagebezeichnung AX_Lagebezeichnung|unverschluesselt   0..1';
 COMMENT ON COLUMN ax_lagebezeichnungohnehausnummer.gemeinde IS 'lagebezeichnung AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|gemeinde   1';
 COMMENT ON COLUMN ax_lagebezeichnungohnehausnummer.kreis IS 'lagebezeichnung AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|kreis   1';
 COMMENT ON COLUMN ax_lagebezeichnungohnehausnummer.lage IS 'lagebezeichnung AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|lage   1';
@@ -6903,49 +6713,42 @@ COMMENT ON COLUMN ax_lagebezeichnungohnehausnummer.beschreibt IS 'Assoziation zu
 CREATE TABLE IF NOT EXISTS ax_lagebezeichnungmithausnummer (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	unverschluesselt text NOT NULL,
-	gemeinde text NOT NULL,
-	kreis text NOT NULL,
-	lage text NOT NULL,
-	land text NOT NULL,
+	unverschluesselt text,
+	gemeinde text,
+	kreis text,
+	lage text,
+	land text,
 	regierungsbezirk text,
 	hausnummer text NOT NULL,
 	ortsteil text,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	weistzum text,
 	gehoertzu text[],
 	hat text[],
 	beziehtsichauchauf text,
 	beziehtsichauf text,
-CONSTRAINT ax_lagebezeichnungmithausnummer_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_lagebezeichnungmithausnummer_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_lagebezeichnungmithausnummer IS 'FeatureType: "AX_LagebezeichnungMitHausnummer"';
 COMMENT ON COLUMN ax_lagebezeichnungmithausnummer.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_lagebezeichnungmithausnummer.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_lagebezeichnungmithausnummer.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_lagebezeichnungmithausnummer.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_lagebezeichnungmithausnummer.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_lagebezeichnungmithausnummer.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_lagebezeichnungmithausnummer.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_lagebezeichnungmithausnummer.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_lagebezeichnungmithausnummer.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_lagebezeichnungmithausnummer.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_lagebezeichnungmithausnummer.unverschluesselt IS 'lagebezeichnung AX_Lagebezeichnung|unverschluesselt   1';
+COMMENT ON COLUMN ax_lagebezeichnungmithausnummer.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_lagebezeichnungmithausnummer.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_lagebezeichnungmithausnummer.unverschluesselt IS 'lagebezeichnung AX_Lagebezeichnung|unverschluesselt   0..1';
 COMMENT ON COLUMN ax_lagebezeichnungmithausnummer.gemeinde IS 'lagebezeichnung AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|gemeinde   1';
 COMMENT ON COLUMN ax_lagebezeichnungmithausnummer.kreis IS 'lagebezeichnung AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|kreis   1';
 COMMENT ON COLUMN ax_lagebezeichnungmithausnummer.lage IS 'lagebezeichnung AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|lage   1';
@@ -6962,46 +6765,39 @@ COMMENT ON COLUMN ax_lagebezeichnungmithausnummer.beziehtsichauf IS 'Assoziation
 CREATE TABLE IF NOT EXISTS ax_lagebezeichnungmitpseudonummer (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	unverschluesselt text NOT NULL,
-	gemeinde text NOT NULL,
-	kreis text NOT NULL,
-	lage text NOT NULL,
-	land text NOT NULL,
+	unverschluesselt text,
+	gemeinde text,
+	kreis text,
+	lage text,
+	land text,
 	regierungsbezirk text,
 	laufendenummer text,
 	ortsteil text,
 	pseudonummer text NOT NULL,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	gehoertzu text,
-CONSTRAINT ax_lagebezeichnungmitpseudonummer_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_lagebezeichnungmitpseudonummer_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_lagebezeichnungmitpseudonummer IS 'FeatureType: "AX_LagebezeichnungMitPseudonummer"';
 COMMENT ON COLUMN ax_lagebezeichnungmitpseudonummer.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_lagebezeichnungmitpseudonummer.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_lagebezeichnungmitpseudonummer.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_lagebezeichnungmitpseudonummer.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_lagebezeichnungmitpseudonummer.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_lagebezeichnungmitpseudonummer.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_lagebezeichnungmitpseudonummer.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_lagebezeichnungmitpseudonummer.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_lagebezeichnungmitpseudonummer.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_lagebezeichnungmitpseudonummer.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_lagebezeichnungmitpseudonummer.unverschluesselt IS 'lagebezeichnung AX_Lagebezeichnung|unverschluesselt   1';
+COMMENT ON COLUMN ax_lagebezeichnungmitpseudonummer.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_lagebezeichnungmitpseudonummer.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_lagebezeichnungmitpseudonummer.unverschluesselt IS 'lagebezeichnung AX_Lagebezeichnung|unverschluesselt   0..1';
 COMMENT ON COLUMN ax_lagebezeichnungmitpseudonummer.gemeinde IS 'lagebezeichnung AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|gemeinde   1';
 COMMENT ON COLUMN ax_lagebezeichnungmitpseudonummer.kreis IS 'lagebezeichnung AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|kreis   1';
 COMMENT ON COLUMN ax_lagebezeichnungmitpseudonummer.lage IS 'lagebezeichnung AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|lage   1';
@@ -7015,12 +6811,12 @@ COMMENT ON COLUMN ax_lagebezeichnungmitpseudonummer.gehoertzu IS 'Assoziation zu
 CREATE TABLE IF NOT EXISTS ax_reservierung (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	name text[],
 	uri character varying[],
@@ -7040,25 +6836,18 @@ CREATE TABLE IF NOT EXISTS ax_reservierung (
 	vermessungsstelle_land text NOT NULL,
 	stelle text NOT NULL,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_reservierung_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_reservierung_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_reservierung IS 'FeatureType: "AX_Reservierung"';
 COMMENT ON COLUMN ax_reservierung.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_reservierung.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_reservierung.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_reservierung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_reservierung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_reservierung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_reservierung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_reservierung.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_reservierung.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_reservierung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_reservierung.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_reservierung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_reservierung.ablaufderreservierung IS 'ablaufDerReservierung   Date 0..1';
 COMMENT ON COLUMN ax_reservierung.antragsnummer IS 'antragsnummer    0..1';
 COMMENT ON COLUMN ax_reservierung.art IS 'art  enumeration AX_Art_Reservierung 1';
@@ -7078,49 +6867,42 @@ COMMENT ON COLUMN ax_reservierung.stelle IS 'vermessungsstelle AX_Dienststelle_S
 CREATE TABLE IF NOT EXISTS ax_punktkennunguntergegangen (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	name text[],
 	uri character varying[],
 	art integer,
 	punktkennung text NOT NULL,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_punktkennunguntergegangen_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_punktkennunguntergegangen_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_punktkennunguntergegangen IS 'FeatureType: "AX_PunktkennungUntergegangen"';
 COMMENT ON COLUMN ax_punktkennunguntergegangen.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_punktkennunguntergegangen.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_punktkennunguntergegangen.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_punktkennunguntergegangen.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_punktkennunguntergegangen.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_punktkennunguntergegangen.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_punktkennunguntergegangen.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_punktkennunguntergegangen.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_punktkennunguntergegangen.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_punktkennunguntergegangen.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_punktkennunguntergegangen.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_punktkennunguntergegangen.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_punktkennunguntergegangen.art IS 'art  enumeration AX_Art_Punktkennung 0..1';
 COMMENT ON COLUMN ax_punktkennunguntergegangen.punktkennung IS 'punktkennung    1';
 
 CREATE TABLE IF NOT EXISTS ax_punktkennungvergleichend (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	name text[],
 	uri character varying[],
@@ -7129,25 +6911,18 @@ CREATE TABLE IF NOT EXISTS ax_punktkennungvergleichend (
 	endgueltigepunktkennung text NOT NULL,
 	vorlaeufigepunktkennung text NOT NULL,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_punktkennungvergleichend_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_punktkennungvergleichend_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_punktkennungvergleichend IS 'FeatureType: "AX_PunktkennungVergleichend"';
 COMMENT ON COLUMN ax_punktkennungvergleichend.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_punktkennungvergleichend.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_punktkennungvergleichend.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_punktkennungvergleichend.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_punktkennungvergleichend.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_punktkennungvergleichend.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_punktkennungvergleichend.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_punktkennungvergleichend.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_punktkennungvergleichend.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_punktkennungvergleichend.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_punktkennungvergleichend.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_punktkennungvergleichend.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_punktkennungvergleichend.antragsnummer IS 'antragsnummer    1';
 COMMENT ON COLUMN ax_punktkennungvergleichend.art IS 'art  enumeration AX_Art_Punktkennung 0..1';
 COMMENT ON COLUMN ax_punktkennungvergleichend.endgueltigepunktkennung IS 'endgueltigePunktkennung    1';
@@ -7156,12 +6931,12 @@ COMMENT ON COLUMN ax_punktkennungvergleichend.vorlaeufigepunktkennung IS 'vorlae
 CREATE TABLE IF NOT EXISTS ax_fortfuehrungsnachweisdeckblatt (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	name text[],
 	fachdatenobjekt_uri character varying[],
@@ -7174,7 +6949,7 @@ CREATE TABLE IF NOT EXISTS ax_fortfuehrungsnachweisdeckblatt (
 	dienststellenlogo_uri character varying,
 	enthaeltewp_uri character varying,
 	adressat text[],
-	auszugfuer_art character varying[],
+	auszugfuer_art integer[],
 	datum date[],
 	bekanntgabeanbeteiligteam date,
 	bemerkung text,
@@ -7195,26 +6970,19 @@ CREATE TABLE IF NOT EXISTS ax_fortfuehrungsnachweisdeckblatt (
 	titel text NOT NULL,
 	verwaltungsaktjn text,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	beziehtsichauf text[] NOT NULL,
-CONSTRAINT ax_fortfuehrungsnachweisdeckblatt_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_fortfuehrungsnachweisdeckblatt_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_fortfuehrungsnachweisdeckblatt IS 'FeatureType: "AX_FortfuehrungsnachweisDeckblatt"';
 COMMENT ON COLUMN ax_fortfuehrungsnachweisdeckblatt.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_fortfuehrungsnachweisdeckblatt.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_fortfuehrungsnachweisdeckblatt.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_fortfuehrungsnachweisdeckblatt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_fortfuehrungsnachweisdeckblatt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_fortfuehrungsnachweisdeckblatt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_fortfuehrungsnachweisdeckblatt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_fortfuehrungsnachweisdeckblatt.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_fortfuehrungsnachweisdeckblatt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_fortfuehrungsnachweisdeckblatt.fachdatenobjekt_uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_fortfuehrungsnachweisdeckblatt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_fortfuehrungsnachweisdeckblatt.fachdatenobjekt_uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_fortfuehrungsnachweisdeckblatt.plzort IS 'ausgabekopf AX_K_AUSGKOPF_Standard|anschriftDienststelle|AX_K_ANSCHRIFT|plzOrt   1';
 COMMENT ON COLUMN ax_fortfuehrungsnachweisdeckblatt.strassehausnummer IS 'ausgabekopf AX_K_AUSGKOPF_Standard|anschriftDienststelle|AX_K_ANSCHRIFT|strasseHausnummer   1';
 COMMENT ON COLUMN ax_fortfuehrungsnachweisdeckblatt.telefon IS 'ausgabekopf AX_K_AUSGKOPF_Standard|anschriftDienststelle|AX_K_ANSCHRIFT|telefon   0..1';
@@ -7249,12 +7017,12 @@ COMMENT ON COLUMN ax_fortfuehrungsnachweisdeckblatt.beziehtsichauf IS 'Assoziati
 CREATE TABLE IF NOT EXISTS ax_fortfuehrungsfall (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	fachdatenobjekt_uri character varying[],
@@ -7277,26 +7045,18 @@ CREATE TABLE IF NOT EXISTS ax_fortfuehrungsfall (
 	zeigtaufaltesflurstueck text[],
 	zeigtaufneuesflurstueck text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_beziehtsichauf text,
-CONSTRAINT ax_fortfuehrungsfall_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_fortfuehrungsfall_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_fortfuehrungsfall IS 'FeatureType: "AX_Fortfuehrungsfall"';
 COMMENT ON COLUMN ax_fortfuehrungsfall.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_fortfuehrungsfall.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_fortfuehrungsfall.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_fortfuehrungsfall.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_fortfuehrungsfall.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_fortfuehrungsfall.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_fortfuehrungsfall.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_fortfuehrungsfall.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_fortfuehrungsfall.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_fortfuehrungsfall.fachdatenobjekt_uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_fortfuehrungsfall.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_fortfuehrungsfall.fachdatenobjekt_uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_fortfuehrungsfall.anmerkungfuerdennotar IS 'anmerkungFuerDenNotar    0..1';
 COMMENT ON COLUMN ax_fortfuehrungsfall.anzahlderfortfuehrungsmitteilungen IS 'anzahlDerFortfuehrungsmitteilungen   Integer 0..1';
 COMMENT ON COLUMN ax_fortfuehrungsfall.bemerkung IS 'bemerkung    0..1';
@@ -7315,17 +7075,16 @@ COMMENT ON COLUMN ax_fortfuehrungsfall.enthaeltewp_uri IS 'verweistAuf AX_FGraph
 COMMENT ON COLUMN ax_fortfuehrungsfall.verweistauf_uri IS 'verweistAuf AX_FGraphik|uri  URI 1';
 COMMENT ON COLUMN ax_fortfuehrungsfall.zeigtaufaltesflurstueck IS 'zeigtAufAltesFlurstueck    0..*';
 COMMENT ON COLUMN ax_fortfuehrungsfall.zeigtaufneuesflurstueck IS 'zeigtAufNeuesFlurstueck    0..*';
-COMMENT ON COLUMN ax_fortfuehrungsfall.inverszu_beziehtsichauf IS 'Assoziation zu: FeatureType AX_FortfuehrungsnachweisDeckblatt (ax_fortfuehrungsnachweisdeckblatt) 0..1';
 
 CREATE TABLE IF NOT EXISTS ax_gemeinde (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -7340,25 +7099,18 @@ CREATE TABLE IF NOT EXISTS ax_gemeinde (
 	stelle text[],
 	schluesselgesamt character varying NOT NULL,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_gemeinde_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_gemeinde_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_gemeinde IS 'FeatureType: "AX_Gemeinde"';
 COMMENT ON COLUMN ax_gemeinde.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_gemeinde.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_gemeinde.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_gemeinde.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_gemeinde.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_gemeinde.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_gemeinde.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_gemeinde.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_gemeinde.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_gemeinde.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_gemeinde.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_gemeinde.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_gemeinde.administrativefunktion IS 'administrativeFunktion  enumeration AX_Administrative_Funktion 0..*';
 COMMENT ON COLUMN ax_gemeinde.bezeichnung IS 'bezeichnung   CharacterString 1';
 COMMENT ON COLUMN ax_gemeinde.gemeinde IS 'gemeindekennzeichen AX_Gemeindekennzeichen|gemeinde   1';
@@ -7373,12 +7125,12 @@ COMMENT ON COLUMN ax_gemeinde.schluesselgesamt IS 'schluesselGesamt   CharacterS
 CREATE TABLE IF NOT EXISTS ax_buchungsblattbezirk (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -7390,25 +7142,18 @@ CREATE TABLE IF NOT EXISTS ax_buchungsblattbezirk (
 	schluessel_land text NOT NULL,
 	schluesselgesamt character varying NOT NULL,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_buchungsblattbezirk_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_buchungsblattbezirk_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_buchungsblattbezirk IS 'FeatureType: "AX_Buchungsblattbezirk"';
 COMMENT ON COLUMN ax_buchungsblattbezirk.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_buchungsblattbezirk.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_buchungsblattbezirk.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_buchungsblattbezirk.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_buchungsblattbezirk.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_buchungsblattbezirk.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_buchungsblattbezirk.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_buchungsblattbezirk.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_buchungsblattbezirk.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_buchungsblattbezirk.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_buchungsblattbezirk.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_buchungsblattbezirk.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_buchungsblattbezirk.administrativefunktion IS 'administrativeFunktion  enumeration AX_Administrative_Funktion 0..*';
 COMMENT ON COLUMN ax_buchungsblattbezirk.bezeichnung IS 'bezeichnung   CharacterString 1';
 COMMENT ON COLUMN ax_buchungsblattbezirk.gehoertzu_land IS 'gehoertZu AX_Dienststelle_Schluessel|land   1';
@@ -7420,12 +7165,12 @@ COMMENT ON COLUMN ax_buchungsblattbezirk.schluesselgesamt IS 'schluesselGesamt  
 CREATE TABLE IF NOT EXISTS ax_gemarkungsteilflur (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -7438,25 +7183,18 @@ CREATE TABLE IF NOT EXISTS ax_gemarkungsteilflur (
 	schluessel_land text NOT NULL,
 	schluesselgesamt character varying NOT NULL,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_gemarkungsteilflur_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_gemarkungsteilflur_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_gemarkungsteilflur IS 'FeatureType: "AX_GemarkungsteilFlur"';
 COMMENT ON COLUMN ax_gemarkungsteilflur.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_gemarkungsteilflur.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_gemarkungsteilflur.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_gemarkungsteilflur.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_gemarkungsteilflur.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_gemarkungsteilflur.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_gemarkungsteilflur.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_gemarkungsteilflur.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_gemarkungsteilflur.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_gemarkungsteilflur.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_gemarkungsteilflur.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_gemarkungsteilflur.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_gemarkungsteilflur.administrativefunktion IS 'administrativeFunktion  enumeration AX_Administrative_Funktion 0..*';
 COMMENT ON COLUMN ax_gemarkungsteilflur.bezeichnung IS 'bezeichnung   CharacterString 1';
 COMMENT ON COLUMN ax_gemarkungsteilflur.gehoertzu_land IS 'gehoertZu AX_Dienststelle_Schluessel|land   1';
@@ -7469,12 +7207,12 @@ COMMENT ON COLUMN ax_gemarkungsteilflur.schluesselgesamt IS 'schluesselGesamt   
 CREATE TABLE IF NOT EXISTS ax_kreisregion (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -7487,25 +7225,18 @@ CREATE TABLE IF NOT EXISTS ax_kreisregion (
 	regierungsbezirk text,
 	schluesselgesamt character varying NOT NULL,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_kreisregion_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_kreisregion_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_kreisregion IS 'FeatureType: "AX_KreisRegion"';
 COMMENT ON COLUMN ax_kreisregion.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_kreisregion.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_kreisregion.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_kreisregion.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_kreisregion.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_kreisregion.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_kreisregion.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_kreisregion.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_kreisregion.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_kreisregion.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_kreisregion.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_kreisregion.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_kreisregion.administrativefunktion IS 'administrativeFunktion  enumeration AX_Administrative_Funktion 0..*';
 COMMENT ON COLUMN ax_kreisregion.bezeichnung IS 'bezeichnung   CharacterString 1';
 COMMENT ON COLUMN ax_kreisregion.istamtsbezirkvon_land IS 'istAmtsbezirkVon AX_Dienststelle_Schluessel|land   1';
@@ -7518,12 +7249,12 @@ COMMENT ON COLUMN ax_kreisregion.schluesselgesamt IS 'schluesselGesamt   Charact
 CREATE TABLE IF NOT EXISTS ax_bundesland (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -7534,25 +7265,18 @@ CREATE TABLE IF NOT EXISTS ax_bundesland (
 	schluessel_land text NOT NULL,
 	schluesselgesamt character varying NOT NULL,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_bundesland_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_bundesland_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_bundesland IS 'FeatureType: "AX_Bundesland"';
 COMMENT ON COLUMN ax_bundesland.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_bundesland.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_bundesland.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_bundesland.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_bundesland.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_bundesland.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_bundesland.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_bundesland.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_bundesland.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_bundesland.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_bundesland.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_bundesland.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_bundesland.administrativefunktion IS 'administrativeFunktion  enumeration AX_Administrative_Funktion 0..*';
 COMMENT ON COLUMN ax_bundesland.bezeichnung IS 'bezeichnung   CharacterString 1';
 COMMENT ON COLUMN ax_bundesland.istamtsbezirkvon_land IS 'istAmtsbezirkVon AX_Dienststelle_Schluessel|land   1';
@@ -7563,12 +7287,12 @@ COMMENT ON COLUMN ax_bundesland.schluesselgesamt IS 'schluesselGesamt   Characte
 CREATE TABLE IF NOT EXISTS ax_regierungsbezirk (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -7578,25 +7302,18 @@ CREATE TABLE IF NOT EXISTS ax_regierungsbezirk (
 	regierungsbezirk text NOT NULL,
 	schluesselgesamt character varying NOT NULL,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_regierungsbezirk_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_regierungsbezirk_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_regierungsbezirk IS 'FeatureType: "AX_Regierungsbezirk"';
 COMMENT ON COLUMN ax_regierungsbezirk.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_regierungsbezirk.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_regierungsbezirk.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_regierungsbezirk.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_regierungsbezirk.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_regierungsbezirk.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_regierungsbezirk.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_regierungsbezirk.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_regierungsbezirk.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_regierungsbezirk.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_regierungsbezirk.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_regierungsbezirk.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_regierungsbezirk.administrativefunktion IS 'administrativeFunktion  enumeration AX_Administrative_Funktion 0..*';
 COMMENT ON COLUMN ax_regierungsbezirk.bezeichnung IS 'bezeichnung   CharacterString 1';
 COMMENT ON COLUMN ax_regierungsbezirk.land IS 'schluessel AX_Regierungsbezirk_Schluessel|land   1';
@@ -7606,12 +7323,12 @@ COMMENT ON COLUMN ax_regierungsbezirk.schluesselgesamt IS 'schluesselGesamt   Ch
 CREATE TABLE IF NOT EXISTS ax_gemeindeteil (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -7624,25 +7341,18 @@ CREATE TABLE IF NOT EXISTS ax_gemeindeteil (
 	regierungsbezirk text,
 	schluesselgesamt character varying NOT NULL,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_gemeindeteil_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_gemeindeteil_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_gemeindeteil IS 'FeatureType: "AX_Gemeindeteil"';
 COMMENT ON COLUMN ax_gemeindeteil.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_gemeindeteil.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_gemeindeteil.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_gemeindeteil.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_gemeindeteil.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_gemeindeteil.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_gemeindeteil.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_gemeindeteil.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_gemeindeteil.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_gemeindeteil.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_gemeindeteil.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_gemeindeteil.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_gemeindeteil.administrativefunktion IS 'administrativeFunktion  enumeration AX_Administrative_Funktion 0..*';
 COMMENT ON COLUMN ax_gemeindeteil.bezeichnung IS 'bezeichnung   CharacterString 1';
 COMMENT ON COLUMN ax_gemeindeteil.gemeinde IS 'schluessel AX_Gemeindekennzeichen|gemeinde   1';
@@ -7655,12 +7365,12 @@ COMMENT ON COLUMN ax_gemeindeteil.schluesselgesamt IS 'schluesselGesamt   Charac
 CREATE TABLE IF NOT EXISTS ax_lagebezeichnungkatalogeintrag (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -7674,25 +7384,18 @@ CREATE TABLE IF NOT EXISTS ax_lagebezeichnungkatalogeintrag (
 	regierungsbezirk text,
 	schluesselgesamt character varying NOT NULL,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_lagebezeichnungkatalogeintrag_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_lagebezeichnungkatalogeintrag_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_lagebezeichnungkatalogeintrag IS 'FeatureType: "AX_LagebezeichnungKatalogeintrag"';
 COMMENT ON COLUMN ax_lagebezeichnungkatalogeintrag.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_lagebezeichnungkatalogeintrag.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_lagebezeichnungkatalogeintrag.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_lagebezeichnungkatalogeintrag.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_lagebezeichnungkatalogeintrag.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_lagebezeichnungkatalogeintrag.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_lagebezeichnungkatalogeintrag.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_lagebezeichnungkatalogeintrag.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_lagebezeichnungkatalogeintrag.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_lagebezeichnungkatalogeintrag.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_lagebezeichnungkatalogeintrag.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_lagebezeichnungkatalogeintrag.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_lagebezeichnungkatalogeintrag.administrativefunktion IS 'administrativeFunktion  enumeration AX_Administrative_Funktion 0..*';
 COMMENT ON COLUMN ax_lagebezeichnungkatalogeintrag.bezeichnung IS 'bezeichnung   CharacterString 1';
 COMMENT ON COLUMN ax_lagebezeichnungkatalogeintrag.kennung IS 'kennung    0..1';
@@ -7706,12 +7409,12 @@ COMMENT ON COLUMN ax_lagebezeichnungkatalogeintrag.schluesselgesamt IS 'schluess
 CREATE TABLE IF NOT EXISTS ax_gemarkung (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -7723,25 +7426,18 @@ CREATE TABLE IF NOT EXISTS ax_gemarkung (
 	schluessel_land text NOT NULL,
 	schluesselgesamt character varying NOT NULL,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_gemarkung_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_gemarkung_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_gemarkung IS 'FeatureType: "AX_Gemarkung"';
 COMMENT ON COLUMN ax_gemarkung.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_gemarkung.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_gemarkung.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_gemarkung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_gemarkung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_gemarkung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_gemarkung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_gemarkung.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_gemarkung.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_gemarkung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_gemarkung.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_gemarkung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_gemarkung.administrativefunktion IS 'administrativeFunktion  enumeration AX_Administrative_Funktion 0..*';
 COMMENT ON COLUMN ax_gemarkung.bezeichnung IS 'bezeichnung   CharacterString 1';
 COMMENT ON COLUMN ax_gemarkung.istamtsbezirkvon_land IS 'istAmtsbezirkVon AX_Dienststelle_Schluessel|land   1';
@@ -7753,12 +7449,12 @@ COMMENT ON COLUMN ax_gemarkung.schluesselgesamt IS 'schluesselGesamt   Character
 CREATE TABLE IF NOT EXISTS ax_dienststelle (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -7770,26 +7466,19 @@ CREATE TABLE IF NOT EXISTS ax_dienststelle (
 	schluesselgesamt character varying NOT NULL,
 	stellenart integer,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	hat text,
-CONSTRAINT ax_dienststelle_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_dienststelle_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_dienststelle IS 'FeatureType: "AX_Dienststelle"';
 COMMENT ON COLUMN ax_dienststelle.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_dienststelle.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_dienststelle.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_dienststelle.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_dienststelle.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_dienststelle.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_dienststelle.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_dienststelle.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_dienststelle.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_dienststelle.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_dienststelle.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_dienststelle.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_dienststelle.administrativefunktion IS 'administrativeFunktion  enumeration AX_Administrative_Funktion 0..*';
 COMMENT ON COLUMN ax_dienststelle.bezeichnung IS 'bezeichnung   CharacterString 1';
 COMMENT ON COLUMN ax_dienststelle.kennung IS 'kennung    0..1';
@@ -7802,12 +7491,12 @@ COMMENT ON COLUMN ax_dienststelle.hat IS 'Assoziation zu: FeatureType AX_Anschri
 CREATE TABLE IF NOT EXISTS ax_verband (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	name text[],
 	uri character varying[],
@@ -7821,25 +7510,18 @@ CREATE TABLE IF NOT EXISTS ax_verband (
 	regierungsbezirk text[],
 	schluesselgesamt character varying NOT NULL,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_verband_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_verband_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_verband IS 'FeatureType: "AX_Verband"';
 COMMENT ON COLUMN ax_verband.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_verband.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_verband.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_verband.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_verband.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_verband.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_verband.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_verband.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_verband.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_verband.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_verband.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_verband.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_verband.administrativefunktion IS 'administrativeFunktion  enumeration AX_Administrative_Funktion 0..*';
 COMMENT ON COLUMN ax_verband.art IS 'art  enumeration AX_Art_Verband 0..1';
 COMMENT ON COLUMN ax_verband.bezeichnung IS 'bezeichnung   CharacterString 1';
@@ -7853,12 +7535,12 @@ COMMENT ON COLUMN ax_verband.schluesselgesamt IS 'schluesselGesamt   CharacterSt
 CREATE TABLE IF NOT EXISTS ax_nationalstaat (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -7867,25 +7549,18 @@ CREATE TABLE IF NOT EXISTS ax_nationalstaat (
 	schluessel text NOT NULL,
 	schluesselgesamt character varying NOT NULL,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_nationalstaat_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_nationalstaat_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_nationalstaat IS 'FeatureType: "AX_Nationalstaat"';
 COMMENT ON COLUMN ax_nationalstaat.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_nationalstaat.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_nationalstaat.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_nationalstaat.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_nationalstaat.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_nationalstaat.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_nationalstaat.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_nationalstaat.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_nationalstaat.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_nationalstaat.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_nationalstaat.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_nationalstaat.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_nationalstaat.administrativefunktion IS 'administrativeFunktion  enumeration AX_Administrative_Funktion 0..*';
 COMMENT ON COLUMN ax_nationalstaat.bezeichnung IS 'bezeichnung   CharacterString 1';
 COMMENT ON COLUMN ax_nationalstaat.schluessel IS 'schluessel    1';
@@ -7894,12 +7569,12 @@ COMMENT ON COLUMN ax_nationalstaat.schluesselgesamt IS 'schluesselGesamt   Chara
 CREATE TABLE IF NOT EXISTS ax_besondererbauwerkspunkt (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -7909,25 +7584,18 @@ CREATE TABLE IF NOT EXISTS ax_besondererbauwerkspunkt (
 	stelle text,
 	bestehtaus text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_besondererbauwerkspunkt_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_besondererbauwerkspunkt_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_besondererbauwerkspunkt IS 'FeatureType: "AX_BesondererBauwerkspunkt"';
 COMMENT ON COLUMN ax_besondererbauwerkspunkt.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_besondererbauwerkspunkt.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_besondererbauwerkspunkt.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_besondererbauwerkspunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_besondererbauwerkspunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_besondererbauwerkspunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_besondererbauwerkspunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_besondererbauwerkspunkt.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_besondererbauwerkspunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_besondererbauwerkspunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_besondererbauwerkspunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_besondererbauwerkspunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_besondererbauwerkspunkt.punktkennung IS 'punktkennung    0..1';
 COMMENT ON COLUMN ax_besondererbauwerkspunkt.sonstigeeigenschaft IS 'sonstigeEigenschaft    0..*';
 COMMENT ON COLUMN ax_besondererbauwerkspunkt.land IS 'zustaendigeStelle AX_Dienststelle_Schluessel|land   1';
@@ -7936,12 +7604,12 @@ COMMENT ON COLUMN ax_besondererbauwerkspunkt.stelle IS 'zustaendigeStelle AX_Die
 CREATE TABLE IF NOT EXISTS ax_netzknoten (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -7949,43 +7617,34 @@ CREATE TABLE IF NOT EXISTS ax_netzknoten (
 	herkunft text,
 	bestehtaus text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_netzknoten_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_netzknoten_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_netzknoten IS 'FeatureType: "AX_Netzknoten"';
 COMMENT ON COLUMN ax_netzknoten.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_netzknoten.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_netzknoten.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_netzknoten.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_netzknoten.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_netzknoten.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_netzknoten.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_netzknoten.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_netzknoten.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_netzknoten.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_netzknoten.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_netzknoten.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_netzknoten.bezeichnung IS 'bezeichnung    1';
 COMMENT ON COLUMN ax_netzknoten.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
-COMMENT ON COLUMN ax_netzknoten.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_referenzstationspunkt (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	darstellungshinweis boolean,
+	darstellungshinweis character varying,
 	frueherepunktnummer text[],
 	gemarkungsnummer text,
 	gemarkung_land text,
@@ -8033,34 +7692,27 @@ CREATE TABLE IF NOT EXISTS ax_referenzstationspunkt (
 	phasenzentrumsvariationl1_zeile character varying[],
 	phasenzentrumsvariationl2_zeile character varying[],
 	befund text,
-	gnsstauglichkeit character varying,
-	punktstabilitaet character varying,
+	gnsstauglichkeit integer,
+	punktstabilitaet integer,
 	ueberwachungsdatum date,
 	tcpipnummer text,
 	bestehtaus text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	istidentischmitlfp text,
 	istidentischmithfp text,
 	unterschiedlicherbezugspunktmitsfp text,
-CONSTRAINT ax_referenzstationspunkt_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_referenzstationspunkt_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_referenzstationspunkt IS 'FeatureType: "AX_Referenzstationspunkt"';
 COMMENT ON COLUMN ax_referenzstationspunkt.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_referenzstationspunkt.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_referenzstationspunkt.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_referenzstationspunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_referenzstationspunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_referenzstationspunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_referenzstationspunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_referenzstationspunkt.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_referenzstationspunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_referenzstationspunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_referenzstationspunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_referenzstationspunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_referenzstationspunkt.darstellungshinweis IS 'darstellungshinweis   Boolean 0..1';
 COMMENT ON COLUMN ax_referenzstationspunkt.frueherepunktnummer IS 'frueherePunktnummer    0..*';
 COMMENT ON COLUMN ax_referenzstationspunkt.gemarkungsnummer IS 'gemarkung AX_Gemarkung_Schluessel|gemarkungsnummer   1';
@@ -8120,16 +7772,16 @@ COMMENT ON COLUMN ax_referenzstationspunkt.unterschiedlicherbezugspunktmitsfp IS
 CREATE TABLE IF NOT EXISTS ax_lagefestpunkt (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	darstellungshinweis boolean,
+	darstellungshinweis character varying,
 	frueherepunktnummer text[],
 	gemarkungsnummer text,
 	gemarkung_land text,
@@ -8148,24 +7800,17 @@ CREATE TABLE IF NOT EXISTS ax_lagefestpunkt (
 	punktvermarkung integer NOT NULL,
 	relativehoehe double precision,
 	funktion integer,
-	hierarchiestufe3d character varying,
-	ordnung character varying,
-	wertigkeit character varying,
+	hierarchiestufe3d integer,
+	ordnung integer,
+	wertigkeit integer,
 	abstand double precision,
 	messung date,
 	befund text,
-	gnsstauglichkeit character varying,
-	punktstabilitaet character varying,
+	gnsstauglichkeit integer,
+	punktstabilitaet integer,
 	ueberwachungsdatum date,
 	bestehtaus text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	istidentischmitrsp text,
 	istexzentrumzu text,
 	istzentrumzu text[],
@@ -8179,18 +7824,18 @@ CREATE TABLE IF NOT EXISTS ax_lagefestpunkt (
 	unterschiedlicherbezugspunktmitap text,
 	unterschiedlicherbezugspunktmitsvp text,
 	istidentischmitsvp text,
-CONSTRAINT ax_lagefestpunkt_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_lagefestpunkt_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_lagefestpunkt IS 'FeatureType: "AX_Lagefestpunkt"';
 COMMENT ON COLUMN ax_lagefestpunkt.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_lagefestpunkt.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_lagefestpunkt.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_lagefestpunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_lagefestpunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_lagefestpunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_lagefestpunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_lagefestpunkt.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_lagefestpunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_lagefestpunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_lagefestpunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_lagefestpunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_lagefestpunkt.darstellungshinweis IS 'darstellungshinweis   Boolean 0..1';
 COMMENT ON COLUMN ax_lagefestpunkt.frueherepunktnummer IS 'frueherePunktnummer    0..*';
 COMMENT ON COLUMN ax_lagefestpunkt.gemarkungsnummer IS 'gemarkung AX_Gemarkung_Schluessel|gemarkungsnummer   1';
@@ -8236,16 +7881,16 @@ COMMENT ON COLUMN ax_lagefestpunkt.istidentischmitsvp IS 'Assoziation zu: Featur
 CREATE TABLE IF NOT EXISTS ax_hoehenfestpunkt (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	darstellungshinweis boolean,
+	darstellungshinweis character varying,
 	frueherepunktnummer text[],
 	gemarkungsnummer text,
 	gemarkung_land text,
@@ -8266,25 +7911,18 @@ CREATE TABLE IF NOT EXISTS ax_hoehenfestpunkt (
 	nivlinie text[],
 	ordnung integer,
 	befund text,
-	gnsstauglichkeit character varying,
-	geologischestabilitaet character varying,
-	grundwasserschwankung character varying,
-	grundwasserstand character varying,
-	guetedesbaugrundes character varying,
-	guetedesvermarkungstraegers character varying,
-	hoehenstabilitaetauswiederholungsmessungen character varying,
-	topographieundumwelt character varying,
-	vermutetehoehenstabilitaet character varying,
+	gnsstauglichkeit integer,
+	geologischestabilitaet integer,
+	grundwasserschwankung integer,
+	grundwasserstand integer,
+	guetedesbaugrundes integer,
+	guetedesvermarkungstraegers integer,
+	hoehenstabilitaetauswiederholungsmessungen integer,
+	topographieundumwelt integer,
+	vermutetehoehenstabilitaet integer,
 	ueberwachungsdatum date,
 	bestehtaus text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	istidentischmitrsp text,
 	unterschiedlicherbezugspunktmitlfp text,
 	istidentischmitlfp text,
@@ -8293,18 +7931,18 @@ CREATE TABLE IF NOT EXISTS ax_hoehenfestpunkt (
 	unterschiedlicherbezugspunktmitap text,
 	unterschiedlicherbezugspunktmitsvp text,
 	unterschiedlicherbezugspunktmitsp text,
-CONSTRAINT ax_hoehenfestpunkt_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_hoehenfestpunkt_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_hoehenfestpunkt IS 'FeatureType: "AX_Hoehenfestpunkt"';
 COMMENT ON COLUMN ax_hoehenfestpunkt.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_hoehenfestpunkt.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_hoehenfestpunkt.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_hoehenfestpunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_hoehenfestpunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_hoehenfestpunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_hoehenfestpunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_hoehenfestpunkt.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_hoehenfestpunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_hoehenfestpunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_hoehenfestpunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_hoehenfestpunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_hoehenfestpunkt.darstellungshinweis IS 'darstellungshinweis   Boolean 0..1';
 COMMENT ON COLUMN ax_hoehenfestpunkt.frueherepunktnummer IS 'frueherePunktnummer    0..*';
 COMMENT ON COLUMN ax_hoehenfestpunkt.gemarkungsnummer IS 'gemarkung AX_Gemarkung_Schluessel|gemarkungsnummer   1';
@@ -8348,16 +7986,16 @@ COMMENT ON COLUMN ax_hoehenfestpunkt.unterschiedlicherbezugspunktmitsp IS 'Assoz
 CREATE TABLE IF NOT EXISTS ax_schwerefestpunkt (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	darstellungshinweis boolean,
+	darstellungshinweis character varying,
 	frueherepunktnummer text[],
 	gemarkungsnummer text,
 	gemarkung_land text,
@@ -8378,18 +8016,11 @@ CREATE TABLE IF NOT EXISTS ax_schwerefestpunkt (
 	funktion integer,
 	ordnung integer,
 	befund text,
-	gnsstauglichkeit character varying,
-	punktstabilitaet character varying,
+	gnsstauglichkeit integer,
+	punktstabilitaet integer,
 	ueberwachungsdatum date,
 	bestehtaus text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	unterschiedlicherbezugspunktmitrsp text,
 	unterschiedlicherbezugspunktmitlfp text,
 	istidentischmitlfp text,
@@ -8401,18 +8032,18 @@ CREATE TABLE IF NOT EXISTS ax_schwerefestpunkt (
 	istidentischmitap text,
 	istidentischmitsvp text,
 	istidentischmitsp text,
-CONSTRAINT ax_schwerefestpunkt_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_schwerefestpunkt_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_schwerefestpunkt IS 'FeatureType: "AX_Schwerefestpunkt"';
 COMMENT ON COLUMN ax_schwerefestpunkt.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_schwerefestpunkt.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_schwerefestpunkt.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_schwerefestpunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_schwerefestpunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_schwerefestpunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_schwerefestpunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_schwerefestpunkt.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_schwerefestpunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_schwerefestpunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_schwerefestpunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_schwerefestpunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_schwerefestpunkt.darstellungshinweis IS 'darstellungshinweis   Boolean 0..1';
 COMMENT ON COLUMN ax_schwerefestpunkt.frueherepunktnummer IS 'frueherePunktnummer    0..*';
 COMMENT ON COLUMN ax_schwerefestpunkt.gemarkungsnummer IS 'gemarkung AX_Gemarkung_Schluessel|gemarkungsnummer   1';
@@ -8452,12 +8083,12 @@ COMMENT ON COLUMN ax_schwerefestpunkt.istidentischmitsp IS 'Assoziation zu: Feat
 CREATE TABLE IF NOT EXISTS ax_grenzpunkt (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -8466,7 +8097,7 @@ CREATE TABLE IF NOT EXISTS ax_grenzpunkt (
 	ausgesetzteabmarkung_stelle text,
 	bemerkungzurabmarkung integer,
 	besonderepunktnummer text,
-	festgestelltergrenzpunkt boolean,
+	festgestelltergrenzpunkt character varying,
 	gruendederausgesetztenabmarkung integer,
 	horizontfreiheit integer,
 	punktkennung text,
@@ -8475,33 +8106,24 @@ CREATE TABLE IF NOT EXISTS ax_grenzpunkt (
 	zeitpunktderentstehung text,
 	zustaendigestelle_land text,
 	zustaendigestelle_stelle text,
-	zwischenmarke boolean,
+	zwischenmarke character varying,
 	bestehtaus text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	gehoertzulfp text[],
-	inverszu_unterschiedlicherbezugspunktmitgrenzpunkt text[],
 	beziehtsichaufsfp text[],
-	inverszu_zeigtauf  text[],
 	zeigtauf  text,
-CONSTRAINT ax_grenzpunkt_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_grenzpunkt_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_grenzpunkt IS 'FeatureType: "AX_Grenzpunkt"';
 COMMENT ON COLUMN ax_grenzpunkt.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_grenzpunkt.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_grenzpunkt.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_grenzpunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_grenzpunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_grenzpunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_grenzpunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_grenzpunkt.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_grenzpunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_grenzpunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_grenzpunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_grenzpunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_grenzpunkt.abmarkung_marke IS 'abmarkung_Marke  enumeration AX_Marke 1';
 COMMENT ON COLUMN ax_grenzpunkt.ausgesetzteabmarkung_land IS 'ausgesetzteAbmarkung AX_Dienststelle_Schluessel|land   1';
 COMMENT ON COLUMN ax_grenzpunkt.ausgesetzteabmarkung_stelle IS 'ausgesetzteAbmarkung AX_Dienststelle_Schluessel|stelle   1';
@@ -8518,20 +8140,18 @@ COMMENT ON COLUMN ax_grenzpunkt.zustaendigestelle_land IS 'zustaendigeStelle AX_
 COMMENT ON COLUMN ax_grenzpunkt.zustaendigestelle_stelle IS 'zustaendigeStelle AX_Dienststelle_Schluessel|stelle   1';
 COMMENT ON COLUMN ax_grenzpunkt.zwischenmarke IS 'zwischenmarke   Boolean 0..1';
 COMMENT ON COLUMN ax_grenzpunkt.gehoertzulfp IS 'Assoziation zu: FeatureType AX_Lagefestpunkt (ax_lagefestpunkt) 0..*';
-COMMENT ON COLUMN ax_grenzpunkt.inverszu_unterschiedlicherbezugspunktmitgrenzpunkt IS 'Assoziation zu: FeatureType AX_Lagefestpunkt (ax_lagefestpunkt) 0..*';
 COMMENT ON COLUMN ax_grenzpunkt.beziehtsichaufsfp IS 'Assoziation zu: FeatureType AX_Schwerefestpunkt (ax_schwerefestpunkt) 0..*';
-COMMENT ON COLUMN ax_grenzpunkt.inverszu_zeigtauf  IS 'Assoziation zu: FeatureType AX_Grenzpunkt (ax_grenzpunkt) 0..*';
 COMMENT ON COLUMN ax_grenzpunkt.zeigtauf  IS 'Assoziation zu: FeatureType AX_Grenzpunkt (ax_grenzpunkt) 0..1';
 
 CREATE TABLE IF NOT EXISTS ax_aufnahmepunkt (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -8544,30 +8164,23 @@ CREATE TABLE IF NOT EXISTS ax_aufnahmepunkt (
 	stelle text,
 	bestehtaus text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	gehoertzu text[],
 	beziehtsichauf text[],
 	haengtan text[],
 	hatidentitaet text[],
 	hat text[],
-CONSTRAINT ax_aufnahmepunkt_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_aufnahmepunkt_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_aufnahmepunkt IS 'FeatureType: "AX_Aufnahmepunkt"';
 COMMENT ON COLUMN ax_aufnahmepunkt.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_aufnahmepunkt.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_aufnahmepunkt.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_aufnahmepunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_aufnahmepunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_aufnahmepunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_aufnahmepunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_aufnahmepunkt.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_aufnahmepunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_aufnahmepunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_aufnahmepunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_aufnahmepunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_aufnahmepunkt.horizontfreiheit IS 'horizontfreiheit  enumeration AX_Horizontfreiheit_Netzpunkt 0..1';
 COMMENT ON COLUMN ax_aufnahmepunkt.punktkennung IS 'punktkennung    0..1';
 COMMENT ON COLUMN ax_aufnahmepunkt.relativehoehe IS 'relativeHoehe   Length 0..1';
@@ -8584,12 +8197,12 @@ COMMENT ON COLUMN ax_aufnahmepunkt.hat IS 'Assoziation zu: FeatureType AX_Sicher
 CREATE TABLE IF NOT EXISTS ax_sonstigervermessungspunkt (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	name text[],
 	uri character varying[],
@@ -8603,30 +8216,22 @@ CREATE TABLE IF NOT EXISTS ax_sonstigervermessungspunkt (
 	art text,
 	bestehtaus text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	beziehtsichauf text[],
 	verbundenmit text[],
-	inverszu_unterschiedlicherbezugspunktmitsvp text[],
 	gehoertzu text[],
 	hat text[],
-CONSTRAINT ax_sonstigervermessungspunkt_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_sonstigervermessungspunkt_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_sonstigervermessungspunkt IS 'FeatureType: "AX_SonstigerVermessungspunkt"';
 COMMENT ON COLUMN ax_sonstigervermessungspunkt.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_sonstigervermessungspunkt.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_sonstigervermessungspunkt.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_sonstigervermessungspunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_sonstigervermessungspunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_sonstigervermessungspunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_sonstigervermessungspunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_sonstigervermessungspunkt.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_sonstigervermessungspunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_sonstigervermessungspunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_sonstigervermessungspunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_sonstigervermessungspunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_sonstigervermessungspunkt.horizontfreiheit IS 'horizontfreiheit  enumeration AX_Horizontfreiheit_Netzpunkt 0..1';
 COMMENT ON COLUMN ax_sonstigervermessungspunkt.punktkennung IS 'punktkennung    0..1';
 COMMENT ON COLUMN ax_sonstigervermessungspunkt.relativehoehe IS 'relativeHoehe   Length 0..1';
@@ -8637,19 +8242,18 @@ COMMENT ON COLUMN ax_sonstigervermessungspunkt.stelle IS 'zustaendigeStelle AX_D
 COMMENT ON COLUMN ax_sonstigervermessungspunkt.art IS 'art    0..1';
 COMMENT ON COLUMN ax_sonstigervermessungspunkt.beziehtsichauf IS 'Assoziation zu: FeatureType AX_Lagefestpunkt (ax_lagefestpunkt) 0..*';
 COMMENT ON COLUMN ax_sonstigervermessungspunkt.verbundenmit IS 'Assoziation zu: FeatureType AX_Lagefestpunkt (ax_lagefestpunkt) 0..*';
-COMMENT ON COLUMN ax_sonstigervermessungspunkt.inverszu_unterschiedlicherbezugspunktmitsvp IS 'Assoziation zu: FeatureType AX_Hoehenfestpunkt (ax_hoehenfestpunkt) 0..*';
 COMMENT ON COLUMN ax_sonstigervermessungspunkt.gehoertzu IS 'Assoziation zu: FeatureType AX_Schwerefestpunkt (ax_schwerefestpunkt) 0..*';
 COMMENT ON COLUMN ax_sonstigervermessungspunkt.hat IS 'Assoziation zu: FeatureType AX_Sicherungspunkt (ax_sicherungspunkt) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_sicherungspunkt (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -8662,29 +8266,21 @@ CREATE TABLE IF NOT EXISTS ax_sicherungspunkt (
 	stelle text,
 	bestehtaus text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_unterschiedlicherbezugspunktmitsp text[],
 	hat text[],
 	gehoertzu text,
 	beziehtsichauf text,
-CONSTRAINT ax_sicherungspunkt_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_sicherungspunkt_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_sicherungspunkt IS 'FeatureType: "AX_Sicherungspunkt"';
 COMMENT ON COLUMN ax_sicherungspunkt.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_sicherungspunkt.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_sicherungspunkt.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_sicherungspunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_sicherungspunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_sicherungspunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_sicherungspunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_sicherungspunkt.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_sicherungspunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_sicherungspunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_sicherungspunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_sicherungspunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_sicherungspunkt.horizontfreiheit IS 'horizontfreiheit  enumeration AX_Horizontfreiheit_Netzpunkt 0..1';
 COMMENT ON COLUMN ax_sicherungspunkt.punktkennung IS 'punktkennung    0..1';
 COMMENT ON COLUMN ax_sicherungspunkt.relativehoehe IS 'relativeHoehe   Length 0..1';
@@ -8692,7 +8288,6 @@ COMMENT ON COLUMN ax_sicherungspunkt.sonstigeeigenschaft IS 'sonstigeEigenschaft
 COMMENT ON COLUMN ax_sicherungspunkt.vermarkung_marke IS 'vermarkung_Marke  enumeration AX_Marke 1';
 COMMENT ON COLUMN ax_sicherungspunkt.land IS 'zustaendigeStelle AX_Dienststelle_Schluessel|land   1';
 COMMENT ON COLUMN ax_sicherungspunkt.stelle IS 'zustaendigeStelle AX_Dienststelle_Schluessel|stelle   1';
-COMMENT ON COLUMN ax_sicherungspunkt.inverszu_unterschiedlicherbezugspunktmitsp IS 'Assoziation zu: FeatureType AX_Hoehenfestpunkt (ax_hoehenfestpunkt) 0..*';
 COMMENT ON COLUMN ax_sicherungspunkt.hat IS 'Assoziation zu: FeatureType AX_Schwerefestpunkt (ax_schwerefestpunkt) 0..*';
 COMMENT ON COLUMN ax_sicherungspunkt.gehoertzu IS 'Assoziation zu: FeatureType AX_Aufnahmepunkt (ax_aufnahmepunkt) 0..1';
 COMMENT ON COLUMN ax_sicherungspunkt.beziehtsichauf IS 'Assoziation zu: FeatureType AX_SonstigerVermessungspunkt (ax_sonstigervermessungspunkt) 0..1';
@@ -8700,12 +8295,12 @@ COMMENT ON COLUMN ax_sicherungspunkt.beziehtsichauf IS 'Assoziation zu: FeatureT
 CREATE TABLE IF NOT EXISTS ax_besonderergebaeudepunkt (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	name text[],
 	uri character varying[],
@@ -8716,25 +8311,18 @@ CREATE TABLE IF NOT EXISTS ax_besonderergebaeudepunkt (
 	stelle text,
 	bestehtaus text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_besonderergebaeudepunkt_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_besonderergebaeudepunkt_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_besonderergebaeudepunkt IS 'FeatureType: "AX_BesondererGebaeudepunkt"';
 COMMENT ON COLUMN ax_besonderergebaeudepunkt.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_besonderergebaeudepunkt.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_besonderergebaeudepunkt.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_besonderergebaeudepunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_besonderergebaeudepunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_besonderergebaeudepunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_besonderergebaeudepunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_besonderergebaeudepunkt.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_besonderergebaeudepunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_besonderergebaeudepunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_besonderergebaeudepunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_besonderergebaeudepunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_besonderergebaeudepunkt.art IS 'art  enumeration AX_Art_Gebaeudepunkt 0..1';
 COMMENT ON COLUMN ax_besonderergebaeudepunkt.punktkennung IS 'punktkennung    0..1';
 COMMENT ON COLUMN ax_besonderergebaeudepunkt.sonstigeeigenschaft IS 'sonstigeEigenschaft    0..*';
@@ -8744,46 +8332,39 @@ COMMENT ON COLUMN ax_besonderergebaeudepunkt.stelle IS 'zustaendigeStelle AX_Die
 CREATE TABLE IF NOT EXISTS ax_wirtschaftlicheeinheit (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
 	bestehtaus text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_wirtschaftlicheeinheit_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_wirtschaftlicheeinheit_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_wirtschaftlicheeinheit IS 'FeatureType: "AX_WirtschaftlicheEinheit"';
 COMMENT ON COLUMN ax_wirtschaftlicheeinheit.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_wirtschaftlicheeinheit.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_wirtschaftlicheeinheit.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_wirtschaftlicheeinheit.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_wirtschaftlicheeinheit.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_wirtschaftlicheeinheit.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_wirtschaftlicheeinheit.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_wirtschaftlicheeinheit.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_wirtschaftlicheeinheit.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_wirtschaftlicheeinheit.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_wirtschaftlicheeinheit.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_wirtschaftlicheeinheit.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 
 CREATE TABLE IF NOT EXISTS ax_verwaltungsgemeinschaft (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -8797,25 +8378,18 @@ CREATE TABLE IF NOT EXISTS ax_verwaltungsgemeinschaft (
 	schluesselgesamt character varying NOT NULL,
 	bestehtaus text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_verwaltungsgemeinschaft_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_verwaltungsgemeinschaft_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_verwaltungsgemeinschaft IS 'FeatureType: "AX_Verwaltungsgemeinschaft"';
 COMMENT ON COLUMN ax_verwaltungsgemeinschaft.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_verwaltungsgemeinschaft.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_verwaltungsgemeinschaft.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_verwaltungsgemeinschaft.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_verwaltungsgemeinschaft.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_verwaltungsgemeinschaft.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_verwaltungsgemeinschaft.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_verwaltungsgemeinschaft.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_verwaltungsgemeinschaft.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_verwaltungsgemeinschaft.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_verwaltungsgemeinschaft.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_verwaltungsgemeinschaft.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_verwaltungsgemeinschaft.administrativefunktion IS 'administrativeFunktion  enumeration AX_Administrative_Funktion 0..*';
 COMMENT ON COLUMN ax_verwaltungsgemeinschaft.bezeichnung IS 'bezeichnung   CharacterString 1';
 COMMENT ON COLUMN ax_verwaltungsgemeinschaft.bezeichnungart IS 'bezeichnungArt  enumeration AX_Bezeichnung_Verwaltungsgemeinschaft 0..1';
@@ -8828,12 +8402,12 @@ COMMENT ON COLUMN ax_verwaltungsgemeinschaft.schluesselgesamt IS 'schluesselGesa
 CREATE TABLE IF NOT EXISTS ax_schutzgebietnachnaturumweltoderbodenschutzrecht (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
@@ -8845,25 +8419,18 @@ CREATE TABLE IF NOT EXISTS ax_schutzgebietnachnaturumweltoderbodenschutzrecht (
 	herkunft text,
 	bestehtaus text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_schutzgebietnachnaturumweltoderbodenschutzrecht_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_schutzgebietnachnaturumweltoderbodenschutzrecht_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_schutzgebietnachnaturumweltoderbodenschutzrecht IS 'FeatureType: "AX_SchutzgebietNachNaturUmweltOderBodenschutzrecht"';
 COMMENT ON COLUMN ax_schutzgebietnachnaturumweltoderbodenschutzrecht.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_schutzgebietnachnaturumweltoderbodenschutzrecht.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_schutzgebietnachnaturumweltoderbodenschutzrecht.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_schutzgebietnachnaturumweltoderbodenschutzrecht.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_schutzgebietnachnaturumweltoderbodenschutzrecht.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_schutzgebietnachnaturumweltoderbodenschutzrecht.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_schutzgebietnachnaturumweltoderbodenschutzrecht.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_schutzgebietnachnaturumweltoderbodenschutzrecht.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_schutzgebietnachnaturumweltoderbodenschutzrecht.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_schutzgebietnachnaturumweltoderbodenschutzrecht.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_schutzgebietnachnaturumweltoderbodenschutzrecht.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_schutzgebietnachnaturumweltoderbodenschutzrecht.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_schutzgebietnachnaturumweltoderbodenschutzrecht.artderfestlegung IS 'artDerFestlegung  enumeration AX_ArtDerFestlegung_SchutzgebietNachNaturUmweltOderBodenschutzrecht 1';
 COMMENT ON COLUMN ax_schutzgebietnachnaturumweltoderbodenschutzrecht.land IS 'ausfuehrendeStelle AX_Dienststelle_Schluessel|land   1';
 COMMENT ON COLUMN ax_schutzgebietnachnaturumweltoderbodenschutzrecht.stelle IS 'ausfuehrendeStelle AX_Dienststelle_Schluessel|stelle   1';
@@ -8874,12 +8441,12 @@ COMMENT ON COLUMN ax_schutzgebietnachnaturumweltoderbodenschutzrecht.herkunft IS
 CREATE TABLE IF NOT EXISTS ax_schutzgebietnachwasserrecht (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
@@ -8892,25 +8459,18 @@ CREATE TABLE IF NOT EXISTS ax_schutzgebietnachwasserrecht (
 	herkunft text,
 	bestehtaus text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_schutzgebietnachwasserrecht_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_schutzgebietnachwasserrecht_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_schutzgebietnachwasserrecht IS 'FeatureType: "AX_SchutzgebietNachWasserrecht"';
 COMMENT ON COLUMN ax_schutzgebietnachwasserrecht.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_schutzgebietnachwasserrecht.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_schutzgebietnachwasserrecht.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_schutzgebietnachwasserrecht.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_schutzgebietnachwasserrecht.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_schutzgebietnachwasserrecht.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_schutzgebietnachwasserrecht.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_schutzgebietnachwasserrecht.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_schutzgebietnachwasserrecht.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_schutzgebietnachwasserrecht.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_schutzgebietnachwasserrecht.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_schutzgebietnachwasserrecht.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_schutzgebietnachwasserrecht.artderfestlegung IS 'artDerFestlegung  enumeration AX_ArtDerFestlegung_SchutzgebietNachWasserrecht 1';
 COMMENT ON COLUMN ax_schutzgebietnachwasserrecht.land IS 'ausfuehrendeStelle AX_Dienststelle_Schluessel|land   1';
 COMMENT ON COLUMN ax_schutzgebietnachwasserrecht.stelle IS 'ausfuehrendeStelle AX_Dienststelle_Schluessel|stelle   1';
@@ -8922,12 +8482,12 @@ COMMENT ON COLUMN ax_schutzgebietnachwasserrecht.herkunft IS 'qualitaetsangaben 
 CREATE TABLE IF NOT EXISTS ax_boeschungkliff (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
@@ -8937,25 +8497,18 @@ CREATE TABLE IF NOT EXISTS ax_boeschungkliff (
 	zustand integer,
 	bestehtaus text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_boeschungkliff_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_boeschungkliff_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_boeschungkliff IS 'FeatureType: "AX_BoeschungKliff"';
 COMMENT ON COLUMN ax_boeschungkliff.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_boeschungkliff.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_boeschungkliff.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_boeschungkliff.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_boeschungkliff.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_boeschungkliff.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_boeschungkliff.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_boeschungkliff.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_boeschungkliff.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_boeschungkliff.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_boeschungkliff.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_boeschungkliff.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_boeschungkliff.name IS 'name    0..1';
 COMMENT ON COLUMN ax_boeschungkliff.objekthoehe IS 'objekthoehe   Length 0..1';
 COMMENT ON COLUMN ax_boeschungkliff.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
@@ -8964,12 +8517,12 @@ COMMENT ON COLUMN ax_boeschungkliff.zustand IS 'zustand  enumeration AX_Zustand_
 CREATE TABLE IF NOT EXISTS ax_besonderertopographischerpunkt (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
@@ -8979,25 +8532,18 @@ CREATE TABLE IF NOT EXISTS ax_besonderertopographischerpunkt (
 	stelle text,
 	bestehtaus text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_besonderertopographischerpunkt_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_besonderertopographischerpunkt_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_besonderertopographischerpunkt IS 'FeatureType: "AX_BesondererTopographischerPunkt"';
 COMMENT ON COLUMN ax_besonderertopographischerpunkt.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_besonderertopographischerpunkt.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_besonderertopographischerpunkt.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_besonderertopographischerpunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_besonderertopographischerpunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_besonderertopographischerpunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_besonderertopographischerpunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_besonderertopographischerpunkt.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_besonderertopographischerpunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_besonderertopographischerpunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_besonderertopographischerpunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_besonderertopographischerpunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_besonderertopographischerpunkt.punktkennung IS 'punktkennung    0..1';
 COMMENT ON COLUMN ax_besonderertopographischerpunkt.sonstigeeigenschaft IS 'sonstigeEigenschaft    0..*';
 COMMENT ON COLUMN ax_besonderertopographischerpunkt.land IS 'zustaendigeStelle AX_Dienststelle_Schluessel|land   1';
@@ -9006,12 +8552,12 @@ COMMENT ON COLUMN ax_besonderertopographischerpunkt.stelle IS 'zustaendigeStelle
 CREATE TABLE IF NOT EXISTS ax_kanal (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
@@ -9023,25 +8569,18 @@ CREATE TABLE IF NOT EXISTS ax_kanal (
 	zweitname text,
 	bestehtaus text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_kanal_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_kanal_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_kanal IS 'FeatureType: "AX_Kanal"';
 COMMENT ON COLUMN ax_kanal.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_kanal.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_kanal.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_kanal.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_kanal.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_kanal.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_kanal.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_kanal.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_kanal.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_kanal.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_kanal.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_kanal.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_kanal.gewaesserkennzahl IS 'gewaesserkennzahl    0..1';
 COMMENT ON COLUMN ax_kanal.identnummer IS 'identnummer    0..1';
 COMMENT ON COLUMN ax_kanal.name IS 'name    0..1';
@@ -9052,12 +8591,12 @@ COMMENT ON COLUMN ax_kanal.zweitname IS 'zweitname    0..1';
 CREATE TABLE IF NOT EXISTS ax_wasserlauf (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
@@ -9069,25 +8608,18 @@ CREATE TABLE IF NOT EXISTS ax_wasserlauf (
 	zweitname text,
 	bestehtaus text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_wasserlauf_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_wasserlauf_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_wasserlauf IS 'FeatureType: "AX_Wasserlauf"';
 COMMENT ON COLUMN ax_wasserlauf.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_wasserlauf.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_wasserlauf.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_wasserlauf.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_wasserlauf.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_wasserlauf.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_wasserlauf.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_wasserlauf.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_wasserlauf.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_wasserlauf.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_wasserlauf.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_wasserlauf.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_wasserlauf.gewaesserkennzahl IS 'gewaesserkennzahl    0..1';
 COMMENT ON COLUMN ax_wasserlauf.identnummer IS 'identnummer    0..1';
 COMMENT ON COLUMN ax_wasserlauf.name IS 'name    0..1';
@@ -9098,12 +8630,12 @@ COMMENT ON COLUMN ax_wasserlauf.zweitname IS 'zweitname    0..1';
 CREATE TABLE IF NOT EXISTS ax_strasse (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
@@ -9116,25 +8648,18 @@ CREATE TABLE IF NOT EXISTS ax_strasse (
 	zweitname text,
 	bestehtaus text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_strasse_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_strasse_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_strasse IS 'FeatureType: "AX_Strasse"';
 COMMENT ON COLUMN ax_strasse.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_strasse.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_strasse.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_strasse.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_strasse.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_strasse.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_strasse.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_strasse.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_strasse.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_strasse.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ax_strasse.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_strasse.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ax_strasse.bezeichnung IS 'bezeichnung    0..*';
 COMMENT ON COLUMN ax_strasse.fahrbahntrennung IS 'fahrbahntrennung  enumeration AX_Fahrbahntrennung_Strasse 0..1';
 COMMENT ON COLUMN ax_strasse.internationalebedeutung IS 'internationaleBedeutung  enumeration AX_InternationaleBedeutung_Strasse 0..1';
@@ -9146,45 +8671,37 @@ COMMENT ON COLUMN ax_strasse.zweitname IS 'zweitname    0..1';
 CREATE TABLE IF NOT EXISTS ap_fpo (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	art character varying,
 	darstellungsprioritaet integer,
 	signaturnummer character varying,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	dientzurdarstellungvon text[],
-CONSTRAINT ap_fpo_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ap_fpo_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ap_fpo IS 'FeatureType: "AP_FPO"';
 COMMENT ON COLUMN ap_fpo.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ap_fpo.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ap_fpo.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ap_fpo.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ap_fpo.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ap_fpo.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ap_fpo.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ap_fpo.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ap_fpo.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ap_fpo.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ap_fpo.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ap_fpo.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ap_fpo.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ap_fpo.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ap_fpo.art IS 'art   CharacterString 0..1';
 COMMENT ON COLUMN ap_fpo.darstellungsprioritaet IS 'darstellungsprioritaet   Integer 0..1';
 COMMENT ON COLUMN ap_fpo.signaturnummer IS 'signaturnummer   CharacterString 0..1';
@@ -9193,57 +8710,47 @@ COMMENT ON COLUMN ap_fpo.dientzurdarstellungvon IS 'Assoziation zu: FeatureType 
 CREATE TABLE IF NOT EXISTS aa_antragsgebiet (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gebiet text[],
-CONSTRAINT aa_antragsgebiet_pkey PRIMARY KEY (gml_id)
+CONSTRAINT aa_antragsgebiet_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE aa_antragsgebiet IS 'FeatureType: "AA_Antragsgebiet"';
 COMMENT ON COLUMN aa_antragsgebiet.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN aa_antragsgebiet.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN aa_antragsgebiet.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN aa_antragsgebiet.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN aa_antragsgebiet.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN aa_antragsgebiet.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN aa_antragsgebiet.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN aa_antragsgebiet.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN aa_antragsgebiet.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN aa_antragsgebiet.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN aa_antragsgebiet.position IS 'position   GM_Object 1';
-COMMENT ON COLUMN aa_antragsgebiet.inverszu_gebiet IS 'Assoziation zu: FeatureType AA_Antrag (aa_antrag) 0..*';
+COMMENT ON COLUMN aa_antragsgebiet.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN aa_antragsgebiet.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN aa_antragsgebiet.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 
 CREATE TABLE IF NOT EXISTS ax_polder (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	artdespolders integer,
 	funktion character varying,
 	name text,
@@ -9251,51 +8758,41 @@ CREATE TABLE IF NOT EXISTS ax_polder (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_polder_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_polder_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_polder IS 'FeatureType: "AX_Polder"';
 COMMENT ON COLUMN ax_polder.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_polder.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_polder.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_polder.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_polder.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_polder.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_polder.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_polder.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_polder.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_polder.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_polder.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_polder.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_polder.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_polder.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_polder.artdespolders IS 'artDesPolders  enumeration AX_ArtDesPolders 0..1';
 COMMENT ON COLUMN ax_polder.funktion IS 'funktion  enumeration AX_Funktion_Polder 0..1';
 COMMENT ON COLUMN ax_polder.name IS 'name    0..1';
 COMMENT ON COLUMN ax_polder.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
-COMMENT ON COLUMN ax_polder.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_historischesflurstueck (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
-	abweichenderrechtszustand boolean,
+	wkb_geometry geometry,
+	abweichenderrechtszustand character varying,
 	amtlicheflaeche double precision NOT NULL,
-	blattart character varying[],
+	blattart integer[],
 	buchungsart text[],
 	bezirk text[],
 	buchungsblattbezirk_land text[],
@@ -9315,8 +8812,7 @@ CREATE TABLE IF NOT EXISTS ax_historischesflurstueck (
 	gemeindezugehoerigkeit_land text,
 	regierungsbezirk text,
 	nachfolgerflurstueckskennzeichen text[],
-	objektkoordinaten geometry(POINT),
-	rechtsbehelfsverfahren boolean,
+	rechtsbehelfsverfahren character varying,
 	angabenzumabschnittbemerkung text[],
 	angabenzumabschnittflurstueck text[],
 	angabenzumabschnittnummeraktenzeichen text[],
@@ -9325,32 +8821,24 @@ CREATE TABLE IF NOT EXISTS ax_historischesflurstueck (
 	kennungschluessel text[],
 	zeitpunktderentstehung date,
 	zeitpunktderhistorisierung date,
-	zweifelhafterflurstuecksnachweis boolean,
+	zweifelhafterflurstuecksnachweis character varying,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_historischesflurstueck_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_historischesflurstueck_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_historischesflurstueck IS 'FeatureType: "AX_HistorischesFlurstueck"';
 COMMENT ON COLUMN ax_historischesflurstueck.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_historischesflurstueck.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_historischesflurstueck.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_historischesflurstueck.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_historischesflurstueck.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_historischesflurstueck.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_historischesflurstueck.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_historischesflurstueck.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_historischesflurstueck.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_historischesflurstueck.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_historischesflurstueck.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_historischesflurstueck.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_historischesflurstueck.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_historischesflurstueck.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_historischesflurstueck.abweichenderrechtszustand IS 'abweichenderRechtszustand   Boolean 0..1';
 COMMENT ON COLUMN ax_historischesflurstueck.amtlicheflaeche IS 'amtlicheFlaeche   Area 1';
 COMMENT ON COLUMN ax_historischesflurstueck.blattart IS 'buchung AX_Buchung_HistorischesFlurstueck|blattart enumeration AX_Blattart_HistorischesFlurstueck 1';
@@ -9373,7 +8861,6 @@ COMMENT ON COLUMN ax_historischesflurstueck.kreis IS 'gemeindezugehoerigkeit AX_
 COMMENT ON COLUMN ax_historischesflurstueck.gemeindezugehoerigkeit_land IS 'gemeindezugehoerigkeit AX_Gemeindekennzeichen|land   1';
 COMMENT ON COLUMN ax_historischesflurstueck.regierungsbezirk IS 'gemeindezugehoerigkeit AX_Gemeindekennzeichen|regierungsbezirk   0..1';
 COMMENT ON COLUMN ax_historischesflurstueck.nachfolgerflurstueckskennzeichen IS 'nachfolgerFlurstueckskennzeichen    0..*';
-COMMENT ON COLUMN ax_historischesflurstueck.objektkoordinaten IS 'objektkoordinaten   GM_Point 0..1';
 COMMENT ON COLUMN ax_historischesflurstueck.rechtsbehelfsverfahren IS 'rechtsbehelfsverfahren   Boolean 0..1';
 COMMENT ON COLUMN ax_historischesflurstueck.angabenzumabschnittbemerkung IS 'sonstigeEigenschaften AX_SonstigeEigenschaften_Flurstueck|angabenZumAbschnittBemerkung   0..1';
 COMMENT ON COLUMN ax_historischesflurstueck.angabenzumabschnittflurstueck IS 'sonstigeEigenschaften AX_SonstigeEigenschaften_Flurstueck|angabenZumAbschnittFlurstueck   0..1';
@@ -9388,225 +8875,185 @@ COMMENT ON COLUMN ax_historischesflurstueck.zweifelhafterflurstuecksnachweis IS 
 CREATE TABLE IF NOT EXISTS ax_kondominium (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_kondominium_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_kondominium_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_kondominium IS 'FeatureType: "AX_Kondominium"';
 COMMENT ON COLUMN ax_kondominium.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_kondominium.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_kondominium.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_kondominium.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_kondominium.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_kondominium.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_kondominium.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_kondominium.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_kondominium.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_kondominium.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_kondominium.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_kondominium.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_kondominium.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_kondominium.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 
 CREATE TABLE IF NOT EXISTS ax_baublock (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	art integer,
 	baublockbezeichnung text NOT NULL,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_baublock_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_baublock_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_baublock IS 'FeatureType: "AX_Baublock"';
 COMMENT ON COLUMN ax_baublock.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_baublock.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_baublock.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_baublock.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_baublock.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_baublock.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_baublock.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_baublock.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_baublock.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_baublock.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_baublock.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_baublock.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_baublock.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_baublock.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_baublock.art IS 'art  enumeration AX_Art_Baublock 0..1';
 COMMENT ON COLUMN ax_baublock.baublockbezeichnung IS 'baublockbezeichnung    1';
 
 CREATE TABLE IF NOT EXISTS ax_aussparungsflaeche (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	artderaussparung integer NOT NULL,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_aussparungsflaeche_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_aussparungsflaeche_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_aussparungsflaeche IS 'FeatureType: "AX_Aussparungsflaeche"';
 COMMENT ON COLUMN ax_aussparungsflaeche.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_aussparungsflaeche.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_aussparungsflaeche.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_aussparungsflaeche.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_aussparungsflaeche.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_aussparungsflaeche.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_aussparungsflaeche.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_aussparungsflaeche.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_aussparungsflaeche.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_aussparungsflaeche.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_aussparungsflaeche.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_aussparungsflaeche.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_aussparungsflaeche.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_aussparungsflaeche.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_aussparungsflaeche.artderaussparung IS 'artDerAussparung  enumeration AX_ArtDerAussparung 1';
 
 CREATE TABLE IF NOT EXISTS ax_soll (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	name text,
 	herkunft text,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_soll_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_soll_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_soll IS 'FeatureType: "AX_Soll"';
 COMMENT ON COLUMN ax_soll.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_soll.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_soll.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_soll.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_soll.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_soll.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_soll.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_soll.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_soll.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_soll.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_soll.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_soll.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_soll.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_soll.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_soll.name IS 'name    0..1';
 COMMENT ON COLUMN ax_soll.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 
 CREATE TABLE IF NOT EXISTS ax_duene (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	name text,
 	herkunft text,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_duene_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_duene_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_duene IS 'FeatureType: "AX_Duene"';
 COMMENT ON COLUMN ax_duene.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_duene.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_duene.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_duene.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_duene.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_duene.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_duene.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_duene.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_duene.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_duene.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_duene.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_duene.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_duene.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_duene.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_duene.name IS 'name    0..1';
 COMMENT ON COLUMN ax_duene.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 
 CREATE TABLE IF NOT EXISTS ax_transportanlage (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	bauwerksfunktion integer NOT NULL,
 	lagezurerdoberflaeche integer,
 	produkt integer,
@@ -9614,48 +9061,38 @@ CREATE TABLE IF NOT EXISTS ax_transportanlage (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_transportanlage_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_transportanlage_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_transportanlage IS 'FeatureType: "AX_Transportanlage"';
 COMMENT ON COLUMN ax_transportanlage.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_transportanlage.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_transportanlage.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_transportanlage.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_transportanlage.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_transportanlage.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_transportanlage.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_transportanlage.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_transportanlage.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_transportanlage.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_transportanlage.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_transportanlage.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_transportanlage.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_transportanlage.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_transportanlage.bauwerksfunktion IS 'bauwerksfunktion  enumeration AX_Bauwerksfunktion_Transportanlage 1';
 COMMENT ON COLUMN ax_transportanlage.lagezurerdoberflaeche IS 'lageZurErdoberflaeche  enumeration AX_LageZurErdoberflaeche_Transportanlage 0..1';
 COMMENT ON COLUMN ax_transportanlage.produkt IS 'produkt  enumeration AX_Produkt_Transportanlage 0..1';
 COMMENT ON COLUMN ax_transportanlage.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
-COMMENT ON COLUMN ax_transportanlage.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_wegpfadsteig (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	art integer,
 	befestigung integer,
 	bezeichnung text,
@@ -9668,29 +9105,20 @@ CREATE TABLE IF NOT EXISTS ax_wegpfadsteig (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_wegpfadsteig_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_wegpfadsteig_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_wegpfadsteig IS 'FeatureType: "AX_WegPfadSteig"';
 COMMENT ON COLUMN ax_wegpfadsteig.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_wegpfadsteig.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_wegpfadsteig.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_wegpfadsteig.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_wegpfadsteig.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_wegpfadsteig.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_wegpfadsteig.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_wegpfadsteig.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_wegpfadsteig.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_wegpfadsteig.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_wegpfadsteig.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_wegpfadsteig.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_wegpfadsteig.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_wegpfadsteig.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_wegpfadsteig.art IS 'art  enumeration AX_Art_WegPfadSteig 0..1';
 COMMENT ON COLUMN ax_wegpfadsteig.befestigung IS 'befestigung  enumeration AX_Befestigung_WegPfadSteig 0..1';
 COMMENT ON COLUMN ax_wegpfadsteig.bezeichnung IS 'bezeichnung    0..1';
@@ -9700,21 +9128,20 @@ COMMENT ON COLUMN ax_wegpfadsteig.name IS 'name    0..1';
 COMMENT ON COLUMN ax_wegpfadsteig.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_wegpfadsteig.strassenschluessel IS 'strassenschluessel    0..1';
 COMMENT ON COLUMN ax_wegpfadsteig.zweitname IS 'zweitname    0..1';
-COMMENT ON COLUMN ax_wegpfadsteig.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_gleis (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	art integer,
 	bahnkategorie integer[],
 	lagezuroberflaeche integer,
@@ -9723,49 +9150,39 @@ CREATE TABLE IF NOT EXISTS ax_gleis (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_gleis_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_gleis_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_gleis IS 'FeatureType: "AX_Gleis"';
 COMMENT ON COLUMN ax_gleis.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_gleis.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_gleis.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_gleis.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_gleis.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_gleis.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_gleis.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_gleis.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_gleis.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_gleis.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_gleis.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_gleis.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_gleis.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_gleis.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_gleis.art IS 'art  enumeration AX_Art_Gleis 0..1';
 COMMENT ON COLUMN ax_gleis.bahnkategorie IS 'bahnkategorie  enumeration AX_Bahnkategorie_Gleis 0..*';
 COMMENT ON COLUMN ax_gleis.lagezuroberflaeche IS 'lageZurOberflaeche  enumeration AX_LageZurOberflaeche_Gleis 0..1';
 COMMENT ON COLUMN ax_gleis.name IS 'name    0..1';
 COMMENT ON COLUMN ax_gleis.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
-COMMENT ON COLUMN ax_gleis.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_bahnverkehrsanlage (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	bahnhofskategorie integer NOT NULL,
 	bahnkategorie integer[],
 	bezeichnung text,
@@ -9775,50 +9192,40 @@ CREATE TABLE IF NOT EXISTS ax_bahnverkehrsanlage (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_bahnverkehrsanlage_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_bahnverkehrsanlage_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_bahnverkehrsanlage IS 'FeatureType: "AX_Bahnverkehrsanlage"';
 COMMENT ON COLUMN ax_bahnverkehrsanlage.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_bahnverkehrsanlage.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_bahnverkehrsanlage.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_bahnverkehrsanlage.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_bahnverkehrsanlage.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_bahnverkehrsanlage.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_bahnverkehrsanlage.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_bahnverkehrsanlage.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_bahnverkehrsanlage.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_bahnverkehrsanlage.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_bahnverkehrsanlage.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_bahnverkehrsanlage.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_bahnverkehrsanlage.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_bahnverkehrsanlage.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_bahnverkehrsanlage.bahnhofskategorie IS 'bahnhofskategorie  enumeration AX_Bahnhofskategorie_Bahnverkehrsanlage 1';
 COMMENT ON COLUMN ax_bahnverkehrsanlage.bahnkategorie IS 'bahnkategorie  enumeration AX_Bahnkategorie_Gleis 0..*';
 COMMENT ON COLUMN ax_bahnverkehrsanlage.bezeichnung IS 'bezeichnung    0..1';
 COMMENT ON COLUMN ax_bahnverkehrsanlage.name IS 'name    0..1';
 COMMENT ON COLUMN ax_bahnverkehrsanlage.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_bahnverkehrsanlage.zustand IS 'zustand  enumeration AX_Zustand_Bahnverkehrsanlage 0..1';
-COMMENT ON COLUMN ax_bahnverkehrsanlage.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_strassenverkehrsanlage (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	art integer NOT NULL,
 	bezeichnung text[],
 	name text,
@@ -9828,50 +9235,40 @@ CREATE TABLE IF NOT EXISTS ax_strassenverkehrsanlage (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_strassenverkehrsanlage_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_strassenverkehrsanlage_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_strassenverkehrsanlage IS 'FeatureType: "AX_Strassenverkehrsanlage"';
 COMMENT ON COLUMN ax_strassenverkehrsanlage.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_strassenverkehrsanlage.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_strassenverkehrsanlage.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_strassenverkehrsanlage.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_strassenverkehrsanlage.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_strassenverkehrsanlage.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_strassenverkehrsanlage.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_strassenverkehrsanlage.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_strassenverkehrsanlage.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_strassenverkehrsanlage.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_strassenverkehrsanlage.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_strassenverkehrsanlage.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_strassenverkehrsanlage.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_strassenverkehrsanlage.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_strassenverkehrsanlage.art IS 'art  enumeration AX_Art_Strassenverkehrsanlage 1';
 COMMENT ON COLUMN ax_strassenverkehrsanlage.bezeichnung IS 'bezeichnung    0..*';
 COMMENT ON COLUMN ax_strassenverkehrsanlage.name IS 'name    0..1';
 COMMENT ON COLUMN ax_strassenverkehrsanlage.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_strassenverkehrsanlage.strassenschluessel IS 'strassenschluessel    0..1';
 COMMENT ON COLUMN ax_strassenverkehrsanlage.zweitname IS 'zweitname    0..1';
-COMMENT ON COLUMN ax_strassenverkehrsanlage.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_einrichtungenfuerdenschiffsverkehr (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	art integer NOT NULL,
 	bezeichnung text,
 	kilometerangabe double precision,
@@ -9880,49 +9277,39 @@ CREATE TABLE IF NOT EXISTS ax_einrichtungenfuerdenschiffsverkehr (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_einrichtungenfuerdenschiffsverkehr_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_einrichtungenfuerdenschiffsverkehr_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_einrichtungenfuerdenschiffsverkehr IS 'FeatureType: "AX_EinrichtungenFuerDenSchiffsverkehr"';
 COMMENT ON COLUMN ax_einrichtungenfuerdenschiffsverkehr.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_einrichtungenfuerdenschiffsverkehr.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_einrichtungenfuerdenschiffsverkehr.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_einrichtungenfuerdenschiffsverkehr.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_einrichtungenfuerdenschiffsverkehr.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_einrichtungenfuerdenschiffsverkehr.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_einrichtungenfuerdenschiffsverkehr.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_einrichtungenfuerdenschiffsverkehr.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_einrichtungenfuerdenschiffsverkehr.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_einrichtungenfuerdenschiffsverkehr.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_einrichtungenfuerdenschiffsverkehr.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_einrichtungenfuerdenschiffsverkehr.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_einrichtungenfuerdenschiffsverkehr.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_einrichtungenfuerdenschiffsverkehr.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_einrichtungenfuerdenschiffsverkehr.art IS 'art  enumeration AX_Art_EinrichtungenFuerDenSchiffsverkehr 1';
 COMMENT ON COLUMN ax_einrichtungenfuerdenschiffsverkehr.bezeichnung IS 'bezeichnung    0..1';
 COMMENT ON COLUMN ax_einrichtungenfuerdenschiffsverkehr.kilometerangabe IS 'kilometerangabe   Distance 0..1';
 COMMENT ON COLUMN ax_einrichtungenfuerdenschiffsverkehr.name IS 'name    0..1';
 COMMENT ON COLUMN ax_einrichtungenfuerdenschiffsverkehr.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
-COMMENT ON COLUMN ax_einrichtungenfuerdenschiffsverkehr.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_flugverkehrsanlage (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	art integer NOT NULL,
 	bezeichnung text,
 	breitedesobjekts double precision,
@@ -9932,50 +9319,40 @@ CREATE TABLE IF NOT EXISTS ax_flugverkehrsanlage (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_flugverkehrsanlage_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_flugverkehrsanlage_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_flugverkehrsanlage IS 'FeatureType: "AX_Flugverkehrsanlage"';
 COMMENT ON COLUMN ax_flugverkehrsanlage.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_flugverkehrsanlage.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_flugverkehrsanlage.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_flugverkehrsanlage.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_flugverkehrsanlage.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_flugverkehrsanlage.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_flugverkehrsanlage.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_flugverkehrsanlage.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_flugverkehrsanlage.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_flugverkehrsanlage.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_flugverkehrsanlage.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_flugverkehrsanlage.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_flugverkehrsanlage.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_flugverkehrsanlage.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_flugverkehrsanlage.art IS 'art  enumeration AX_Art_Flugverkehrsanlage 1';
 COMMENT ON COLUMN ax_flugverkehrsanlage.bezeichnung IS 'bezeichnung    0..1';
 COMMENT ON COLUMN ax_flugverkehrsanlage.breitedesobjekts IS 'breiteDesObjekts   Length 0..1';
 COMMENT ON COLUMN ax_flugverkehrsanlage.name IS 'name    0..1';
 COMMENT ON COLUMN ax_flugverkehrsanlage.oberflaechenmaterial IS 'oberflaechenmaterial  enumeration AX_Oberflaechenmaterial_Flugverkehrsanlage 0..1';
 COMMENT ON COLUMN ax_flugverkehrsanlage.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
-COMMENT ON COLUMN ax_flugverkehrsanlage.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_hafen (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	hafenkategorie integer,
 	name text,
 	nutzung integer,
@@ -9983,93 +9360,73 @@ CREATE TABLE IF NOT EXISTS ax_hafen (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_hafen_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_hafen_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_hafen IS 'FeatureType: "AX_Hafen"';
 COMMENT ON COLUMN ax_hafen.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_hafen.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_hafen.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_hafen.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_hafen.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_hafen.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_hafen.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_hafen.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_hafen.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_hafen.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_hafen.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_hafen.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_hafen.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_hafen.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_hafen.hafenkategorie IS 'hafenkategorie  enumeration AX_Hafenkategorie_Hafen 0..1';
 COMMENT ON COLUMN ax_hafen.name IS 'name    0..1';
 COMMENT ON COLUMN ax_hafen.nutzung IS 'nutzung  enumeration AX_Nutzung_Hafen 0..1';
 COMMENT ON COLUMN ax_hafen.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
-COMMENT ON COLUMN ax_hafen.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_testgelaende (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	name text,
 	herkunft text,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_testgelaende_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_testgelaende_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_testgelaende IS 'FeatureType: "AX_Testgelaende"';
 COMMENT ON COLUMN ax_testgelaende.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_testgelaende.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_testgelaende.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_testgelaende.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_testgelaende.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_testgelaende.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_testgelaende.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_testgelaende.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_testgelaende.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_testgelaende.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_testgelaende.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_testgelaende.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_testgelaende.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_testgelaende.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_testgelaende.name IS 'name    0..1';
 COMMENT ON COLUMN ax_testgelaende.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
-COMMENT ON COLUMN ax_testgelaende.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_schleuse (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	bezeichnung text,
 	konstruktionsmerkmalbauart integer,
 	name text,
@@ -10078,141 +9435,111 @@ CREATE TABLE IF NOT EXISTS ax_schleuse (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_schleuse_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_schleuse_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_schleuse IS 'FeatureType: "AX_Schleuse"';
 COMMENT ON COLUMN ax_schleuse.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_schleuse.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_schleuse.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_schleuse.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_schleuse.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_schleuse.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_schleuse.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_schleuse.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_schleuse.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_schleuse.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_schleuse.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_schleuse.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_schleuse.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_schleuse.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_schleuse.bezeichnung IS 'bezeichnung    0..1';
 COMMENT ON COLUMN ax_schleuse.konstruktionsmerkmalbauart IS 'konstruktionsmerkmalBauart  enumeration AX_KonstruktionsmerkmalBauart_Schleuse 0..1';
 COMMENT ON COLUMN ax_schleuse.name IS 'name    0..1';
 COMMENT ON COLUMN ax_schleuse.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_schleuse.zustand IS 'zustand  enumeration AX_Zustand_Schleuse 0..1';
-COMMENT ON COLUMN ax_schleuse.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_ortslage (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	name text,
 	herkunft text,
 	zweitname text,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_ortslage_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_ortslage_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_ortslage IS 'FeatureType: "AX_Ortslage"';
 COMMENT ON COLUMN ax_ortslage.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_ortslage.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_ortslage.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_ortslage.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_ortslage.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_ortslage.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_ortslage.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_ortslage.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_ortslage.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_ortslage.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_ortslage.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_ortslage.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_ortslage.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_ortslage.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_ortslage.name IS 'name    0..1';
 COMMENT ON COLUMN ax_ortslage.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_ortslage.zweitname IS 'zweitname    0..1';
-COMMENT ON COLUMN ax_ortslage.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_grenzuebergang (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	name text,
 	herkunft text,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_grenzuebergang_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_grenzuebergang_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_grenzuebergang IS 'FeatureType: "AX_Grenzuebergang"';
 COMMENT ON COLUMN ax_grenzuebergang.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_grenzuebergang.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_grenzuebergang.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_grenzuebergang.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_grenzuebergang.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_grenzuebergang.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_grenzuebergang.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_grenzuebergang.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_grenzuebergang.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_grenzuebergang.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_grenzuebergang.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_grenzuebergang.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_grenzuebergang.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_grenzuebergang.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_grenzuebergang.name IS 'name    0..1';
 COMMENT ON COLUMN ax_grenzuebergang.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
-COMMENT ON COLUMN ax_grenzuebergang.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_gewaessermerkmal (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	art integer NOT NULL,
 	bezeichnung text,
 	hydrologischesmerkmal integer,
@@ -10222,50 +9549,40 @@ CREATE TABLE IF NOT EXISTS ax_gewaessermerkmal (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_gewaessermerkmal_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_gewaessermerkmal_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_gewaessermerkmal IS 'FeatureType: "AX_Gewaessermerkmal"';
 COMMENT ON COLUMN ax_gewaessermerkmal.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_gewaessermerkmal.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_gewaessermerkmal.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_gewaessermerkmal.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_gewaessermerkmal.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_gewaessermerkmal.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_gewaessermerkmal.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_gewaessermerkmal.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_gewaessermerkmal.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_gewaessermerkmal.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_gewaessermerkmal.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_gewaessermerkmal.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_gewaessermerkmal.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_gewaessermerkmal.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_gewaessermerkmal.art IS 'art  enumeration AX_Art_Gewaessermerkmal 1';
 COMMENT ON COLUMN ax_gewaessermerkmal.bezeichnung IS 'bezeichnung    0..1';
 COMMENT ON COLUMN ax_gewaessermerkmal.hydrologischesmerkmal IS 'hydrologischesMerkmal  enumeration AX_HydrologischesMerkmal_Gewaessermerkmal 0..1';
 COMMENT ON COLUMN ax_gewaessermerkmal.name IS 'name    0..1';
 COMMENT ON COLUMN ax_gewaessermerkmal.objekthoehe IS 'objekthoehe   Length 0..1';
 COMMENT ON COLUMN ax_gewaessermerkmal.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
-COMMENT ON COLUMN ax_gewaessermerkmal.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_untergeordnetesgewaesser (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	funktion integer,
 	hydrologischesmerkmal integer,
 	lagezurerdoberflaeche integer,
@@ -10274,49 +9591,39 @@ CREATE TABLE IF NOT EXISTS ax_untergeordnetesgewaesser (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_untergeordnetesgewaesser_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_untergeordnetesgewaesser_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_untergeordnetesgewaesser IS 'FeatureType: "AX_UntergeordnetesGewaesser"';
 COMMENT ON COLUMN ax_untergeordnetesgewaesser.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_untergeordnetesgewaesser.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_untergeordnetesgewaesser.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_untergeordnetesgewaesser.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_untergeordnetesgewaesser.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_untergeordnetesgewaesser.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_untergeordnetesgewaesser.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_untergeordnetesgewaesser.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_untergeordnetesgewaesser.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_untergeordnetesgewaesser.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_untergeordnetesgewaesser.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_untergeordnetesgewaesser.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_untergeordnetesgewaesser.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_untergeordnetesgewaesser.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_untergeordnetesgewaesser.funktion IS 'funktion  enumeration AX_Funktion_UntergeordnetesGewaesser 0..1';
 COMMENT ON COLUMN ax_untergeordnetesgewaesser.hydrologischesmerkmal IS 'hydrologischesMerkmal  enumeration AX_HydrologischesMerkmal_UntergeordnetesGewaesser 0..1';
 COMMENT ON COLUMN ax_untergeordnetesgewaesser.lagezurerdoberflaeche IS 'lageZurErdoberflaeche  enumeration AX_LageZurErdoberflaeche_UntergeordnetesGewaesser 0..1';
 COMMENT ON COLUMN ax_untergeordnetesgewaesser.name IS 'name    0..1';
 COMMENT ON COLUMN ax_untergeordnetesgewaesser.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
-COMMENT ON COLUMN ax_untergeordnetesgewaesser.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_vegetationsmerkmal (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	bewuchs integer,
 	bezeichnung text,
 	breitedesobjekts double precision,
@@ -10327,29 +9634,20 @@ CREATE TABLE IF NOT EXISTS ax_vegetationsmerkmal (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_vegetationsmerkmal_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_vegetationsmerkmal_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_vegetationsmerkmal IS 'FeatureType: "AX_Vegetationsmerkmal"';
 COMMENT ON COLUMN ax_vegetationsmerkmal.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_vegetationsmerkmal.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_vegetationsmerkmal.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_vegetationsmerkmal.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_vegetationsmerkmal.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_vegetationsmerkmal.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_vegetationsmerkmal.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_vegetationsmerkmal.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_vegetationsmerkmal.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_vegetationsmerkmal.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_vegetationsmerkmal.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_vegetationsmerkmal.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_vegetationsmerkmal.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_vegetationsmerkmal.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_vegetationsmerkmal.bewuchs IS 'bewuchs  enumeration AX_Bewuchs_Vegetationsmerkmal 0..1';
 COMMENT ON COLUMN ax_vegetationsmerkmal.bezeichnung IS 'bezeichnung    0..1';
 COMMENT ON COLUMN ax_vegetationsmerkmal.breitedesobjekts IS 'breiteDesObjekts   Length 0..1';
@@ -10357,21 +9655,20 @@ COMMENT ON COLUMN ax_vegetationsmerkmal.funktion IS 'funktion  enumeration AX_Fu
 COMMENT ON COLUMN ax_vegetationsmerkmal.name IS 'name    0..1';
 COMMENT ON COLUMN ax_vegetationsmerkmal.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_vegetationsmerkmal.zustand IS 'zustand  enumeration AX_Zustand_Vegetationsmerkmal 0..1';
-COMMENT ON COLUMN ax_vegetationsmerkmal.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_musterlandesmusterundvergleichsstueck (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	ackerzahlodergruenlandzahl text,
 	bodenart integer,
 	bodenzahlodergruenlandgrundzahl text,
@@ -10385,28 +9682,20 @@ CREATE TABLE IF NOT EXISTS ax_musterlandesmusterundvergleichsstueck (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_musterlandesmusterundvergleichsstueck_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_musterlandesmusterundvergleichsstueck_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_musterlandesmusterundvergleichsstueck IS 'FeatureType: "AX_MusterLandesmusterUndVergleichsstueck"';
 COMMENT ON COLUMN ax_musterlandesmusterundvergleichsstueck.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_musterlandesmusterundvergleichsstueck.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_musterlandesmusterundvergleichsstueck.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_musterlandesmusterundvergleichsstueck.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_musterlandesmusterundvergleichsstueck.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_musterlandesmusterundvergleichsstueck.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_musterlandesmusterundvergleichsstueck.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_musterlandesmusterundvergleichsstueck.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_musterlandesmusterundvergleichsstueck.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_musterlandesmusterundvergleichsstueck.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_musterlandesmusterundvergleichsstueck.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_musterlandesmusterundvergleichsstueck.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_musterlandesmusterundvergleichsstueck.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_musterlandesmusterundvergleichsstueck.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_musterlandesmusterundvergleichsstueck.ackerzahlodergruenlandzahl IS 'ackerzahlOderGruenlandzahl    0..1';
 COMMENT ON COLUMN ax_musterlandesmusterundvergleichsstueck.bodenart IS 'bodenart  enumeration AX_Bodenart_MusterLandesmusterUndVergleichsstueck 0..1';
 COMMENT ON COLUMN ax_musterlandesmusterundvergleichsstueck.bodenzahlodergruenlandgrundzahl IS 'bodenzahlOderGruenlandgrundzahl    0..1';
@@ -10421,184 +9710,152 @@ COMMENT ON COLUMN ax_musterlandesmusterundvergleichsstueck.zustandsstufeoderbode
 CREATE TABLE IF NOT EXISTS ax_insel (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	name text,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_insel_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_insel_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_insel IS 'FeatureType: "AX_Insel"';
 COMMENT ON COLUMN ax_insel.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_insel.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_insel.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_insel.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_insel.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_insel.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_insel.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_insel.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_insel.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_insel.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_insel.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_insel.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_insel.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_insel.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_insel.name IS 'name    0..1';
 
 CREATE TABLE IF NOT EXISTS ax_gewann (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	name text NOT NULL,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_gewann_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_gewann_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_gewann IS 'FeatureType: "AX_Gewann"';
 COMMENT ON COLUMN ax_gewann.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_gewann.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_gewann.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_gewann.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_gewann.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_gewann.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_gewann.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_gewann.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_gewann.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_gewann.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_gewann.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_gewann.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_gewann.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_gewann.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_gewann.name IS 'name    1';
 
 CREATE TABLE IF NOT EXISTS ax_kleinraeumigerlandschaftsteil (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	landschaftstyp integer NOT NULL,
 	name text NOT NULL,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_kleinraeumigerlandschaftsteil_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_kleinraeumigerlandschaftsteil_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_kleinraeumigerlandschaftsteil IS 'FeatureType: "AX_KleinraeumigerLandschaftsteil"';
 COMMENT ON COLUMN ax_kleinraeumigerlandschaftsteil.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_kleinraeumigerlandschaftsteil.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_kleinraeumigerlandschaftsteil.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_kleinraeumigerlandschaftsteil.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_kleinraeumigerlandschaftsteil.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_kleinraeumigerlandschaftsteil.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_kleinraeumigerlandschaftsteil.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_kleinraeumigerlandschaftsteil.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_kleinraeumigerlandschaftsteil.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_kleinraeumigerlandschaftsteil.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_kleinraeumigerlandschaftsteil.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_kleinraeumigerlandschaftsteil.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_kleinraeumigerlandschaftsteil.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_kleinraeumigerlandschaftsteil.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_kleinraeumigerlandschaftsteil.landschaftstyp IS 'landschaftstyp  enumeration AX_Landschaftstyp 1';
 COMMENT ON COLUMN ax_kleinraeumigerlandschaftsteil.name IS 'name    1';
 
 CREATE TABLE IF NOT EXISTS ax_landschaft (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	landschaftstyp integer NOT NULL,
 	name text NOT NULL,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_landschaft_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_landschaft_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_landschaft IS 'FeatureType: "AX_Landschaft"';
 COMMENT ON COLUMN ax_landschaft.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_landschaft.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_landschaft.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_landschaft.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_landschaft.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_landschaft.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_landschaft.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_landschaft.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_landschaft.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_landschaft.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_landschaft.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_landschaft.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_landschaft.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_landschaft.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_landschaft.landschaftstyp IS 'landschaftstyp  enumeration AX_Landschaftstyp 1';
 COMMENT ON COLUMN ax_landschaft.name IS 'name    1';
 
 CREATE TABLE IF NOT EXISTS ax_felsenfelsblockfelsnadel (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	bezeichnung text,
 	name text,
 	objekthoehe double precision,
@@ -10606,28 +9863,20 @@ CREATE TABLE IF NOT EXISTS ax_felsenfelsblockfelsnadel (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_felsenfelsblockfelsnadel_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_felsenfelsblockfelsnadel_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_felsenfelsblockfelsnadel IS 'FeatureType: "AX_FelsenFelsblockFelsnadel"';
 COMMENT ON COLUMN ax_felsenfelsblockfelsnadel.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_felsenfelsblockfelsnadel.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_felsenfelsblockfelsnadel.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_felsenfelsblockfelsnadel.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_felsenfelsblockfelsnadel.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_felsenfelsblockfelsnadel.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_felsenfelsblockfelsnadel.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_felsenfelsblockfelsnadel.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_felsenfelsblockfelsnadel.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_felsenfelsblockfelsnadel.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_felsenfelsblockfelsnadel.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_felsenfelsblockfelsnadel.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_felsenfelsblockfelsnadel.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_felsenfelsblockfelsnadel.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_felsenfelsblockfelsnadel.bezeichnung IS 'bezeichnung    0..1';
 COMMENT ON COLUMN ax_felsenfelsblockfelsnadel.name IS 'name    0..1';
 COMMENT ON COLUMN ax_felsenfelsblockfelsnadel.objekthoehe IS 'objekthoehe   Length 0..1';
@@ -10636,16 +9885,16 @@ COMMENT ON COLUMN ax_felsenfelsblockfelsnadel.herkunft IS 'qualitaetsangaben AX_
 CREATE TABLE IF NOT EXISTS ap_lto (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(LINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	art character varying,
 	darstellungsprioritaet integer,
 	fontsperrung double precision NOT NULL,
@@ -10657,30 +9906,22 @@ CREATE TABLE IF NOT EXISTS ap_lto (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	dientzurdarstellungvon text[],
 	hat text,
-CONSTRAINT ap_lto_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ap_lto_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ap_lto IS 'FeatureType: "AP_LTO"';
 COMMENT ON COLUMN ap_lto.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ap_lto.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ap_lto.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ap_lto.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ap_lto.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ap_lto.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ap_lto.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ap_lto.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ap_lto.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ap_lto.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ap_lto.position IS 'position   GM_Curve 1';
+COMMENT ON COLUMN ap_lto.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ap_lto.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ap_lto.wkb_geometry IS 'wkb_geometry   GM_Curve 0..1';
 COMMENT ON COLUMN ap_lto.art IS 'art   CharacterString 0..1';
 COMMENT ON COLUMN ap_lto.darstellungsprioritaet IS 'darstellungsprioritaet   Integer 0..1';
 COMMENT ON COLUMN ap_lto.fontsperrung IS 'fontSperrung   Real 1';
@@ -10695,16 +9936,16 @@ COMMENT ON COLUMN ap_lto.hat IS 'Assoziation zu: FeatureType AP_LPO (ap_lpo) 0..
 CREATE TABLE IF NOT EXISTS ax_leitung (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(LINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	bauwerksfunktion integer NOT NULL,
 	name text,
 	herkunft text,
@@ -10712,559 +9953,493 @@ CREATE TABLE IF NOT EXISTS ax_leitung (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_leitung_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_leitung_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_leitung IS 'FeatureType: "AX_Leitung"';
 COMMENT ON COLUMN ax_leitung.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_leitung.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_leitung.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_leitung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_leitung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_leitung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_leitung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_leitung.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_leitung.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_leitung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_leitung.position IS 'position   GM_Curve 1';
+COMMENT ON COLUMN ax_leitung.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_leitung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_leitung.wkb_geometry IS 'wkb_geometry   GM_Curve 0..1';
 COMMENT ON COLUMN ax_leitung.bauwerksfunktion IS 'bauwerksfunktion  enumeration AX_Bauwerksfunktion_Leitung 1';
 COMMENT ON COLUMN ax_leitung.name IS 'name    0..1';
 COMMENT ON COLUMN ax_leitung.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_leitung.spannungsebene IS 'spannungsebene   Integer 0..1';
-COMMENT ON COLUMN ax_leitung.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_abschnitt (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(LINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	bezeichnung text NOT NULL,
 	herkunft text,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_abschnitt_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_abschnitt_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_abschnitt IS 'FeatureType: "AX_Abschnitt"';
 COMMENT ON COLUMN ax_abschnitt.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_abschnitt.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_abschnitt.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_abschnitt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_abschnitt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_abschnitt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_abschnitt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_abschnitt.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_abschnitt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_abschnitt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_abschnitt.position IS 'position   GM_Curve 1';
+COMMENT ON COLUMN ax_abschnitt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_abschnitt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_abschnitt.wkb_geometry IS 'wkb_geometry   GM_Curve 0..1';
 COMMENT ON COLUMN ax_abschnitt.bezeichnung IS 'bezeichnung    1';
 COMMENT ON COLUMN ax_abschnitt.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
-COMMENT ON COLUMN ax_abschnitt.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_ast (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(LINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	bezeichnung text NOT NULL,
 	herkunft text,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_ast_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_ast_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_ast IS 'FeatureType: "AX_Ast"';
 COMMENT ON COLUMN ax_ast.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_ast.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_ast.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_ast.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_ast.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_ast.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_ast.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_ast.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_ast.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_ast.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_ast.position IS 'position   GM_Curve 1';
+COMMENT ON COLUMN ax_ast.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_ast.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_ast.wkb_geometry IS 'wkb_geometry   GM_Curve 0..1';
 COMMENT ON COLUMN ax_ast.bezeichnung IS 'bezeichnung    1';
 COMMENT ON COLUMN ax_ast.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
-COMMENT ON COLUMN ax_ast.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ap_lpo (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(MULTILINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	art character varying,
 	darstellungsprioritaet integer,
 	signaturnummer character varying,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	dientzurdarstellungvon text[],
-	inverszu_hat_ap_lto text,
-	inverszu_hat_ap_pto text,
-CONSTRAINT ap_lpo_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ap_lpo_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ap_lpo IS 'FeatureType: "AP_LPO"';
 COMMENT ON COLUMN ap_lpo.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ap_lpo.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ap_lpo.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ap_lpo.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ap_lpo.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ap_lpo.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ap_lpo.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ap_lpo.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ap_lpo.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ap_lpo.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ap_lpo.position IS 'position   GM_MultiCurve 1';
+COMMENT ON COLUMN ap_lpo.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ap_lpo.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ap_lpo.wkb_geometry IS 'wkb_geometry   GM_MultiCurve 0..1';
 COMMENT ON COLUMN ap_lpo.art IS 'art   CharacterString 0..1';
 COMMENT ON COLUMN ap_lpo.darstellungsprioritaet IS 'darstellungsprioritaet   Integer 0..1';
 COMMENT ON COLUMN ap_lpo.signaturnummer IS 'signaturnummer   CharacterString 0..1';
 COMMENT ON COLUMN ap_lpo.dientzurdarstellungvon IS 'Assoziation zu: FeatureType AA_Objekt (aa_objekt) 0..*';
-COMMENT ON COLUMN ap_lpo.inverszu_hat_ap_lto IS 'Assoziation zu: FeatureType AP_LTO (ap_lto) 0..1';
-COMMENT ON COLUMN ap_lpo.inverszu_hat_ap_pto IS 'Assoziation zu: FeatureType AP_PTO (ap_pto) 0..1';
 
 CREATE TABLE IF NOT EXISTS ax_seilbahnschwebebahn (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(MULTILINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	bahnkategorie integer NOT NULL,
 	name text,
 	herkunft text,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_seilbahnschwebebahn_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_seilbahnschwebebahn_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_seilbahnschwebebahn IS 'FeatureType: "AX_SeilbahnSchwebebahn"';
 COMMENT ON COLUMN ax_seilbahnschwebebahn.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_seilbahnschwebebahn.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_seilbahnschwebebahn.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_seilbahnschwebebahn.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_seilbahnschwebebahn.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_seilbahnschwebebahn.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_seilbahnschwebebahn.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_seilbahnschwebebahn.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_seilbahnschwebebahn.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_seilbahnschwebebahn.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_seilbahnschwebebahn.position IS 'position   GM_MultiCurve 1';
+COMMENT ON COLUMN ax_seilbahnschwebebahn.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_seilbahnschwebebahn.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_seilbahnschwebebahn.wkb_geometry IS 'wkb_geometry   GM_MultiCurve 0..1';
 COMMENT ON COLUMN ax_seilbahnschwebebahn.bahnkategorie IS 'bahnkategorie  enumeration AX_Bahnkategorie_SeilbahnSchwebebahn 1';
 COMMENT ON COLUMN ax_seilbahnschwebebahn.name IS 'name    0..1';
 COMMENT ON COLUMN ax_seilbahnschwebebahn.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
-COMMENT ON COLUMN ax_seilbahnschwebebahn.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_gebaeudeausgestaltung (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(MULTILINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	darstellung integer NOT NULL,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	zeigtauf text NOT NULL,
-CONSTRAINT ax_gebaeudeausgestaltung_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_gebaeudeausgestaltung_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_gebaeudeausgestaltung IS 'FeatureType: "AX_Gebaeudeausgestaltung"';
 COMMENT ON COLUMN ax_gebaeudeausgestaltung.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_gebaeudeausgestaltung.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_gebaeudeausgestaltung.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_gebaeudeausgestaltung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_gebaeudeausgestaltung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_gebaeudeausgestaltung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_gebaeudeausgestaltung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_gebaeudeausgestaltung.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_gebaeudeausgestaltung.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_gebaeudeausgestaltung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_gebaeudeausgestaltung.position IS 'position   GM_MultiCurve 1';
+COMMENT ON COLUMN ax_gebaeudeausgestaltung.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_gebaeudeausgestaltung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_gebaeudeausgestaltung.wkb_geometry IS 'wkb_geometry   GM_MultiCurve 0..1';
 COMMENT ON COLUMN ax_gebaeudeausgestaltung.darstellung IS 'darstellung  enumeration AX_Darstellung_Gebaeudeausgestaltung 1';
 COMMENT ON COLUMN ax_gebaeudeausgestaltung.zeigtauf IS 'Assoziation zu: FeatureType AX_Gebaeude (ax_gebaeude) 1';
 
 CREATE TABLE IF NOT EXISTS ax_topographischelinie (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(MULTILINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	liniendarstellung integer NOT NULL,
 	sonstigeeigenschaft text,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_topographischelinie_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_topographischelinie_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_topographischelinie IS 'FeatureType: "AX_TopographischeLinie"';
 COMMENT ON COLUMN ax_topographischelinie.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_topographischelinie.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_topographischelinie.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_topographischelinie.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_topographischelinie.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_topographischelinie.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_topographischelinie.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_topographischelinie.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_topographischelinie.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_topographischelinie.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_topographischelinie.position IS 'position   GM_MultiCurve 1';
+COMMENT ON COLUMN ax_topographischelinie.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_topographischelinie.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_topographischelinie.wkb_geometry IS 'wkb_geometry   GM_MultiCurve 0..1';
 COMMENT ON COLUMN ax_topographischelinie.liniendarstellung IS 'liniendarstellung  enumeration AX_Liniendarstellung_TopographischeLinie 1';
 COMMENT ON COLUMN ax_topographischelinie.sonstigeeigenschaft IS 'sonstigeEigenschaft    0..1';
 
 CREATE TABLE IF NOT EXISTS ax_geripplinie (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(MULTILINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	artdergeripplinie integer,
-	datetime timestamp without time zone,
-	description character varying NOT NULL,
-	identifikation character varying NOT NULL,
-	hoehengenauigkeit text,
+	erfassung_datetime timestamp without time zone,
+	description integer NOT NULL,
+	identifikation integer NOT NULL,
+	nameofmeasure character varying[],
+	measureidentification text,
+	measuredescription character varying,
+	evaluationmethodtype character varying,
+	evaluationmethoddescription character varying,
+	evaluationprocedure text,
+	hoehengenauigkeit_datetime timestamp without time zone[],
+	result text[],
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_geripplinie_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_geripplinie_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_geripplinie IS 'FeatureType: "AX_Geripplinie"';
 COMMENT ON COLUMN ax_geripplinie.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_geripplinie.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_geripplinie.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_geripplinie.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_geripplinie.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_geripplinie.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_geripplinie.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_geripplinie.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_geripplinie.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_geripplinie.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_geripplinie.position IS 'position   GM_MultiCurve 1';
+COMMENT ON COLUMN ax_geripplinie.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_geripplinie.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_geripplinie.wkb_geometry IS 'wkb_geometry   GM_MultiCurve 0..1';
 COMMENT ON COLUMN ax_geripplinie.artdergeripplinie IS 'artDerGeripplinie  enumeration AX_ArtDerGeripplinie 0..1';
-COMMENT ON COLUMN ax_geripplinie.datetime IS 'erfassung AX_Erfassung_DGM|dateTime  DateTime 0..1';
+COMMENT ON COLUMN ax_geripplinie.erfassung_datetime IS 'erfassung AX_Erfassung_DGM|dateTime  DateTime 0..1';
 COMMENT ON COLUMN ax_geripplinie.description IS 'erfassung AX_Erfassung_DGM|description enumeration AX_DQErfassungsmethode 1';
 COMMENT ON COLUMN ax_geripplinie.identifikation IS 'erfassung AX_Erfassung_DGM|identifikation enumeration AX_Identifikation 1';
-COMMENT ON COLUMN ax_geripplinie.hoehengenauigkeit IS 'hoehengenauigkeit   DQ_AbsoluteExternalPositionalAccuracy 0..1';
+COMMENT ON COLUMN ax_geripplinie.nameofmeasure IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|nameOfMeasure  CharacterString 0..*';
+COMMENT ON COLUMN ax_geripplinie.measureidentification IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|measureIdentification  MD_Identifier 0..1';
+COMMENT ON COLUMN ax_geripplinie.measuredescription IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|measureDescription  CharacterString 0..1';
+COMMENT ON COLUMN ax_geripplinie.evaluationmethodtype IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|evaluationMethodType  DQ_EvaluationMethodTypeCode 0..1';
+COMMENT ON COLUMN ax_geripplinie.evaluationmethoddescription IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|evaluationMethodDescription  CharacterString 0..1';
+COMMENT ON COLUMN ax_geripplinie.evaluationprocedure IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|evaluationProcedure  CI_Citation 0..1';
+COMMENT ON COLUMN ax_geripplinie.hoehengenauigkeit_datetime IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|dateTime  DateTime 0..*';
+COMMENT ON COLUMN ax_geripplinie.result IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|result  DQ_Result 1..*';
 
 CREATE TABLE IF NOT EXISTS ax_gewaesserbegrenzung (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(MULTILINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	besondereartdergewaesserbegrenzung integer,
-	datetime timestamp without time zone,
-	description character varying NOT NULL,
-	identifikation character varying NOT NULL,
-	hoehengenauigkeit text,
+	erfassunggewaesserbegrenzung_datetime timestamp without time zone,
+	description integer NOT NULL,
+	identifikation integer NOT NULL,
+	nameofmeasure character varying[],
+	measureidentification text,
+	measuredescription character varying,
+	evaluationmethodtype character varying,
+	evaluationmethoddescription character varying,
+	evaluationprocedure text,
+	hoehengenauigkeit_datetime timestamp without time zone[],
+	result text[],
 	ursprung integer,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_gewaesserbegrenzung_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_gewaesserbegrenzung_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_gewaesserbegrenzung IS 'FeatureType: "AX_Gewaesserbegrenzung"';
 COMMENT ON COLUMN ax_gewaesserbegrenzung.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_gewaesserbegrenzung.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_gewaesserbegrenzung.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_gewaesserbegrenzung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_gewaesserbegrenzung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_gewaesserbegrenzung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_gewaesserbegrenzung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_gewaesserbegrenzung.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_gewaesserbegrenzung.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_gewaesserbegrenzung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_gewaesserbegrenzung.position IS 'position   GM_MultiCurve 1';
+COMMENT ON COLUMN ax_gewaesserbegrenzung.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_gewaesserbegrenzung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_gewaesserbegrenzung.wkb_geometry IS 'wkb_geometry   GM_MultiCurve 0..1';
 COMMENT ON COLUMN ax_gewaesserbegrenzung.besondereartdergewaesserbegrenzung IS 'besondereArtDerGewaesserbegrenzung  enumeration AX_BesondereArtDerGewaesserbegrenzung 0..1';
-COMMENT ON COLUMN ax_gewaesserbegrenzung.datetime IS 'erfassungGewaesserbegrenzung AX_ErfassungGewaesserbegrenzung|dateTime  DateTime 0..1';
+COMMENT ON COLUMN ax_gewaesserbegrenzung.erfassunggewaesserbegrenzung_datetime IS 'erfassungGewaesserbegrenzung AX_ErfassungGewaesserbegrenzung|dateTime  DateTime 0..1';
 COMMENT ON COLUMN ax_gewaesserbegrenzung.description IS 'erfassungGewaesserbegrenzung AX_ErfassungGewaesserbegrenzung|description enumeration AX_DQErfassungsmethodeGewaesserbegrenzung 1';
 COMMENT ON COLUMN ax_gewaesserbegrenzung.identifikation IS 'erfassungGewaesserbegrenzung AX_ErfassungGewaesserbegrenzung|identifikation enumeration AX_Identifikation 1';
-COMMENT ON COLUMN ax_gewaesserbegrenzung.hoehengenauigkeit IS 'hoehengenauigkeit   DQ_AbsoluteExternalPositionalAccuracy 0..1';
+COMMENT ON COLUMN ax_gewaesserbegrenzung.nameofmeasure IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|nameOfMeasure  CharacterString 0..*';
+COMMENT ON COLUMN ax_gewaesserbegrenzung.measureidentification IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|measureIdentification  MD_Identifier 0..1';
+COMMENT ON COLUMN ax_gewaesserbegrenzung.measuredescription IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|measureDescription  CharacterString 0..1';
+COMMENT ON COLUMN ax_gewaesserbegrenzung.evaluationmethodtype IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|evaluationMethodType  DQ_EvaluationMethodTypeCode 0..1';
+COMMENT ON COLUMN ax_gewaesserbegrenzung.evaluationmethoddescription IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|evaluationMethodDescription  CharacterString 0..1';
+COMMENT ON COLUMN ax_gewaesserbegrenzung.evaluationprocedure IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|evaluationProcedure  CI_Citation 0..1';
+COMMENT ON COLUMN ax_gewaesserbegrenzung.hoehengenauigkeit_datetime IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|dateTime  DateTime 0..*';
+COMMENT ON COLUMN ax_gewaesserbegrenzung.result IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|result  DQ_Result 1..*';
 COMMENT ON COLUMN ax_gewaesserbegrenzung.ursprung IS 'ursprung  enumeration AX_Ursprung 0..1';
 
 CREATE TABLE IF NOT EXISTS ax_strukturierterfasstegelaendepunkte (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(MULTILINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	aktualisierungsdatum date,
 	artderstrukturierung integer NOT NULL,
-	datetime timestamp without time zone,
-	description character varying NOT NULL,
-	hoehengenauigkeit text,
+	erfassungstrukturiertegelaendepunkte_datetime timestamp without time zone,
+	description integer NOT NULL,
+	nameofmeasure character varying[],
+	measureidentification text,
+	measuredescription character varying,
+	evaluationmethodtype character varying,
+	evaluationmethoddescription character varying,
+	evaluationprocedure text,
+	hoehengenauigkeit_datetime timestamp without time zone[],
+	result text[],
 	punktabstand double precision,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_strukturierterfasstegelaendepunkte_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_strukturierterfasstegelaendepunkte_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_strukturierterfasstegelaendepunkte IS 'FeatureType: "AX_StrukturiertErfassteGelaendepunkte"';
 COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.position IS 'position   GM_MultiCurve 1';
+COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.wkb_geometry IS 'wkb_geometry   GM_MultiCurve 0..1';
 COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.aktualisierungsdatum IS 'aktualisierungsdatum   Date 0..1';
 COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.artderstrukturierung IS 'artDerStrukturierung  enumeration AX_ArtDerStrukturierung 1';
-COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.datetime IS 'erfassungStrukturierteGelaendepunkte AX_ErfassungStrukturierteGelaendepunkte|dateTime  DateTime 0..1';
+COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.erfassungstrukturiertegelaendepunkte_datetime IS 'erfassungStrukturierteGelaendepunkte AX_ErfassungStrukturierteGelaendepunkte|dateTime  DateTime 0..1';
 COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.description IS 'erfassungStrukturierteGelaendepunkte AX_ErfassungStrukturierteGelaendepunkte|description enumeration AX_DQErfassungsmethodeStrukturierteGelaendepunkte 1';
-COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.hoehengenauigkeit IS 'hoehengenauigkeit   DQ_AbsoluteExternalPositionalAccuracy 0..1';
+COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.nameofmeasure IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|nameOfMeasure  CharacterString 0..*';
+COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.measureidentification IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|measureIdentification  MD_Identifier 0..1';
+COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.measuredescription IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|measureDescription  CharacterString 0..1';
+COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.evaluationmethodtype IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|evaluationMethodType  DQ_EvaluationMethodTypeCode 0..1';
+COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.evaluationmethoddescription IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|evaluationMethodDescription  CharacterString 0..1';
+COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.evaluationprocedure IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|evaluationProcedure  CI_Citation 0..1';
+COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.hoehengenauigkeit_datetime IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|dateTime  DateTime 0..*';
+COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.result IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|result  DQ_Result 1..*';
 COMMENT ON COLUMN ax_strukturierterfasstegelaendepunkte.punktabstand IS 'punktabstand   Length 0..1';
 
 CREATE TABLE IF NOT EXISTS ax_einschnitt (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(MULTILINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	funktion integer,
 	tiefevoneinschnitt double precision,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_einschnitt_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_einschnitt_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_einschnitt IS 'FeatureType: "AX_Einschnitt"';
 COMMENT ON COLUMN ax_einschnitt.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_einschnitt.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_einschnitt.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_einschnitt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_einschnitt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_einschnitt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_einschnitt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_einschnitt.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_einschnitt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_einschnitt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_einschnitt.position IS 'position   GM_MultiCurve 1';
+COMMENT ON COLUMN ax_einschnitt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_einschnitt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_einschnitt.wkb_geometry IS 'wkb_geometry   GM_MultiCurve 0..1';
 COMMENT ON COLUMN ax_einschnitt.funktion IS 'funktion  enumeration AX_Funktion_Einschnitt 0..1';
 COMMENT ON COLUMN ax_einschnitt.tiefevoneinschnitt IS 'tiefeVonEinschnitt   Length 0..1';
 
 CREATE TABLE IF NOT EXISTS ax_hoehenlinie (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(MULTILINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	hoehevonhoehenlinie double precision NOT NULL,
 	herkunft text,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_hoehenlinie_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_hoehenlinie_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_hoehenlinie IS 'FeatureType: "AX_Hoehenlinie"';
 COMMENT ON COLUMN ax_hoehenlinie.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_hoehenlinie.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_hoehenlinie.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_hoehenlinie.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_hoehenlinie.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_hoehenlinie.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_hoehenlinie.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_hoehenlinie.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_hoehenlinie.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_hoehenlinie.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_hoehenlinie.position IS 'position   GM_MultiCurve 1';
+COMMENT ON COLUMN ax_hoehenlinie.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_hoehenlinie.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_hoehenlinie.wkb_geometry IS 'wkb_geometry   GM_MultiCurve 0..1';
 COMMENT ON COLUMN ax_hoehenlinie.hoehevonhoehenlinie IS 'hoeheVonHoehenlinie   Length 1';
 COMMENT ON COLUMN ax_hoehenlinie.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 
 CREATE TABLE IF NOT EXISTS ax_abgeleitetehoehenlinie (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(MULTILINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	aktualitaetsstand date NOT NULL,
 	berechnungsdatum date NOT NULL,
 	berechnungsmethodehoehenlinie integer NOT NULL,
@@ -11273,28 +10448,20 @@ CREATE TABLE IF NOT EXISTS ax_abgeleitetehoehenlinie (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_abgeleitetehoehenlinie_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_abgeleitetehoehenlinie_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_abgeleitetehoehenlinie IS 'FeatureType: "AX_AbgeleiteteHoehenlinie"';
 COMMENT ON COLUMN ax_abgeleitetehoehenlinie.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_abgeleitetehoehenlinie.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_abgeleitetehoehenlinie.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_abgeleitetehoehenlinie.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_abgeleitetehoehenlinie.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_abgeleitetehoehenlinie.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_abgeleitetehoehenlinie.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_abgeleitetehoehenlinie.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_abgeleitetehoehenlinie.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_abgeleitetehoehenlinie.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_abgeleitetehoehenlinie.position IS 'position   GM_MultiCurve 1';
+COMMENT ON COLUMN ax_abgeleitetehoehenlinie.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_abgeleitetehoehenlinie.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_abgeleitetehoehenlinie.wkb_geometry IS 'wkb_geometry   GM_MultiCurve 0..1';
 COMMENT ON COLUMN ax_abgeleitetehoehenlinie.aktualitaetsstand IS 'aktualitaetsstand   Date 1';
 COMMENT ON COLUMN ax_abgeleitetehoehenlinie.berechnungsdatum IS 'berechnungsdatum   Date 1';
 COMMENT ON COLUMN ax_abgeleitetehoehenlinie.berechnungsmethodehoehenlinie IS 'berechnungsmethodeHoehenlinie  enumeration AX_BerechnungsmethodeHoehenlinie 1';
@@ -11304,16 +10471,16 @@ COMMENT ON COLUMN ax_abgeleitetehoehenlinie.verwendeteobjekte IS 'verwendeteObje
 CREATE TABLE IF NOT EXISTS ap_pto (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(POINT) NOT NULL,
+	wkb_geometry geometry(POINT),
 	art character varying,
 	darstellungsprioritaet integer,
 	drehwinkel double precision,
@@ -11326,30 +10493,22 @@ CREATE TABLE IF NOT EXISTS ap_pto (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	dientzurdarstellungvon text[],
 	hat text,
-CONSTRAINT ap_pto_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ap_pto_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ap_pto IS 'FeatureType: "AP_PTO"';
 COMMENT ON COLUMN ap_pto.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ap_pto.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ap_pto.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ap_pto.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ap_pto.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ap_pto.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ap_pto.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ap_pto.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ap_pto.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ap_pto.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ap_pto.position IS 'position   GM_Point 1';
+COMMENT ON COLUMN ap_pto.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ap_pto.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ap_pto.wkb_geometry IS 'wkb_geometry   GM_Point 0..1';
 COMMENT ON COLUMN ap_pto.art IS 'art   CharacterString 0..1';
 COMMENT ON COLUMN ap_pto.darstellungsprioritaet IS 'darstellungsprioritaet   Integer 0..1';
 COMMENT ON COLUMN ap_pto.drehwinkel IS 'drehwinkel   Angle 0..1';
@@ -11365,16 +10524,16 @@ COMMENT ON COLUMN ap_pto.hat IS 'Assoziation zu: FeatureType AP_LPO (ap_lpo) 0..
 CREATE TABLE IF NOT EXISTS ax_heilquellegasquelle (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(POINT) NOT NULL,
+	wkb_geometry geometry(POINT),
 	art integer NOT NULL,
 	hydrologischesmerkmal integer,
 	name text,
@@ -11382,179 +10541,139 @@ CREATE TABLE IF NOT EXISTS ax_heilquellegasquelle (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_heilquellegasquelle_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_heilquellegasquelle_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_heilquellegasquelle IS 'FeatureType: "AX_HeilquelleGasquelle"';
 COMMENT ON COLUMN ax_heilquellegasquelle.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_heilquellegasquelle.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_heilquellegasquelle.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_heilquellegasquelle.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_heilquellegasquelle.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_heilquellegasquelle.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_heilquellegasquelle.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_heilquellegasquelle.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_heilquellegasquelle.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_heilquellegasquelle.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_heilquellegasquelle.position IS 'position   GM_Point 1';
+COMMENT ON COLUMN ax_heilquellegasquelle.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_heilquellegasquelle.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_heilquellegasquelle.wkb_geometry IS 'wkb_geometry   GM_Point 0..1';
 COMMENT ON COLUMN ax_heilquellegasquelle.art IS 'art  enumeration AX_Art_HeilquelleGasquelle 1';
 COMMENT ON COLUMN ax_heilquellegasquelle.hydrologischesmerkmal IS 'hydrologischesMerkmal  enumeration AX_HydrologischesMerkmal_HeilquelleGasquelle 0..1';
 COMMENT ON COLUMN ax_heilquellegasquelle.name IS 'name    0..1';
 COMMENT ON COLUMN ax_heilquellegasquelle.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
-COMMENT ON COLUMN ax_heilquellegasquelle.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_wasserspiegelhoehe (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(POINT) NOT NULL,
+	wkb_geometry geometry(POINT),
 	hoehedeswasserspiegels double precision NOT NULL,
 	herkunft text,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_wasserspiegelhoehe_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_wasserspiegelhoehe_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_wasserspiegelhoehe IS 'FeatureType: "AX_Wasserspiegelhoehe"';
 COMMENT ON COLUMN ax_wasserspiegelhoehe.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_wasserspiegelhoehe.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_wasserspiegelhoehe.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_wasserspiegelhoehe.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_wasserspiegelhoehe.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_wasserspiegelhoehe.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_wasserspiegelhoehe.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_wasserspiegelhoehe.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_wasserspiegelhoehe.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_wasserspiegelhoehe.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_wasserspiegelhoehe.position IS 'position   GM_Point 1';
+COMMENT ON COLUMN ax_wasserspiegelhoehe.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_wasserspiegelhoehe.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_wasserspiegelhoehe.wkb_geometry IS 'wkb_geometry   GM_Point 0..1';
 COMMENT ON COLUMN ax_wasserspiegelhoehe.hoehedeswasserspiegels IS 'hoeheDesWasserspiegels   Length 1';
 COMMENT ON COLUMN ax_wasserspiegelhoehe.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
-COMMENT ON COLUMN ax_wasserspiegelhoehe.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_nullpunkt (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(POINT) NOT NULL,
+	wkb_geometry geometry(POINT),
 	artdesnullpunktes integer NOT NULL,
 	bezeichnung text NOT NULL,
 	herkunft text,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_nullpunkt_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_nullpunkt_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_nullpunkt IS 'FeatureType: "AX_Nullpunkt"';
 COMMENT ON COLUMN ax_nullpunkt.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_nullpunkt.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_nullpunkt.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_nullpunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_nullpunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_nullpunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_nullpunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_nullpunkt.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_nullpunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_nullpunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_nullpunkt.position IS 'position   GM_Point 1';
+COMMENT ON COLUMN ax_nullpunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_nullpunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_nullpunkt.wkb_geometry IS 'wkb_geometry   GM_Point 0..1';
 COMMENT ON COLUMN ax_nullpunkt.artdesnullpunktes IS 'artDesNullpunktes  enumeration AX_ArtDesNullpunktes_Nullpunkt 1';
 COMMENT ON COLUMN ax_nullpunkt.bezeichnung IS 'bezeichnung    1';
 COMMENT ON COLUMN ax_nullpunkt.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
-COMMENT ON COLUMN ax_nullpunkt.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_punktortau (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(POINT) NOT NULL,
+	wkb_geometry geometry(POINT),
 	hinweise character varying,
-	kartendarstellung boolean,
+	kartendarstellung character varying,
 	koordinatenstatus integer,
-	genauigkeitsstufe character varying,
-	genauigkeitswert text,
+	genauigkeitsstufe integer,
 	herkunft text,
-	lagezuverlaessigkeit boolean,
-	vertrauenswuerdigkeit character varying,
+	lagezuverlaessigkeit character varying,
+	vertrauenswuerdigkeit integer,
 	ueberpruefungsdatum date,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_punktortau_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_punktortau_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_punktortau IS 'FeatureType: "AX_PunktortAU"';
 COMMENT ON COLUMN ax_punktortau.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_punktortau.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_punktortau.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_punktortau.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_punktortau.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_punktortau.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_punktortau.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_punktortau.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_punktortau.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_punktortau.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_punktortau.position IS 'position   GM_Point 1';
+COMMENT ON COLUMN ax_punktortau.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_punktortau.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_punktortau.wkb_geometry IS 'wkb_geometry   GM_Point 0..1';
 COMMENT ON COLUMN ax_punktortau.hinweise IS 'hinweise   CharacterString 0..1';
 COMMENT ON COLUMN ax_punktortau.kartendarstellung IS 'kartendarstellung   Boolean 0..1';
 COMMENT ON COLUMN ax_punktortau.koordinatenstatus IS 'koordinatenstatus  enumeration AX_Koordinatenstatus_Punktort 0..1';
 COMMENT ON COLUMN ax_punktortau.genauigkeitsstufe IS 'qualitaetsangaben AX_DQPunktort|genauigkeitsstufe enumeration AX_Genauigkeitsstufe_Punktort 0..1';
-COMMENT ON COLUMN ax_punktortau.genauigkeitswert IS 'qualitaetsangaben AX_DQPunktort|genauigkeitswert  DQ_RelativeInternalPositionalAccuracy 0..1';
 COMMENT ON COLUMN ax_punktortau.herkunft IS 'qualitaetsangaben AX_DQPunktort|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_punktortau.lagezuverlaessigkeit IS 'qualitaetsangaben AX_DQPunktort|lagezuverlaessigkeit  Boolean 0..1';
 COMMENT ON COLUMN ax_punktortau.vertrauenswuerdigkeit IS 'qualitaetsangaben AX_DQPunktort|vertrauenswuerdigkeit enumeration AX_Vertrauenswuerdigkeit_Punktort 0..1';
@@ -11563,16 +10682,16 @@ COMMENT ON COLUMN ax_punktortau.ueberpruefungsdatum IS 'ueberpruefungsdatum   Da
 CREATE TABLE IF NOT EXISTS ax_georeferenziertegebaeudeadresse (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(POINT) NOT NULL,
+	wkb_geometry geometry(POINT),
 	adressierungszusatz text,
 	datensatznummer text,
 	gemeinde text NOT NULL,
@@ -11590,29 +10709,21 @@ CREATE TABLE IF NOT EXISTS ax_georeferenziertegebaeudeadresse (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	hatauch text NOT NULL,
-CONSTRAINT ax_georeferenziertegebaeudeadresse_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_georeferenziertegebaeudeadresse_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_georeferenziertegebaeudeadresse IS 'FeatureType: "AX_GeoreferenzierteGebaeudeadresse"';
 COMMENT ON COLUMN ax_georeferenziertegebaeudeadresse.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_georeferenziertegebaeudeadresse.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_georeferenziertegebaeudeadresse.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_georeferenziertegebaeudeadresse.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_georeferenziertegebaeudeadresse.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_georeferenziertegebaeudeadresse.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_georeferenziertegebaeudeadresse.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_georeferenziertegebaeudeadresse.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_georeferenziertegebaeudeadresse.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_georeferenziertegebaeudeadresse.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_georeferenziertegebaeudeadresse.position IS 'position   GM_Point 1';
+COMMENT ON COLUMN ax_georeferenziertegebaeudeadresse.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_georeferenziertegebaeudeadresse.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_georeferenziertegebaeudeadresse.wkb_geometry IS 'wkb_geometry   GM_Point 0..1';
 COMMENT ON COLUMN ax_georeferenziertegebaeudeadresse.adressierungszusatz IS 'adressierungszusatz    0..1';
 COMMENT ON COLUMN ax_georeferenziertegebaeudeadresse.datensatznummer IS 'datensatznummer    0..1';
 COMMENT ON COLUMN ax_georeferenziertegebaeudeadresse.gemeinde IS 'gemeinde    1';
@@ -11632,16 +10743,16 @@ COMMENT ON COLUMN ax_georeferenziertegebaeudeadresse.hatauch IS 'Assoziation zu:
 CREATE TABLE IF NOT EXISTS ax_grablochderbodenschaetzung (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(POINT) NOT NULL,
+	wkb_geometry geometry(POINT),
 	bedeutung integer[] NOT NULL,
 	bodenzahlodergruenlandgrundzahl text,
 	ingemarkung_gemarkungsnummer text,
@@ -11654,29 +10765,21 @@ CREATE TABLE IF NOT EXISTS ax_grablochderbodenschaetzung (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	gehoertzu text,
-CONSTRAINT ax_grablochderbodenschaetzung_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_grablochderbodenschaetzung_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_grablochderbodenschaetzung IS 'FeatureType: "AX_GrablochDerBodenschaetzung"';
 COMMENT ON COLUMN ax_grablochderbodenschaetzung.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_grablochderbodenschaetzung.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_grablochderbodenschaetzung.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_grablochderbodenschaetzung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_grablochderbodenschaetzung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_grablochderbodenschaetzung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_grablochderbodenschaetzung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_grablochderbodenschaetzung.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_grablochderbodenschaetzung.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_grablochderbodenschaetzung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_grablochderbodenschaetzung.position IS 'position   GM_Point 1';
+COMMENT ON COLUMN ax_grablochderbodenschaetzung.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_grablochderbodenschaetzung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_grablochderbodenschaetzung.wkb_geometry IS 'wkb_geometry   GM_Point 0..1';
 COMMENT ON COLUMN ax_grablochderbodenschaetzung.bedeutung IS 'bedeutung  enumeration AX_Bedeutung_GrablochDerBodenschaetzung 1..*';
 COMMENT ON COLUMN ax_grablochderbodenschaetzung.bodenzahlodergruenlandgrundzahl IS 'bodenzahlOderGruenlandgrundzahl    0..1';
 COMMENT ON COLUMN ax_grablochderbodenschaetzung.ingemarkung_gemarkungsnummer IS 'inGemarkung AX_Gemarkung_Schluessel|gemarkungsnummer   1';
@@ -11691,16 +10794,16 @@ COMMENT ON COLUMN ax_grablochderbodenschaetzung.gehoertzu IS 'Assoziation zu: Fe
 CREATE TABLE IF NOT EXISTS ax_wohnplatz (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(POINT) NOT NULL,
+	wkb_geometry geometry(POINT),
 	bezeichnung text[],
 	einwohnerzahl text,
 	name text NOT NULL,
@@ -11708,28 +10811,20 @@ CREATE TABLE IF NOT EXISTS ax_wohnplatz (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_wohnplatz_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_wohnplatz_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_wohnplatz IS 'FeatureType: "AX_Wohnplatz"';
 COMMENT ON COLUMN ax_wohnplatz.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_wohnplatz.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_wohnplatz.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_wohnplatz.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_wohnplatz.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_wohnplatz.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_wohnplatz.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_wohnplatz.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_wohnplatz.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_wohnplatz.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_wohnplatz.position IS 'position   GM_Point 1';
+COMMENT ON COLUMN ax_wohnplatz.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_wohnplatz.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_wohnplatz.wkb_geometry IS 'wkb_geometry   GM_Point 0..1';
 COMMENT ON COLUMN ax_wohnplatz.bezeichnung IS 'bezeichnung    0..*';
 COMMENT ON COLUMN ax_wohnplatz.einwohnerzahl IS 'einwohnerzahl    0..1';
 COMMENT ON COLUMN ax_wohnplatz.name IS 'name    1';
@@ -11738,138 +10833,142 @@ COMMENT ON COLUMN ax_wohnplatz.zweitname IS 'zweitname    0..1';
 CREATE TABLE IF NOT EXISTS ax_markantergelaendepunkt (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(POINT) NOT NULL,
+	wkb_geometry geometry(POINT),
 	artdesmarkantenpunktes integer,
-	datetime timestamp without time zone,
-	description character varying NOT NULL,
-	hoehengenauigkeit text,
+	erfassungmarkantergelaendepunkt_datetime timestamp without time zone,
+	description integer NOT NULL,
+	nameofmeasure character varying[],
+	measureidentification text,
+	measuredescription character varying,
+	evaluationmethodtype character varying,
+	evaluationmethoddescription character varying,
+	evaluationprocedure text,
+	hoehengenauigkeit_datetime timestamp without time zone[],
+	result text[],
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_markantergelaendepunkt_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_markantergelaendepunkt_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_markantergelaendepunkt IS 'FeatureType: "AX_MarkanterGelaendepunkt"';
 COMMENT ON COLUMN ax_markantergelaendepunkt.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_markantergelaendepunkt.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_markantergelaendepunkt.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_markantergelaendepunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_markantergelaendepunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_markantergelaendepunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_markantergelaendepunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_markantergelaendepunkt.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_markantergelaendepunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_markantergelaendepunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_markantergelaendepunkt.position IS 'position   GM_Point 1';
+COMMENT ON COLUMN ax_markantergelaendepunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_markantergelaendepunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_markantergelaendepunkt.wkb_geometry IS 'wkb_geometry   GM_Point 0..1';
 COMMENT ON COLUMN ax_markantergelaendepunkt.artdesmarkantenpunktes IS 'artDesMarkantenPunktes  enumeration AX_ArtDesMarkantenGelaendepunktes 0..1';
-COMMENT ON COLUMN ax_markantergelaendepunkt.datetime IS 'erfassungMarkanterGelaendepunkt AX_ErfassungMarkanterGelaendepunkt|dateTime  DateTime 0..1';
+COMMENT ON COLUMN ax_markantergelaendepunkt.erfassungmarkantergelaendepunkt_datetime IS 'erfassungMarkanterGelaendepunkt AX_ErfassungMarkanterGelaendepunkt|dateTime  DateTime 0..1';
 COMMENT ON COLUMN ax_markantergelaendepunkt.description IS 'erfassungMarkanterGelaendepunkt AX_ErfassungMarkanterGelaendepunkt|description enumeration AX_DQErfassungsmethodeMarkanterGelaendepunkt 1';
-COMMENT ON COLUMN ax_markantergelaendepunkt.hoehengenauigkeit IS 'hoehengenauigkeit   DQ_AbsoluteExternalPositionalAccuracy 0..1';
+COMMENT ON COLUMN ax_markantergelaendepunkt.nameofmeasure IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|nameOfMeasure  CharacterString 0..*';
+COMMENT ON COLUMN ax_markantergelaendepunkt.measureidentification IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|measureIdentification  MD_Identifier 0..1';
+COMMENT ON COLUMN ax_markantergelaendepunkt.measuredescription IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|measureDescription  CharacterString 0..1';
+COMMENT ON COLUMN ax_markantergelaendepunkt.evaluationmethodtype IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|evaluationMethodType  DQ_EvaluationMethodTypeCode 0..1';
+COMMENT ON COLUMN ax_markantergelaendepunkt.evaluationmethoddescription IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|evaluationMethodDescription  CharacterString 0..1';
+COMMENT ON COLUMN ax_markantergelaendepunkt.evaluationprocedure IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|evaluationProcedure  CI_Citation 0..1';
+COMMENT ON COLUMN ax_markantergelaendepunkt.hoehengenauigkeit_datetime IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|dateTime  DateTime 0..*';
+COMMENT ON COLUMN ax_markantergelaendepunkt.result IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|result  DQ_Result 1..*';
 
 CREATE TABLE IF NOT EXISTS ax_besondererhoehenpunkt (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(POINT) NOT NULL,
+	wkb_geometry geometry(POINT),
 	besonderebedeutung integer NOT NULL,
-	datetime timestamp without time zone,
-	description character varying,
-	hoehengenauigkeit text,
+	erfassungbesondererhoehenpunkt_datetime timestamp without time zone,
+	description integer,
+	nameofmeasure character varying[],
+	measureidentification text,
+	measuredescription character varying,
+	evaluationmethodtype character varying,
+	evaluationmethoddescription character varying,
+	evaluationprocedure text,
+	hoehengenauigkeit_datetime timestamp without time zone[],
+	result text[],
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_besondererhoehenpunkt_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_besondererhoehenpunkt_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_besondererhoehenpunkt IS 'FeatureType: "AX_BesondererHoehenpunkt"';
 COMMENT ON COLUMN ax_besondererhoehenpunkt.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_besondererhoehenpunkt.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_besondererhoehenpunkt.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_besondererhoehenpunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_besondererhoehenpunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_besondererhoehenpunkt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_besondererhoehenpunkt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_besondererhoehenpunkt.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_besondererhoehenpunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_besondererhoehenpunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_besondererhoehenpunkt.position IS 'position   GM_Point 1';
+COMMENT ON COLUMN ax_besondererhoehenpunkt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_besondererhoehenpunkt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_besondererhoehenpunkt.wkb_geometry IS 'wkb_geometry   GM_Point 0..1';
 COMMENT ON COLUMN ax_besondererhoehenpunkt.besonderebedeutung IS 'besondereBedeutung  enumeration AX_BesondereBedeutung 1';
-COMMENT ON COLUMN ax_besondererhoehenpunkt.datetime IS 'erfassungBesondererHoehenpunkt AX_Erfassung_DGMBesondererHoehenpunkt|dateTime  DateTime 0..1';
+COMMENT ON COLUMN ax_besondererhoehenpunkt.erfassungbesondererhoehenpunkt_datetime IS 'erfassungBesondererHoehenpunkt AX_Erfassung_DGMBesondererHoehenpunkt|dateTime  DateTime 0..1';
 COMMENT ON COLUMN ax_besondererhoehenpunkt.description IS 'erfassungBesondererHoehenpunkt AX_Erfassung_DGMBesondererHoehenpunkt|description enumeration AX_DQErfassungsmethodeBesondererHoehenpunkt 1';
-COMMENT ON COLUMN ax_besondererhoehenpunkt.hoehengenauigkeit IS 'hoehengenauigkeit   DQ_AbsoluteExternalPositionalAccuracy 0..1';
+COMMENT ON COLUMN ax_besondererhoehenpunkt.nameofmeasure IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|nameOfMeasure  CharacterString 0..*';
+COMMENT ON COLUMN ax_besondererhoehenpunkt.measureidentification IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|measureIdentification  MD_Identifier 0..1';
+COMMENT ON COLUMN ax_besondererhoehenpunkt.measuredescription IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|measureDescription  CharacterString 0..1';
+COMMENT ON COLUMN ax_besondererhoehenpunkt.evaluationmethodtype IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|evaluationMethodType  DQ_EvaluationMethodTypeCode 0..1';
+COMMENT ON COLUMN ax_besondererhoehenpunkt.evaluationmethoddescription IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|evaluationMethodDescription  CharacterString 0..1';
+COMMENT ON COLUMN ax_besondererhoehenpunkt.evaluationprocedure IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|evaluationProcedure  CI_Citation 0..1';
+COMMENT ON COLUMN ax_besondererhoehenpunkt.hoehengenauigkeit_datetime IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|dateTime  DateTime 0..*';
+COMMENT ON COLUMN ax_besondererhoehenpunkt.result IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|result  DQ_Result 1..*';
 
 CREATE TABLE IF NOT EXISTS ax_hoehleneingang (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(POINT) NOT NULL,
+	wkb_geometry geometry(POINT),
 	name text,
 	herkunft text,
 	zustand integer,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_hoehleneingang_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_hoehleneingang_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_hoehleneingang IS 'FeatureType: "AX_Hoehleneingang"';
 COMMENT ON COLUMN ax_hoehleneingang.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_hoehleneingang.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_hoehleneingang.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_hoehleneingang.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_hoehleneingang.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_hoehleneingang.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_hoehleneingang.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_hoehleneingang.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_hoehleneingang.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_hoehleneingang.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_hoehleneingang.position IS 'position   GM_Point 1';
+COMMENT ON COLUMN ax_hoehleneingang.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_hoehleneingang.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_hoehleneingang.wkb_geometry IS 'wkb_geometry   GM_Point 0..1';
 COMMENT ON COLUMN ax_hoehleneingang.name IS 'name    0..1';
 COMMENT ON COLUMN ax_hoehleneingang.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_hoehleneingang.zustand IS 'zustand  enumeration AX_Zustand_Hoehleneingang 0..1';
@@ -11877,16 +10976,16 @@ COMMENT ON COLUMN ax_hoehleneingang.zustand IS 'zustand  enumeration AX_Zustand_
 CREATE TABLE IF NOT EXISTS ap_ppo (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(MULTIPOINT) NOT NULL,
+	wkb_geometry geometry(MULTIPOINT),
 	art character varying,
 	darstellungsprioritaet integer,
 	drehwinkel double precision,
@@ -11895,29 +10994,21 @@ CREATE TABLE IF NOT EXISTS ap_ppo (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	dientzurdarstellungvon text[],
-CONSTRAINT ap_ppo_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ap_ppo_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ap_ppo IS 'FeatureType: "AP_PPO"';
 COMMENT ON COLUMN ap_ppo.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ap_ppo.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ap_ppo.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ap_ppo.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ap_ppo.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ap_ppo.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ap_ppo.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ap_ppo.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ap_ppo.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ap_ppo.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ap_ppo.position IS 'position   GM_MultiPoint 1';
+COMMENT ON COLUMN ap_ppo.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ap_ppo.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ap_ppo.wkb_geometry IS 'wkb_geometry   GM_MultiPoint 0..1';
 COMMENT ON COLUMN ap_ppo.art IS 'art   CharacterString 0..1';
 COMMENT ON COLUMN ap_ppo.darstellungsprioritaet IS 'darstellungsprioritaet   Integer 0..1';
 COMMENT ON COLUMN ap_ppo.drehwinkel IS 'drehwinkel   Angle 0..1';
@@ -11928,16 +11019,16 @@ COMMENT ON COLUMN ap_ppo.dientzurdarstellungvon IS 'Assoziation zu: FeatureType 
 CREATE TABLE IF NOT EXISTS ax_sickerstrecke (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(MULTILINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	gewaesserkennzahl text,
 	name text,
 	herkunft text,
@@ -11945,179 +11036,159 @@ CREATE TABLE IF NOT EXISTS ax_sickerstrecke (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_sickerstrecke_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_sickerstrecke_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_sickerstrecke IS 'FeatureType: "AX_Sickerstrecke"';
 COMMENT ON COLUMN ax_sickerstrecke.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_sickerstrecke.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_sickerstrecke.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_sickerstrecke.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_sickerstrecke.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_sickerstrecke.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_sickerstrecke.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_sickerstrecke.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_sickerstrecke.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_sickerstrecke.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_sickerstrecke.position IS 'position   GM_CompositeCurve 1';
+COMMENT ON COLUMN ax_sickerstrecke.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_sickerstrecke.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_sickerstrecke.wkb_geometry IS 'wkb_geometry   GM_CompositeCurve 0..1';
 COMMENT ON COLUMN ax_sickerstrecke.gewaesserkennzahl IS 'gewaesserkennzahl    0..1';
 COMMENT ON COLUMN ax_sickerstrecke.name IS 'name    0..1';
 COMMENT ON COLUMN ax_sickerstrecke.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_sickerstrecke.zweitname IS 'zweitname    0..1';
-COMMENT ON COLUMN ax_sickerstrecke.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_firstlinie (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(MULTILINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_firstlinie_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_firstlinie_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_firstlinie IS 'FeatureType: "AX_Firstlinie"';
 COMMENT ON COLUMN ax_firstlinie.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_firstlinie.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_firstlinie.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_firstlinie.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_firstlinie.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_firstlinie.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_firstlinie.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_firstlinie.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_firstlinie.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_firstlinie.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_firstlinie.position IS 'position   GM_CompositeCurve 1';
+COMMENT ON COLUMN ax_firstlinie.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_firstlinie.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_firstlinie.wkb_geometry IS 'wkb_geometry   GM_CompositeCurve 0..1';
 
 CREATE TABLE IF NOT EXISTS ax_besonderegebaeudelinie (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(MULTILINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	beschaffenheit integer[] NOT NULL,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_besonderegebaeudelinie_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_besonderegebaeudelinie_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_besonderegebaeudelinie IS 'FeatureType: "AX_BesondereGebaeudelinie"';
 COMMENT ON COLUMN ax_besonderegebaeudelinie.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_besonderegebaeudelinie.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_besonderegebaeudelinie.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_besonderegebaeudelinie.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_besonderegebaeudelinie.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_besonderegebaeudelinie.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_besonderegebaeudelinie.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_besonderegebaeudelinie.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_besonderegebaeudelinie.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_besonderegebaeudelinie.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_besonderegebaeudelinie.position IS 'position   GM_CompositeCurve 1';
+COMMENT ON COLUMN ax_besonderegebaeudelinie.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_besonderegebaeudelinie.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_besonderegebaeudelinie.wkb_geometry IS 'wkb_geometry   GM_CompositeCurve 0..1';
 COMMENT ON COLUMN ax_besonderegebaeudelinie.beschaffenheit IS 'beschaffenheit  enumeration AX_Beschaffenheit_BesondereGebaeudelinie 1..*';
 
 CREATE TABLE IF NOT EXISTS ax_gelaendekante (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(MULTILINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	artdergelaendekante integer NOT NULL,
-	datetime timestamp without time zone,
-	description character varying,
-	identifikation character varying,
-	hoehengenauigkeit text,
+	erfassung_datetime timestamp without time zone,
+	description integer,
+	identifikation integer,
+	nameofmeasure character varying[],
+	measureidentification text,
+	measuredescription character varying,
+	evaluationmethodtype character varying,
+	evaluationmethoddescription character varying,
+	evaluationprocedure text,
+	hoehengenauigkeit_datetime timestamp without time zone[],
+	result text[],
 	ursprung integer,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_gelaendekante_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_gelaendekante_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_gelaendekante IS 'FeatureType: "AX_Gelaendekante"';
 COMMENT ON COLUMN ax_gelaendekante.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_gelaendekante.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_gelaendekante.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_gelaendekante.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_gelaendekante.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_gelaendekante.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_gelaendekante.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_gelaendekante.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_gelaendekante.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_gelaendekante.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_gelaendekante.position IS 'position   GM_CompositeCurve 1';
+COMMENT ON COLUMN ax_gelaendekante.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_gelaendekante.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_gelaendekante.wkb_geometry IS 'wkb_geometry   GM_CompositeCurve 0..1';
 COMMENT ON COLUMN ax_gelaendekante.artdergelaendekante IS 'artDerGelaendekante  enumeration AX_ArtDerGelaendekante 1';
-COMMENT ON COLUMN ax_gelaendekante.datetime IS 'erfassung AX_Erfassung_DGM|dateTime  DateTime 0..1';
+COMMENT ON COLUMN ax_gelaendekante.erfassung_datetime IS 'erfassung AX_Erfassung_DGM|dateTime  DateTime 0..1';
 COMMENT ON COLUMN ax_gelaendekante.description IS 'erfassung AX_Erfassung_DGM|description enumeration AX_DQErfassungsmethode 1';
 COMMENT ON COLUMN ax_gelaendekante.identifikation IS 'erfassung AX_Erfassung_DGM|identifikation enumeration AX_Identifikation 1';
-COMMENT ON COLUMN ax_gelaendekante.hoehengenauigkeit IS 'hoehengenauigkeit   DQ_AbsoluteExternalPositionalAccuracy 0..1';
+COMMENT ON COLUMN ax_gelaendekante.nameofmeasure IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|nameOfMeasure  CharacterString 0..*';
+COMMENT ON COLUMN ax_gelaendekante.measureidentification IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|measureIdentification  MD_Identifier 0..1';
+COMMENT ON COLUMN ax_gelaendekante.measuredescription IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|measureDescription  CharacterString 0..1';
+COMMENT ON COLUMN ax_gelaendekante.evaluationmethodtype IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|evaluationMethodType  DQ_EvaluationMethodTypeCode 0..1';
+COMMENT ON COLUMN ax_gelaendekante.evaluationmethoddescription IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|evaluationMethodDescription  CharacterString 0..1';
+COMMENT ON COLUMN ax_gelaendekante.evaluationprocedure IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|evaluationProcedure  CI_Citation 0..1';
+COMMENT ON COLUMN ax_gelaendekante.hoehengenauigkeit_datetime IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|dateTime  DateTime 0..*';
+COMMENT ON COLUMN ax_gelaendekante.result IS 'hoehengenauigkeit DQ_AbsoluteExternalPositionalAccuracy|result  DQ_Result 1..*';
 COMMENT ON COLUMN ax_gelaendekante.ursprung IS 'ursprung  enumeration AX_Ursprung 0..1';
 
 CREATE TABLE IF NOT EXISTS ax_sonstigesbauwerkodersonstigeeinrichtung (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	bauwerksfunktion integer NOT NULL,
 	bezeichnung text,
 	funktion integer,
@@ -12128,17 +11199,8 @@ CREATE TABLE IF NOT EXISTS ax_sonstigesbauwerkodersonstigeeinrichtung (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	gehoertzubauwerk_ax_sonstigesbauwerkodersonstigeeinrichtun text,
-	inverszu_gehoertzubauwerk text[],
 	gehoertzubauwerk_ax_bauwerkoderanlagefuersportfreizeitunde text,
 	gehoertzubauwerk_ax_leitung text,
 	gehoertzubauwerk_ax_bauwerkoderanlagefuerindustrieundgewer text,
@@ -12175,19 +11237,19 @@ CREATE TABLE IF NOT EXISTS ax_sonstigesbauwerkodersonstigeeinrichtung (
 	gehoertzubauwerk_ax_untergeordnetesgewaesser text,
 	gehoertzubauwerk_ax_vegetationsmerkmal text,
 	gehoertzu text,
-CONSTRAINT ax_sonstigesbauwerkodersonstigeeinrichtung_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_sonstigesbauwerkodersonstigeeinrichtung_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_sonstigesbauwerkodersonstigeeinrichtung IS 'FeatureType: "AX_SonstigesBauwerkOderSonstigeEinrichtung"';
 COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.bauwerksfunktion IS 'bauwerksfunktion  enumeration AX_Bauwerksfunktion_SonstigesBauwerkOderSonstigeEinrichtung 1';
 COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.bezeichnung IS 'bezeichnung    0..1';
 COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.funktion IS 'funktion  enumeration AX_Funktion_Bauwerk 0..1';
@@ -12196,7 +11258,6 @@ COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.name IS 'name    0.
 COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.objekthoehe IS 'objekthoehe   Length 0..1';
 COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.gehoertzubauwerk_ax_sonstigesbauwerkodersonstigeeinrichtun IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..1';
-COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.gehoertzubauwerk_ax_bauwerkoderanlagefuersportfreizeitunde IS 'Assoziation zu: FeatureType AX_BauwerkOderAnlageFuerSportFreizeitUndErholung (ax_bauwerkoderanlagefuersportfreizeitunderholung) 0..1';
 COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.gehoertzubauwerk_ax_leitung IS 'Assoziation zu: FeatureType AX_Leitung (ax_leitung) 0..1';
 COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.gehoertzubauwerk_ax_bauwerkoderanlagefuerindustrieundgewer IS 'Assoziation zu: FeatureType AX_BauwerkOderAnlageFuerIndustrieUndGewerbe (ax_bauwerkoderanlagefuerindustrieundgewerbe) 0..1';
@@ -12237,16 +11298,16 @@ COMMENT ON COLUMN ax_sonstigesbauwerkodersonstigeeinrichtung.gehoertzu IS 'Assoz
 CREATE TABLE IF NOT EXISTS ax_bauwerkoderanlagefuersportfreizeitunderholung (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	bauwerksfunktion integer NOT NULL,
 	breitedesobjekts double precision,
 	name text,
@@ -12255,49 +11316,39 @@ CREATE TABLE IF NOT EXISTS ax_bauwerkoderanlagefuersportfreizeitunderholung (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_bauwerkoderanlagefuersportfreizeitunderholung_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_bauwerkoderanlagefuersportfreizeitunderholung_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_bauwerkoderanlagefuersportfreizeitunderholung IS 'FeatureType: "AX_BauwerkOderAnlageFuerSportFreizeitUndErholung"';
 COMMENT ON COLUMN ax_bauwerkoderanlagefuersportfreizeitunderholung.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_bauwerkoderanlagefuersportfreizeitunderholung.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_bauwerkoderanlagefuersportfreizeitunderholung.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_bauwerkoderanlagefuersportfreizeitunderholung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_bauwerkoderanlagefuersportfreizeitunderholung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_bauwerkoderanlagefuersportfreizeitunderholung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_bauwerkoderanlagefuersportfreizeitunderholung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_bauwerkoderanlagefuersportfreizeitunderholung.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_bauwerkoderanlagefuersportfreizeitunderholung.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_bauwerkoderanlagefuersportfreizeitunderholung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_bauwerkoderanlagefuersportfreizeitunderholung.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_bauwerkoderanlagefuersportfreizeitunderholung.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_bauwerkoderanlagefuersportfreizeitunderholung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_bauwerkoderanlagefuersportfreizeitunderholung.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_bauwerkoderanlagefuersportfreizeitunderholung.bauwerksfunktion IS 'bauwerksfunktion  enumeration AX_Bauwerksfunktion_BauwerkOderAnlageFuerSportFreizeitUndErholung 1';
 COMMENT ON COLUMN ax_bauwerkoderanlagefuersportfreizeitunderholung.breitedesobjekts IS 'breiteDesObjekts   Length 0..1';
 COMMENT ON COLUMN ax_bauwerkoderanlagefuersportfreizeitunderholung.name IS 'name    0..1';
 COMMENT ON COLUMN ax_bauwerkoderanlagefuersportfreizeitunderholung.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_bauwerkoderanlagefuersportfreizeitunderholung.sportart IS 'sportart  enumeration AX_Sportart_BauwerkOderAnlageFuerSportFreizeitUndErholung 0..1';
-COMMENT ON COLUMN ax_bauwerkoderanlagefuersportfreizeitunderholung.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_bauwerkoderanlagefuerindustrieundgewerbe (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	bauwerksfunktion integer NOT NULL,
 	bezeichnung text,
 	name text,
@@ -12307,144 +11358,114 @@ CREATE TABLE IF NOT EXISTS ax_bauwerkoderanlagefuerindustrieundgewerbe (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_bauwerkoderanlagefuerindustrieundgewerbe_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_bauwerkoderanlagefuerindustrieundgewerbe_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_bauwerkoderanlagefuerindustrieundgewerbe IS 'FeatureType: "AX_BauwerkOderAnlageFuerIndustrieUndGewerbe"';
 COMMENT ON COLUMN ax_bauwerkoderanlagefuerindustrieundgewerbe.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_bauwerkoderanlagefuerindustrieundgewerbe.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_bauwerkoderanlagefuerindustrieundgewerbe.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_bauwerkoderanlagefuerindustrieundgewerbe.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_bauwerkoderanlagefuerindustrieundgewerbe.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_bauwerkoderanlagefuerindustrieundgewerbe.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_bauwerkoderanlagefuerindustrieundgewerbe.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_bauwerkoderanlagefuerindustrieundgewerbe.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_bauwerkoderanlagefuerindustrieundgewerbe.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_bauwerkoderanlagefuerindustrieundgewerbe.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_bauwerkoderanlagefuerindustrieundgewerbe.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_bauwerkoderanlagefuerindustrieundgewerbe.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_bauwerkoderanlagefuerindustrieundgewerbe.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_bauwerkoderanlagefuerindustrieundgewerbe.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_bauwerkoderanlagefuerindustrieundgewerbe.bauwerksfunktion IS 'bauwerksfunktion  enumeration AX_Bauwerksfunktion_BauwerkOderAnlageFuerIndustrieUndGewerbe 1';
 COMMENT ON COLUMN ax_bauwerkoderanlagefuerindustrieundgewerbe.bezeichnung IS 'bezeichnung    0..1';
 COMMENT ON COLUMN ax_bauwerkoderanlagefuerindustrieundgewerbe.name IS 'name    0..1';
 COMMENT ON COLUMN ax_bauwerkoderanlagefuerindustrieundgewerbe.objekthoehe IS 'objekthoehe   Length 0..1';
 COMMENT ON COLUMN ax_bauwerkoderanlagefuerindustrieundgewerbe.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_bauwerkoderanlagefuerindustrieundgewerbe.zustand IS 'zustand  enumeration AX_Zustand_BauwerkOderAnlageFuerIndustrieUndGewerbe 0..1';
-COMMENT ON COLUMN ax_bauwerkoderanlagefuerindustrieundgewerbe.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_einrichtunginoeffentlichenbereichen (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	art integer NOT NULL,
 	kilometerangabe double precision,
 	herkunft text,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_einrichtunginoeffentlichenbereichen_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_einrichtunginoeffentlichenbereichen_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_einrichtunginoeffentlichenbereichen IS 'FeatureType: "AX_EinrichtungInOeffentlichenBereichen"';
 COMMENT ON COLUMN ax_einrichtunginoeffentlichenbereichen.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_einrichtunginoeffentlichenbereichen.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_einrichtunginoeffentlichenbereichen.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_einrichtunginoeffentlichenbereichen.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_einrichtunginoeffentlichenbereichen.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_einrichtunginoeffentlichenbereichen.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_einrichtunginoeffentlichenbereichen.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_einrichtunginoeffentlichenbereichen.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_einrichtunginoeffentlichenbereichen.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_einrichtunginoeffentlichenbereichen.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_einrichtunginoeffentlichenbereichen.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_einrichtunginoeffentlichenbereichen.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_einrichtunginoeffentlichenbereichen.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_einrichtunginoeffentlichenbereichen.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_einrichtunginoeffentlichenbereichen.art IS 'art  enumeration AX_Art_EinrichtungInOeffentlichenBereichen 1';
 COMMENT ON COLUMN ax_einrichtunginoeffentlichenbereichen.kilometerangabe IS 'kilometerangabe   Distance 0..1';
 COMMENT ON COLUMN ax_einrichtunginoeffentlichenbereichen.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
-COMMENT ON COLUMN ax_einrichtunginoeffentlichenbereichen.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_historischesbauwerkoderhistorischeeinrichtung (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	archaeologischertyp integer NOT NULL,
 	name text,
 	herkunft text,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_historischesbauwerkoderhistorischeeinrichtung_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_historischesbauwerkoderhistorischeeinrichtung_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_historischesbauwerkoderhistorischeeinrichtung IS 'FeatureType: "AX_HistorischesBauwerkOderHistorischeEinrichtung"';
 COMMENT ON COLUMN ax_historischesbauwerkoderhistorischeeinrichtung.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_historischesbauwerkoderhistorischeeinrichtung.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_historischesbauwerkoderhistorischeeinrichtung.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_historischesbauwerkoderhistorischeeinrichtung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_historischesbauwerkoderhistorischeeinrichtung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_historischesbauwerkoderhistorischeeinrichtung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_historischesbauwerkoderhistorischeeinrichtung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_historischesbauwerkoderhistorischeeinrichtung.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_historischesbauwerkoderhistorischeeinrichtung.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_historischesbauwerkoderhistorischeeinrichtung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_historischesbauwerkoderhistorischeeinrichtung.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_historischesbauwerkoderhistorischeeinrichtung.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_historischesbauwerkoderhistorischeeinrichtung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_historischesbauwerkoderhistorischeeinrichtung.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_historischesbauwerkoderhistorischeeinrichtung.archaeologischertyp IS 'archaeologischerTyp  enumeration AX_ArchaeologischerTyp_HistorischesBauwerkOderHistorischeEinrichtung 1';
 COMMENT ON COLUMN ax_historischesbauwerkoderhistorischeeinrichtung.name IS 'name    0..1';
 COMMENT ON COLUMN ax_historischesbauwerkoderhistorischeeinrichtung.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
-COMMENT ON COLUMN ax_historischesbauwerkoderhistorischeeinrichtung.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_turm (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	bauwerksfunktion integer[] NOT NULL,
 	name text,
 	objekthoehe double precision,
@@ -12453,51 +11474,41 @@ CREATE TABLE IF NOT EXISTS ax_turm (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
 	zeigtauf text[],
-CONSTRAINT ax_turm_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_turm_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_turm IS 'FeatureType: "AX_Turm"';
 COMMENT ON COLUMN ax_turm.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_turm.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_turm.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_turm.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_turm.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_turm.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_turm.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_turm.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_turm.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_turm.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_turm.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_turm.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_turm.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_turm.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_turm.bauwerksfunktion IS 'bauwerksfunktion  enumeration AX_Bauwerksfunktion_Turm 1..*';
 COMMENT ON COLUMN ax_turm.name IS 'name    0..1';
 COMMENT ON COLUMN ax_turm.objekthoehe IS 'objekthoehe   Length 0..1';
 COMMENT ON COLUMN ax_turm.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_turm.zustand IS 'zustand  enumeration AX_Zustand_Turm 0..1';
-COMMENT ON COLUMN ax_turm.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 COMMENT ON COLUMN ax_turm.zeigtauf IS 'Assoziation zu: FeatureType AX_LagebezeichnungMitHausnummer (ax_lagebezeichnungmithausnummer) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_vorratsbehaelterspeicherbauwerk (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	bauwerksfunktion integer,
 	lagezurerdoberflaeche integer,
 	name text,
@@ -12507,50 +11518,40 @@ CREATE TABLE IF NOT EXISTS ax_vorratsbehaelterspeicherbauwerk (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_vorratsbehaelterspeicherbauwerk_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_vorratsbehaelterspeicherbauwerk_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_vorratsbehaelterspeicherbauwerk IS 'FeatureType: "AX_VorratsbehaelterSpeicherbauwerk"';
 COMMENT ON COLUMN ax_vorratsbehaelterspeicherbauwerk.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_vorratsbehaelterspeicherbauwerk.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_vorratsbehaelterspeicherbauwerk.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_vorratsbehaelterspeicherbauwerk.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_vorratsbehaelterspeicherbauwerk.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_vorratsbehaelterspeicherbauwerk.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_vorratsbehaelterspeicherbauwerk.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_vorratsbehaelterspeicherbauwerk.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_vorratsbehaelterspeicherbauwerk.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_vorratsbehaelterspeicherbauwerk.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_vorratsbehaelterspeicherbauwerk.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_vorratsbehaelterspeicherbauwerk.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_vorratsbehaelterspeicherbauwerk.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_vorratsbehaelterspeicherbauwerk.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_vorratsbehaelterspeicherbauwerk.bauwerksfunktion IS 'bauwerksfunktion  enumeration AX_Bauwerksfunktion_VorratsbehaelterSpeicherbauwerk 0..1';
 COMMENT ON COLUMN ax_vorratsbehaelterspeicherbauwerk.lagezurerdoberflaeche IS 'lageZurErdoberflaeche  enumeration AX_LageZurErdoberflaeche_VorratsbehaelterSpeicherbauwerk 0..1';
 COMMENT ON COLUMN ax_vorratsbehaelterspeicherbauwerk.name IS 'name    0..1';
 COMMENT ON COLUMN ax_vorratsbehaelterspeicherbauwerk.objekthoehe IS 'objekthoehe   Length 0..1';
 COMMENT ON COLUMN ax_vorratsbehaelterspeicherbauwerk.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_vorratsbehaelterspeicherbauwerk.speicherinhalt IS 'speicherinhalt  enumeration AX_Speicherinhalt_VorratsbehaelterSpeicherbauwerk 0..1';
-COMMENT ON COLUMN ax_vorratsbehaelterspeicherbauwerk.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_bauwerkimgewaesserbereich (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	bauwerksfunktion integer NOT NULL,
 	bezeichnung text,
 	name text,
@@ -12559,49 +11560,39 @@ CREATE TABLE IF NOT EXISTS ax_bauwerkimgewaesserbereich (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_bauwerkimgewaesserbereich_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_bauwerkimgewaesserbereich_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_bauwerkimgewaesserbereich IS 'FeatureType: "AX_BauwerkImGewaesserbereich"';
 COMMENT ON COLUMN ax_bauwerkimgewaesserbereich.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_bauwerkimgewaesserbereich.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_bauwerkimgewaesserbereich.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_bauwerkimgewaesserbereich.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_bauwerkimgewaesserbereich.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_bauwerkimgewaesserbereich.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_bauwerkimgewaesserbereich.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_bauwerkimgewaesserbereich.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_bauwerkimgewaesserbereich.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_bauwerkimgewaesserbereich.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_bauwerkimgewaesserbereich.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_bauwerkimgewaesserbereich.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_bauwerkimgewaesserbereich.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_bauwerkimgewaesserbereich.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_bauwerkimgewaesserbereich.bauwerksfunktion IS 'bauwerksfunktion  enumeration AX_Bauwerksfunktion_BauwerkImGewaesserbereich 1';
 COMMENT ON COLUMN ax_bauwerkimgewaesserbereich.bezeichnung IS 'bezeichnung    0..1';
 COMMENT ON COLUMN ax_bauwerkimgewaesserbereich.name IS 'name    0..1';
 COMMENT ON COLUMN ax_bauwerkimgewaesserbereich.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_bauwerkimgewaesserbereich.zustand IS 'zustand  enumeration AX_Zustand_BauwerkImGewaesserbereich 0..1';
-COMMENT ON COLUMN ax_bauwerkimgewaesserbereich.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_bauwerkimverkehrsbereich (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	bauwerksfunktion integer NOT NULL,
 	bezeichnung text,
 	breitedesobjekts double precision,
@@ -12612,29 +11603,20 @@ CREATE TABLE IF NOT EXISTS ax_bauwerkimverkehrsbereich (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_bauwerkimverkehrsbereich_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_bauwerkimverkehrsbereich_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_bauwerkimverkehrsbereich IS 'FeatureType: "AX_BauwerkImVerkehrsbereich"';
 COMMENT ON COLUMN ax_bauwerkimverkehrsbereich.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_bauwerkimverkehrsbereich.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_bauwerkimverkehrsbereich.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_bauwerkimverkehrsbereich.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_bauwerkimverkehrsbereich.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_bauwerkimverkehrsbereich.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_bauwerkimverkehrsbereich.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_bauwerkimverkehrsbereich.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_bauwerkimverkehrsbereich.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_bauwerkimverkehrsbereich.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_bauwerkimverkehrsbereich.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_bauwerkimverkehrsbereich.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_bauwerkimverkehrsbereich.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_bauwerkimverkehrsbereich.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_bauwerkimverkehrsbereich.bauwerksfunktion IS 'bauwerksfunktion  enumeration AX_Bauwerksfunktion_BauwerkImVerkehrsbereich 1';
 COMMENT ON COLUMN ax_bauwerkimverkehrsbereich.bezeichnung IS 'bezeichnung    0..1';
 COMMENT ON COLUMN ax_bauwerkimverkehrsbereich.breitedesobjekts IS 'breiteDesObjekts   Length 0..1';
@@ -12642,68 +11624,57 @@ COMMENT ON COLUMN ax_bauwerkimverkehrsbereich.durchfahrtshoehe IS 'durchfahrtsho
 COMMENT ON COLUMN ax_bauwerkimverkehrsbereich.name IS 'name    0..1';
 COMMENT ON COLUMN ax_bauwerkimverkehrsbereich.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_bauwerkimverkehrsbereich.zustand IS 'zustand  enumeration AX_Zustand_BauwerkImVerkehrsbereich 0..1';
-COMMENT ON COLUMN ax_bauwerkimverkehrsbereich.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_schifffahrtsliniefaehrverkehr (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	art integer[],
 	name text,
 	herkunft text,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_schifffahrtsliniefaehrverkehr_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_schifffahrtsliniefaehrverkehr_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_schifffahrtsliniefaehrverkehr IS 'FeatureType: "AX_SchifffahrtslinieFaehrverkehr"';
 COMMENT ON COLUMN ax_schifffahrtsliniefaehrverkehr.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_schifffahrtsliniefaehrverkehr.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_schifffahrtsliniefaehrverkehr.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_schifffahrtsliniefaehrverkehr.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_schifffahrtsliniefaehrverkehr.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_schifffahrtsliniefaehrverkehr.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_schifffahrtsliniefaehrverkehr.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_schifffahrtsliniefaehrverkehr.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_schifffahrtsliniefaehrverkehr.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_schifffahrtsliniefaehrverkehr.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_schifffahrtsliniefaehrverkehr.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_schifffahrtsliniefaehrverkehr.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_schifffahrtsliniefaehrverkehr.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_schifffahrtsliniefaehrverkehr.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_schifffahrtsliniefaehrverkehr.art IS 'art  enumeration AX_Art_SchifffahrtslinieFaehrverkehr 0..*';
 COMMENT ON COLUMN ax_schifffahrtsliniefaehrverkehr.name IS 'name    0..1';
 COMMENT ON COLUMN ax_schifffahrtsliniefaehrverkehr.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
-COMMENT ON COLUMN ax_schifffahrtsliniefaehrverkehr.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_gebaeude (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	anzahlderoberirdischengeschosse integer,
 	anzahlderunterirdischengeschosse integer,
 	baujahr integer[],
@@ -12715,11 +11686,11 @@ CREATE TABLE IF NOT EXISTS ax_gebaeude (
 	gebaeudekennzeichen text,
 	geschossflaeche double precision,
 	grundflaeche double precision,
-	hochhaus boolean,
+	hochhaus character varying,
 	lagezurerdoberflaeche integer,
 	name text[],
 	anteil integer[],
-	nutzung character varying[],
+	nutzung integer[],
 	objekthoehe double precision,
 	herkunft text,
 	umbauterraum double precision,
@@ -12728,35 +11699,25 @@ CREATE TABLE IF NOT EXISTS ax_gebaeude (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzu text[],
 	gehoert text[],
 	zeigtauf text[],
 	hat text,
 	haengtzusammenmit text,
 	gehoertzu  text,
-	inverszu_zeigtauf text[],
-CONSTRAINT ax_gebaeude_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_gebaeude_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_gebaeude IS 'FeatureType: "AX_Gebaeude"';
 COMMENT ON COLUMN ax_gebaeude.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_gebaeude.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_gebaeude.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_gebaeude.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_gebaeude.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_gebaeude.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_gebaeude.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_gebaeude.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_gebaeude.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_gebaeude.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_gebaeude.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_gebaeude.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_gebaeude.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_gebaeude.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_gebaeude.anzahlderoberirdischengeschosse IS 'anzahlDerOberirdischenGeschosse   Integer 0..1';
 COMMENT ON COLUMN ax_gebaeude.anzahlderunterirdischengeschosse IS 'anzahlDerUnterirdischenGeschosse   Integer 0..1';
 COMMENT ON COLUMN ax_gebaeude.baujahr IS 'baujahr   Integer 0..*';
@@ -12778,27 +11739,25 @@ COMMENT ON COLUMN ax_gebaeude.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebu
 COMMENT ON COLUMN ax_gebaeude.umbauterraum IS 'umbauterRaum   Volume 0..1';
 COMMENT ON COLUMN ax_gebaeude.weiteregebaeudefunktion IS 'weitereGebaeudefunktion  enumeration AX_Weitere_Gebaeudefunktion 0..*';
 COMMENT ON COLUMN ax_gebaeude.zustand IS 'zustand  enumeration AX_Zustand_Gebaeude 0..1';
-COMMENT ON COLUMN ax_gebaeude.inverszu_gehoertzu IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 COMMENT ON COLUMN ax_gebaeude.gehoert IS 'Assoziation zu: FeatureType AX_Person (ax_person) 0..*';
 COMMENT ON COLUMN ax_gebaeude.zeigtauf IS 'Assoziation zu: FeatureType AX_LagebezeichnungMitHausnummer (ax_lagebezeichnungmithausnummer) 0..*';
 COMMENT ON COLUMN ax_gebaeude.hat IS 'Assoziation zu: FeatureType AX_LagebezeichnungMitPseudonummer (ax_lagebezeichnungmitpseudonummer) 0..1';
 COMMENT ON COLUMN ax_gebaeude.haengtzusammenmit IS 'Assoziation zu: FeatureType AX_Gebaeude (ax_gebaeude) 0..1';
 COMMENT ON COLUMN ax_gebaeude.gehoertzu  IS 'Assoziation zu: FeatureType AX_Gebaeude (ax_gebaeude) 0..1';
-COMMENT ON COLUMN ax_gebaeude.inverszu_zeigtauf IS 'Assoziation zu: FeatureType AX_Gebaeudeausgestaltung (ax_gebaeudeausgestaltung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_anderefestlegungnachstrassenrecht (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	artderfestlegung integer NOT NULL,
 	land text,
 	stelle text,
@@ -12807,28 +11766,20 @@ CREATE TABLE IF NOT EXISTS ax_anderefestlegungnachstrassenrecht (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_anderefestlegungnachstrassenrecht_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_anderefestlegungnachstrassenrecht_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_anderefestlegungnachstrassenrecht IS 'FeatureType: "AX_AndereFestlegungNachStrassenrecht"';
 COMMENT ON COLUMN ax_anderefestlegungnachstrassenrecht.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_anderefestlegungnachstrassenrecht.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_anderefestlegungnachstrassenrecht.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_anderefestlegungnachstrassenrecht.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_anderefestlegungnachstrassenrecht.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_anderefestlegungnachstrassenrecht.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_anderefestlegungnachstrassenrecht.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_anderefestlegungnachstrassenrecht.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_anderefestlegungnachstrassenrecht.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_anderefestlegungnachstrassenrecht.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_anderefestlegungnachstrassenrecht.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_anderefestlegungnachstrassenrecht.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_anderefestlegungnachstrassenrecht.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_anderefestlegungnachstrassenrecht.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_anderefestlegungnachstrassenrecht.artderfestlegung IS 'artDerFestlegung  enumeration AX_ArtDerFestlegung_AndereFestlegungNachStrassenrecht 1';
 COMMENT ON COLUMN ax_anderefestlegungnachstrassenrecht.land IS 'ausfuehrendeStelle AX_Dienststelle_Schluessel|land   1';
 COMMENT ON COLUMN ax_anderefestlegungnachstrassenrecht.stelle IS 'ausfuehrendeStelle AX_Dienststelle_Schluessel|stelle   1';
@@ -12838,16 +11789,16 @@ COMMENT ON COLUMN ax_anderefestlegungnachstrassenrecht.herkunft IS 'qualitaetsan
 CREATE TABLE IF NOT EXISTS ax_naturumweltoderbodenschutzrecht (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	artderfestlegung integer NOT NULL,
 	land text,
 	stelle text,
@@ -12858,28 +11809,20 @@ CREATE TABLE IF NOT EXISTS ax_naturumweltoderbodenschutzrecht (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_naturumweltoderbodenschutzrecht_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_naturumweltoderbodenschutzrecht_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_naturumweltoderbodenschutzrecht IS 'FeatureType: "AX_NaturUmweltOderBodenschutzrecht"';
 COMMENT ON COLUMN ax_naturumweltoderbodenschutzrecht.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_naturumweltoderbodenschutzrecht.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_naturumweltoderbodenschutzrecht.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_naturumweltoderbodenschutzrecht.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_naturumweltoderbodenschutzrecht.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_naturumweltoderbodenschutzrecht.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_naturumweltoderbodenschutzrecht.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_naturumweltoderbodenschutzrecht.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_naturumweltoderbodenschutzrecht.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_naturumweltoderbodenschutzrecht.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_naturumweltoderbodenschutzrecht.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_naturumweltoderbodenschutzrecht.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_naturumweltoderbodenschutzrecht.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_naturumweltoderbodenschutzrecht.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_naturumweltoderbodenschutzrecht.artderfestlegung IS 'artDerFestlegung  enumeration AX_ArtDerFestlegung_NaturUmweltOderBodenschutzrecht 1';
 COMMENT ON COLUMN ax_naturumweltoderbodenschutzrecht.land IS 'ausfuehrendeStelle AX_Dienststelle_Schluessel|land   1';
 COMMENT ON COLUMN ax_naturumweltoderbodenschutzrecht.stelle IS 'ausfuehrendeStelle AX_Dienststelle_Schluessel|stelle   1';
@@ -12891,16 +11834,16 @@ COMMENT ON COLUMN ax_naturumweltoderbodenschutzrecht.zustand IS 'zustand  enumer
 CREATE TABLE IF NOT EXISTS ax_klassifizierungnachstrassenrecht (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	artderfestlegung integer NOT NULL,
 	land text,
 	stelle text,
@@ -12909,28 +11852,20 @@ CREATE TABLE IF NOT EXISTS ax_klassifizierungnachstrassenrecht (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_klassifizierungnachstrassenrecht_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_klassifizierungnachstrassenrecht_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_klassifizierungnachstrassenrecht IS 'FeatureType: "AX_KlassifizierungNachStrassenrecht"';
 COMMENT ON COLUMN ax_klassifizierungnachstrassenrecht.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_klassifizierungnachstrassenrecht.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_klassifizierungnachstrassenrecht.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_klassifizierungnachstrassenrecht.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_klassifizierungnachstrassenrecht.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_klassifizierungnachstrassenrecht.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_klassifizierungnachstrassenrecht.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_klassifizierungnachstrassenrecht.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_klassifizierungnachstrassenrecht.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_klassifizierungnachstrassenrecht.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_klassifizierungnachstrassenrecht.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_klassifizierungnachstrassenrecht.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_klassifizierungnachstrassenrecht.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_klassifizierungnachstrassenrecht.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_klassifizierungnachstrassenrecht.artderfestlegung IS 'artDerFestlegung  enumeration AX_ArtDerFestlegung_KlassifizierungNachStrassenrecht 1';
 COMMENT ON COLUMN ax_klassifizierungnachstrassenrecht.land IS 'ausfuehrendeStelle AX_Dienststelle_Schluessel|land   1';
 COMMENT ON COLUMN ax_klassifizierungnachstrassenrecht.stelle IS 'ausfuehrendeStelle AX_Dienststelle_Schluessel|stelle   1';
@@ -12940,16 +11875,16 @@ COMMENT ON COLUMN ax_klassifizierungnachstrassenrecht.herkunft IS 'qualitaetsang
 CREATE TABLE IF NOT EXISTS ax_sonstigesrecht (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	artderfestlegung integer NOT NULL,
 	land text,
 	stelle text,
@@ -12959,28 +11894,20 @@ CREATE TABLE IF NOT EXISTS ax_sonstigesrecht (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_sonstigesrecht_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_sonstigesrecht_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_sonstigesrecht IS 'FeatureType: "AX_SonstigesRecht"';
 COMMENT ON COLUMN ax_sonstigesrecht.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_sonstigesrecht.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_sonstigesrecht.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_sonstigesrecht.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_sonstigesrecht.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_sonstigesrecht.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_sonstigesrecht.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_sonstigesrecht.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_sonstigesrecht.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_sonstigesrecht.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_sonstigesrecht.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_sonstigesrecht.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_sonstigesrecht.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_sonstigesrecht.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_sonstigesrecht.artderfestlegung IS 'artDerFestlegung  enumeration AX_ArtDerFestlegung_SonstigesRecht 1';
 COMMENT ON COLUMN ax_sonstigesrecht.land IS 'ausfuehrendeStelle AX_Dienststelle_Schluessel|land   1';
 COMMENT ON COLUMN ax_sonstigesrecht.stelle IS 'ausfuehrendeStelle AX_Dienststelle_Schluessel|stelle   1';
@@ -12991,16 +11918,16 @@ COMMENT ON COLUMN ax_sonstigesrecht.herkunft IS 'qualitaetsangaben AX_DQMitDaten
 CREATE TABLE IF NOT EXISTS ax_denkmalschutzrecht (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	artderfestlegung integer NOT NULL,
 	land text,
 	stelle text,
@@ -13010,28 +11937,20 @@ CREATE TABLE IF NOT EXISTS ax_denkmalschutzrecht (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_denkmalschutzrecht_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_denkmalschutzrecht_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_denkmalschutzrecht IS 'FeatureType: "AX_Denkmalschutzrecht"';
 COMMENT ON COLUMN ax_denkmalschutzrecht.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_denkmalschutzrecht.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_denkmalschutzrecht.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_denkmalschutzrecht.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_denkmalschutzrecht.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_denkmalschutzrecht.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_denkmalschutzrecht.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_denkmalschutzrecht.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_denkmalschutzrecht.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_denkmalschutzrecht.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_denkmalschutzrecht.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_denkmalschutzrecht.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_denkmalschutzrecht.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_denkmalschutzrecht.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_denkmalschutzrecht.artderfestlegung IS 'artDerFestlegung  enumeration AX_ArtDerFestlegung_Denkmalschutzrecht 1';
 COMMENT ON COLUMN ax_denkmalschutzrecht.land IS 'ausfuehrendeStelle AX_Dienststelle_Schluessel|land   1';
 COMMENT ON COLUMN ax_denkmalschutzrecht.stelle IS 'ausfuehrendeStelle AX_Dienststelle_Schluessel|stelle   1';
@@ -13042,16 +11961,16 @@ COMMENT ON COLUMN ax_denkmalschutzrecht.herkunft IS 'qualitaetsangaben AX_DQMitD
 CREATE TABLE IF NOT EXISTS ax_dammwalldeich (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	art integer,
 	bezeichnung text,
 	funktion integer,
@@ -13061,28 +11980,20 @@ CREATE TABLE IF NOT EXISTS ax_dammwalldeich (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_dammwalldeich_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_dammwalldeich_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_dammwalldeich IS 'FeatureType: "AX_DammWallDeich"';
 COMMENT ON COLUMN ax_dammwalldeich.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_dammwalldeich.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_dammwalldeich.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_dammwalldeich.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_dammwalldeich.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_dammwalldeich.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_dammwalldeich.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_dammwalldeich.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_dammwalldeich.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_dammwalldeich.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_dammwalldeich.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_dammwalldeich.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_dammwalldeich.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_dammwalldeich.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_dammwalldeich.art IS 'art  enumeration AX_Art_DammWallDeich 0..1';
 COMMENT ON COLUMN ax_dammwalldeich.bezeichnung IS 'bezeichnung    0..1';
 COMMENT ON COLUMN ax_dammwalldeich.funktion IS 'funktion  enumeration AX_Funktion_DammWallDeich 0..1';
@@ -13093,55 +12004,45 @@ COMMENT ON COLUMN ax_dammwalldeich.herkunft IS 'qualitaetsangaben AX_DQMitDatene
 CREATE TABLE IF NOT EXISTS ax_punktortag (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(POINT) NOT NULL,
+	wkb_geometry geometry(POINT),
 	hinweise character varying,
-	kartendarstellung boolean,
+	kartendarstellung character varying,
 	koordinatenstatus integer,
-	genauigkeitsstufe character varying,
-	genauigkeitswert text,
+	genauigkeitsstufe integer,
 	herkunft text,
-	lagezuverlaessigkeit boolean,
-	vertrauenswuerdigkeit character varying,
+	lagezuverlaessigkeit character varying,
+	vertrauenswuerdigkeit integer,
 	ueberpruefungsdatum date,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_punktortag_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_punktortag_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_punktortag IS 'FeatureType: "AX_PunktortAG"';
 COMMENT ON COLUMN ax_punktortag.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_punktortag.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_punktortag.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_punktortag.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_punktortag.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_punktortag.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_punktortag.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_punktortag.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_punktortag.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_punktortag.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_punktortag.position IS 'position   GM_Point 1';
+COMMENT ON COLUMN ax_punktortag.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_punktortag.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_punktortag.wkb_geometry IS 'wkb_geometry   GM_Point 0..1';
 COMMENT ON COLUMN ax_punktortag.hinweise IS 'hinweise   CharacterString 0..1';
 COMMENT ON COLUMN ax_punktortag.kartendarstellung IS 'kartendarstellung   Boolean 0..1';
 COMMENT ON COLUMN ax_punktortag.koordinatenstatus IS 'koordinatenstatus  enumeration AX_Koordinatenstatus_Punktort 0..1';
 COMMENT ON COLUMN ax_punktortag.genauigkeitsstufe IS 'qualitaetsangaben AX_DQPunktort|genauigkeitsstufe enumeration AX_Genauigkeitsstufe_Punktort 0..1';
-COMMENT ON COLUMN ax_punktortag.genauigkeitswert IS 'qualitaetsangaben AX_DQPunktort|genauigkeitswert  DQ_RelativeInternalPositionalAccuracy 0..1';
 COMMENT ON COLUMN ax_punktortag.herkunft IS 'qualitaetsangaben AX_DQPunktort|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_punktortag.lagezuverlaessigkeit IS 'qualitaetsangaben AX_DQPunktort|lagezuverlaessigkeit  Boolean 0..1';
 COMMENT ON COLUMN ax_punktortag.vertrauenswuerdigkeit IS 'qualitaetsangaben AX_DQPunktort|vertrauenswuerdigkeit enumeration AX_Vertrauenswuerdigkeit_Punktort 0..1';
@@ -13150,16 +12051,16 @@ COMMENT ON COLUMN ax_punktortag.ueberpruefungsdatum IS 'ueberpruefungsdatum   Da
 CREATE TABLE IF NOT EXISTS ax_bauteil (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	anzahlderoberirdischengeschosse integer,
 	bauart integer NOT NULL,
 	baujahr integer[],
@@ -13169,28 +12070,20 @@ CREATE TABLE IF NOT EXISTS ax_bauteil (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_bauteil_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_bauteil_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_bauteil IS 'FeatureType: "AX_Bauteil"';
 COMMENT ON COLUMN ax_bauteil.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_bauteil.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_bauteil.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_bauteil.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_bauteil.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_bauteil.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_bauteil.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_bauteil.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_bauteil.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_bauteil.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_bauteil.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_bauteil.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_bauteil.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_bauteil.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_bauteil.anzahlderoberirdischengeschosse IS 'anzahlDerOberirdischenGeschosse   Integer 0..1';
 COMMENT ON COLUMN ax_bauteil.bauart IS 'bauart  enumeration AX_Bauart_Bauteil 1';
 COMMENT ON COLUMN ax_bauteil.baujahr IS 'baujahr   Integer 0..*';
@@ -13201,102 +12094,84 @@ COMMENT ON COLUMN ax_bauteil.lagezurerdoberflaeche IS 'lageZurErdoberflaeche  en
 CREATE TABLE IF NOT EXISTS ax_tagesabschnitt (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	tagesabschnittsnummer text NOT NULL,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzu text[],
-CONSTRAINT ax_tagesabschnitt_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_tagesabschnitt_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_tagesabschnitt IS 'FeatureType: "AX_Tagesabschnitt"';
 COMMENT ON COLUMN ax_tagesabschnitt.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_tagesabschnitt.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_tagesabschnitt.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_tagesabschnitt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_tagesabschnitt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_tagesabschnitt.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_tagesabschnitt.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_tagesabschnitt.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_tagesabschnitt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_tagesabschnitt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_tagesabschnitt.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_tagesabschnitt.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_tagesabschnitt.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_tagesabschnitt.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_tagesabschnitt.tagesabschnittsnummer IS 'tagesabschnittsnummer    1';
-COMMENT ON COLUMN ax_tagesabschnitt.inverszu_gehoertzu IS 'Assoziation zu: FeatureType AX_GrablochDerBodenschaetzung (ax_grablochderbodenschaetzung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_bewertung (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	klassifizierung integer NOT NULL,
 	herkunft text,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_bewertung_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_bewertung_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_bewertung IS 'FeatureType: "AX_Bewertung"';
 COMMENT ON COLUMN ax_bewertung.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_bewertung.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_bewertung.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_bewertung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_bewertung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_bewertung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_bewertung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_bewertung.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_bewertung.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_bewertung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_bewertung.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_bewertung.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_bewertung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_bewertung.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_bewertung.klassifizierung IS 'klassifizierung  enumeration AX_Klassifizierung_Bewertung 1';
 COMMENT ON COLUMN ax_bewertung.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 
 CREATE TABLE IF NOT EXISTS ax_anderefestlegungnachwasserrecht (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	artderfestlegung integer NOT NULL,
 	land text,
 	stelle text,
@@ -13305,28 +12180,20 @@ CREATE TABLE IF NOT EXISTS ax_anderefestlegungnachwasserrecht (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_anderefestlegungnachwasserrecht_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_anderefestlegungnachwasserrecht_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_anderefestlegungnachwasserrecht IS 'FeatureType: "AX_AndereFestlegungNachWasserrecht"';
 COMMENT ON COLUMN ax_anderefestlegungnachwasserrecht.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_anderefestlegungnachwasserrecht.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_anderefestlegungnachwasserrecht.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_anderefestlegungnachwasserrecht.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_anderefestlegungnachwasserrecht.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_anderefestlegungnachwasserrecht.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_anderefestlegungnachwasserrecht.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_anderefestlegungnachwasserrecht.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_anderefestlegungnachwasserrecht.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_anderefestlegungnachwasserrecht.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_anderefestlegungnachwasserrecht.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_anderefestlegungnachwasserrecht.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_anderefestlegungnachwasserrecht.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_anderefestlegungnachwasserrecht.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_anderefestlegungnachwasserrecht.artderfestlegung IS 'artDerFestlegung  enumeration AX_ArtDerFestlegung_AndereFestlegungNachWasserrecht 1';
 COMMENT ON COLUMN ax_anderefestlegungnachwasserrecht.land IS 'ausfuehrendeStelle AX_Dienststelle_Schluessel|land   1';
 COMMENT ON COLUMN ax_anderefestlegungnachwasserrecht.stelle IS 'ausfuehrendeStelle AX_Dienststelle_Schluessel|stelle   1';
@@ -13336,16 +12203,16 @@ COMMENT ON COLUMN ax_anderefestlegungnachwasserrecht.herkunft IS 'qualitaetsanga
 CREATE TABLE IF NOT EXISTS ax_klassifizierungnachwasserrecht (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	artderfestlegung integer NOT NULL,
 	land text,
 	stelle text,
@@ -13354,28 +12221,20 @@ CREATE TABLE IF NOT EXISTS ax_klassifizierungnachwasserrecht (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_klassifizierungnachwasserrecht_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_klassifizierungnachwasserrecht_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_klassifizierungnachwasserrecht IS 'FeatureType: "AX_KlassifizierungNachWasserrecht"';
 COMMENT ON COLUMN ax_klassifizierungnachwasserrecht.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_klassifizierungnachwasserrecht.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_klassifizierungnachwasserrecht.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_klassifizierungnachwasserrecht.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_klassifizierungnachwasserrecht.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_klassifizierungnachwasserrecht.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_klassifizierungnachwasserrecht.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_klassifizierungnachwasserrecht.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_klassifizierungnachwasserrecht.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_klassifizierungnachwasserrecht.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_klassifizierungnachwasserrecht.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_klassifizierungnachwasserrecht.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_klassifizierungnachwasserrecht.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_klassifizierungnachwasserrecht.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_klassifizierungnachwasserrecht.artderfestlegung IS 'artDerFestlegung  enumeration AX_ArtDerFestlegung_KlassifizierungNachWasserrecht 1';
 COMMENT ON COLUMN ax_klassifizierungnachwasserrecht.land IS 'ausfuehrendeStelle AX_Dienststelle_Schluessel|land   1';
 COMMENT ON COLUMN ax_klassifizierungnachwasserrecht.stelle IS 'ausfuehrendeStelle AX_Dienststelle_Schluessel|stelle   1';
@@ -13385,16 +12244,16 @@ COMMENT ON COLUMN ax_klassifizierungnachwasserrecht.herkunft IS 'qualitaetsangab
 CREATE TABLE IF NOT EXISTS ax_forstrecht (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	artderfestlegung integer NOT NULL,
 	land text,
 	stelle text,
@@ -13404,28 +12263,20 @@ CREATE TABLE IF NOT EXISTS ax_forstrecht (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_forstrecht_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_forstrecht_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_forstrecht IS 'FeatureType: "AX_Forstrecht"';
 COMMENT ON COLUMN ax_forstrecht.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_forstrecht.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_forstrecht.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_forstrecht.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_forstrecht.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_forstrecht.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_forstrecht.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_forstrecht.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_forstrecht.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_forstrecht.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_forstrecht.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_forstrecht.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_forstrecht.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_forstrecht.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_forstrecht.artderfestlegung IS 'artDerFestlegung  enumeration AX_ArtDerFestlegung_Forstrecht 1';
 COMMENT ON COLUMN ax_forstrecht.land IS 'ausfuehrendeStelle AX_Dienststelle_Schluessel|land   1';
 COMMENT ON COLUMN ax_forstrecht.stelle IS 'ausfuehrendeStelle AX_Dienststelle_Schluessel|stelle   1';
@@ -13436,16 +12287,16 @@ COMMENT ON COLUMN ax_forstrecht.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhe
 CREATE TABLE IF NOT EXISTS ax_bauraumoderbodenordnungsrecht (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	artderfestlegung integer NOT NULL,
 	land text,
 	stelle text,
@@ -13456,32 +12307,24 @@ CREATE TABLE IF NOT EXISTS ax_bauraumoderbodenordnungsrecht (
 	datumrechtskraeftig date,
 	name text,
 	herkunft text,
-	veraenderungohneruecksprache boolean,
+	veraenderungohneruecksprache character varying,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_bauraumoderbodenordnungsrecht_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_bauraumoderbodenordnungsrecht_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_bauraumoderbodenordnungsrecht IS 'FeatureType: "AX_BauRaumOderBodenordnungsrecht"';
 COMMENT ON COLUMN ax_bauraumoderbodenordnungsrecht.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_bauraumoderbodenordnungsrecht.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_bauraumoderbodenordnungsrecht.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_bauraumoderbodenordnungsrecht.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_bauraumoderbodenordnungsrecht.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_bauraumoderbodenordnungsrecht.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_bauraumoderbodenordnungsrecht.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_bauraumoderbodenordnungsrecht.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_bauraumoderbodenordnungsrecht.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_bauraumoderbodenordnungsrecht.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_bauraumoderbodenordnungsrecht.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_bauraumoderbodenordnungsrecht.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_bauraumoderbodenordnungsrecht.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_bauraumoderbodenordnungsrecht.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_bauraumoderbodenordnungsrecht.artderfestlegung IS 'artDerFestlegung  enumeration AX_ArtDerFestlegung_BauRaumOderBodenordnungsrecht 1';
 COMMENT ON COLUMN ax_bauraumoderbodenordnungsrecht.land IS 'ausfuehrendeStelle AX_Dienststelle_Schluessel|land   1';
 COMMENT ON COLUMN ax_bauraumoderbodenordnungsrecht.stelle IS 'ausfuehrendeStelle AX_Dienststelle_Schluessel|stelle   1';
@@ -13497,44 +12340,36 @@ COMMENT ON COLUMN ax_bauraumoderbodenordnungsrecht.veraenderungohneruecksprache 
 CREATE TABLE IF NOT EXISTS ax_schutzzone (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	nummerderschutzzone text,
 	rechtszustand integer,
 	zone integer NOT NULL,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_schutzzone_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_schutzzone_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_schutzzone IS 'FeatureType: "AX_Schutzzone"';
 COMMENT ON COLUMN ax_schutzzone.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_schutzzone.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_schutzzone.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_schutzzone.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_schutzzone.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_schutzzone.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_schutzzone.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_schutzzone.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_schutzzone.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_schutzzone.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_schutzzone.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_schutzzone.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_schutzzone.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_schutzzone.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_schutzzone.nummerderschutzzone IS 'nummerDerSchutzzone    0..1';
 COMMENT ON COLUMN ax_schutzzone.rechtszustand IS 'rechtszustand  enumeration AX_Rechtszustand_Schutzzone 0..1';
 COMMENT ON COLUMN ax_schutzzone.zone IS 'zone  enumeration AX_Zone_Schutzzone 1';
@@ -13542,56 +12377,48 @@ COMMENT ON COLUMN ax_schutzzone.zone IS 'zone  enumeration AX_Zone_Schutzzone 1'
 CREATE TABLE IF NOT EXISTS ax_boeschungsflaeche (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_boeschungsflaeche_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_boeschungsflaeche_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_boeschungsflaeche IS 'FeatureType: "AX_Boeschungsflaeche"';
 COMMENT ON COLUMN ax_boeschungsflaeche.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_boeschungsflaeche.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_boeschungsflaeche.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_boeschungsflaeche.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_boeschungsflaeche.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_boeschungsflaeche.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_boeschungsflaeche.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_boeschungsflaeche.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_boeschungsflaeche.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_boeschungsflaeche.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_boeschungsflaeche.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_boeschungsflaeche.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_boeschungsflaeche.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_boeschungsflaeche.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 
 CREATE TABLE IF NOT EXISTS ax_flurstueck (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
-	abweichenderrechtszustand boolean,
+	wkb_geometry geometry,
+	abweichenderrechtszustand character varying,
 	amtlicheflaeche double precision NOT NULL,
 	flurnummer integer,
 	flurstuecksfolge character varying,
@@ -13605,8 +12432,7 @@ CREATE TABLE IF NOT EXISTS ax_flurstueck (
 	kreis text,
 	gemeindezugehoerigkeit_land text,
 	regierungsbezirk text,
-	objektkoordinaten geometry(POINT),
-	rechtsbehelfsverfahren boolean,
+	rechtsbehelfsverfahren character varying,
 	angabenzumabschnittbemerkung text[],
 	angabenzumabschnittflurstueck text[],
 	angabenzumabschnittnummeraktenzeichen text[],
@@ -13616,39 +12442,29 @@ CREATE TABLE IF NOT EXISTS ax_flurstueck (
 	zeitpunktderentstehung date,
 	zustaendigestelle_land text[],
 	stelle text[],
-	zweifelhafterflurstuecksnachweis boolean,
+	zweifelhafterflurstuecksnachweis character varying,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_verweistauf text[],
 	istgebucht text NOT NULL,
-	inverszu_beziehtsichauf text[],
 	beziehtsichaufflurstueck text[],
 	gehoertanteiligzu  text[],
 	zeigtauf text[],
 	weistauf text[],
-CONSTRAINT ax_flurstueck_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_flurstueck_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_flurstueck IS 'FeatureType: "AX_Flurstueck"';
 COMMENT ON COLUMN ax_flurstueck.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_flurstueck.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_flurstueck.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_flurstueck.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_flurstueck.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_flurstueck.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_flurstueck.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_flurstueck.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_flurstueck.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_flurstueck.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_flurstueck.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_flurstueck.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_flurstueck.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_flurstueck.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_flurstueck.abweichenderrechtszustand IS 'abweichenderRechtszustand   Boolean 0..1';
 COMMENT ON COLUMN ax_flurstueck.amtlicheflaeche IS 'amtlicheFlaeche   Area 1';
 COMMENT ON COLUMN ax_flurstueck.flurnummer IS 'flurnummer   Integer 0..1';
@@ -13663,7 +12479,6 @@ COMMENT ON COLUMN ax_flurstueck.gemeindeteil IS 'gemeindezugehoerigkeit AX_Gemei
 COMMENT ON COLUMN ax_flurstueck.kreis IS 'gemeindezugehoerigkeit AX_Gemeindekennzeichen|kreis   1';
 COMMENT ON COLUMN ax_flurstueck.gemeindezugehoerigkeit_land IS 'gemeindezugehoerigkeit AX_Gemeindekennzeichen|land   1';
 COMMENT ON COLUMN ax_flurstueck.regierungsbezirk IS 'gemeindezugehoerigkeit AX_Gemeindekennzeichen|regierungsbezirk   0..1';
-COMMENT ON COLUMN ax_flurstueck.objektkoordinaten IS 'objektkoordinaten   GM_Point 0..1';
 COMMENT ON COLUMN ax_flurstueck.rechtsbehelfsverfahren IS 'rechtsbehelfsverfahren   Boolean 0..1';
 COMMENT ON COLUMN ax_flurstueck.angabenzumabschnittbemerkung IS 'sonstigeEigenschaften AX_SonstigeEigenschaften_Flurstueck|angabenZumAbschnittBemerkung   0..1';
 COMMENT ON COLUMN ax_flurstueck.angabenzumabschnittflurstueck IS 'sonstigeEigenschaften AX_SonstigeEigenschaften_Flurstueck|angabenZumAbschnittFlurstueck   0..1';
@@ -13675,9 +12490,7 @@ COMMENT ON COLUMN ax_flurstueck.zeitpunktderentstehung IS 'zeitpunktDerEntstehun
 COMMENT ON COLUMN ax_flurstueck.zustaendigestelle_land IS 'zustaendigeStelle AX_Dienststelle_Schluessel|land   1';
 COMMENT ON COLUMN ax_flurstueck.stelle IS 'zustaendigeStelle AX_Dienststelle_Schluessel|stelle   1';
 COMMENT ON COLUMN ax_flurstueck.zweifelhafterflurstuecksnachweis IS 'zweifelhafterFlurstuecksnachweis   Boolean 0..1';
-COMMENT ON COLUMN ax_flurstueck.inverszu_verweistauf IS 'Assoziation zu: FeatureType AX_Buchungsstelle (ax_buchungsstelle) 0..*';
 COMMENT ON COLUMN ax_flurstueck.istgebucht IS 'Assoziation zu: FeatureType AX_Buchungsstelle (ax_buchungsstelle) 1';
-COMMENT ON COLUMN ax_flurstueck.inverszu_beziehtsichauf IS 'Assoziation zu: FeatureType AX_Vertretung (ax_vertretung) 0..*';
 COMMENT ON COLUMN ax_flurstueck.beziehtsichaufflurstueck IS 'Assoziation zu: FeatureType AX_Flurstueck (ax_flurstueck) 0..*';
 COMMENT ON COLUMN ax_flurstueck.gehoertanteiligzu  IS 'Assoziation zu: FeatureType AX_Flurstueck (ax_flurstueck) 0..*';
 COMMENT ON COLUMN ax_flurstueck.zeigtauf IS 'Assoziation zu: FeatureType AX_LagebezeichnungOhneHausnummer (ax_lagebezeichnungohnehausnummer) 0..*';
@@ -13686,16 +12499,16 @@ COMMENT ON COLUMN ax_flurstueck.weistauf IS 'Assoziation zu: FeatureType AX_Lage
 CREATE TABLE IF NOT EXISTS ax_gebiet_kreis (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	schluesselgesamt text NOT NULL,
 	kreis text NOT NULL,
 	land text NOT NULL,
@@ -13703,28 +12516,20 @@ CREATE TABLE IF NOT EXISTS ax_gebiet_kreis (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_gebiet_kreis_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_gebiet_kreis_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_gebiet_kreis IS 'FeatureType: "AX_Gebiet_Kreis"';
 COMMENT ON COLUMN ax_gebiet_kreis.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_gebiet_kreis.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_gebiet_kreis.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_gebiet_kreis.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_gebiet_kreis.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_gebiet_kreis.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_gebiet_kreis.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_gebiet_kreis.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_gebiet_kreis.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_gebiet_kreis.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_gebiet_kreis.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_gebiet_kreis.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_gebiet_kreis.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_gebiet_kreis.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_gebiet_kreis.schluesselgesamt IS 'schluesselGesamt    1';
 COMMENT ON COLUMN ax_gebiet_kreis.kreis IS 'kreis AX_Kreis_Schluessel|kreis   1';
 COMMENT ON COLUMN ax_gebiet_kreis.land IS 'kreis AX_Kreis_Schluessel|land   1';
@@ -13733,87 +12538,71 @@ COMMENT ON COLUMN ax_gebiet_kreis.regierungsbezirk IS 'kreis AX_Kreis_Schluessel
 CREATE TABLE IF NOT EXISTS ax_gebiet_bundesland (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	schluesselgesamt text NOT NULL,
 	land text NOT NULL,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_gebiet_bundesland_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_gebiet_bundesland_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_gebiet_bundesland IS 'FeatureType: "AX_Gebiet_Bundesland"';
 COMMENT ON COLUMN ax_gebiet_bundesland.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_gebiet_bundesland.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_gebiet_bundesland.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_gebiet_bundesland.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_gebiet_bundesland.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_gebiet_bundesland.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_gebiet_bundesland.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_gebiet_bundesland.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_gebiet_bundesland.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_gebiet_bundesland.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_gebiet_bundesland.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_gebiet_bundesland.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_gebiet_bundesland.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_gebiet_bundesland.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_gebiet_bundesland.schluesselgesamt IS 'schluesselGesamt    1';
 COMMENT ON COLUMN ax_gebiet_bundesland.land IS 'land AX_Bundesland_Schluessel|land   1';
 
 CREATE TABLE IF NOT EXISTS ax_gebiet_regierungsbezirk (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	schluesselgesamt text NOT NULL,
 	land text NOT NULL,
 	regierungsbezirk text NOT NULL,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_gebiet_regierungsbezirk_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_gebiet_regierungsbezirk_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_gebiet_regierungsbezirk IS 'FeatureType: "AX_Gebiet_Regierungsbezirk"';
 COMMENT ON COLUMN ax_gebiet_regierungsbezirk.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_gebiet_regierungsbezirk.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_gebiet_regierungsbezirk.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_gebiet_regierungsbezirk.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_gebiet_regierungsbezirk.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_gebiet_regierungsbezirk.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_gebiet_regierungsbezirk.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_gebiet_regierungsbezirk.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_gebiet_regierungsbezirk.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_gebiet_regierungsbezirk.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_gebiet_regierungsbezirk.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_gebiet_regierungsbezirk.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_gebiet_regierungsbezirk.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_gebiet_regierungsbezirk.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_gebiet_regierungsbezirk.schluesselgesamt IS 'schluesselGesamt    1';
 COMMENT ON COLUMN ax_gebiet_regierungsbezirk.land IS 'regierungsbezirk AX_Regierungsbezirk_Schluessel|land   1';
 COMMENT ON COLUMN ax_gebiet_regierungsbezirk.regierungsbezirk IS 'regierungsbezirk AX_Regierungsbezirk_Schluessel|regierungsbezirk   1';
@@ -13821,59 +12610,51 @@ COMMENT ON COLUMN ax_gebiet_regierungsbezirk.regierungsbezirk IS 'regierungsbezi
 CREATE TABLE IF NOT EXISTS ax_gebiet_nationalstaat (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	schluesselgesamt text NOT NULL,
 	nationalstaat text NOT NULL,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_gebiet_nationalstaat_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_gebiet_nationalstaat_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_gebiet_nationalstaat IS 'FeatureType: "AX_Gebiet_Nationalstaat"';
 COMMENT ON COLUMN ax_gebiet_nationalstaat.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_gebiet_nationalstaat.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_gebiet_nationalstaat.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_gebiet_nationalstaat.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_gebiet_nationalstaat.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_gebiet_nationalstaat.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_gebiet_nationalstaat.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_gebiet_nationalstaat.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_gebiet_nationalstaat.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_gebiet_nationalstaat.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_gebiet_nationalstaat.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_gebiet_nationalstaat.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_gebiet_nationalstaat.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_gebiet_nationalstaat.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_gebiet_nationalstaat.schluesselgesamt IS 'schluesselGesamt    1';
 COMMENT ON COLUMN ax_gebiet_nationalstaat.nationalstaat IS 'nationalstaat    1';
 
 CREATE TABLE IF NOT EXISTS ax_kommunalesgebiet (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	schluesselgesamt text NOT NULL,
 	gemeindeflaeche double precision,
 	gemeinde text NOT NULL,
@@ -13884,28 +12665,20 @@ CREATE TABLE IF NOT EXISTS ax_kommunalesgebiet (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_kommunalesgebiet_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_kommunalesgebiet_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_kommunalesgebiet IS 'FeatureType: "AX_KommunalesGebiet"';
 COMMENT ON COLUMN ax_kommunalesgebiet.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_kommunalesgebiet.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_kommunalesgebiet.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_kommunalesgebiet.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_kommunalesgebiet.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_kommunalesgebiet.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_kommunalesgebiet.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_kommunalesgebiet.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_kommunalesgebiet.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_kommunalesgebiet.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_kommunalesgebiet.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_kommunalesgebiet.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_kommunalesgebiet.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_kommunalesgebiet.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_kommunalesgebiet.schluesselgesamt IS 'schluesselGesamt    1';
 COMMENT ON COLUMN ax_kommunalesgebiet.gemeindeflaeche IS 'gemeindeflaeche   Area 0..1';
 COMMENT ON COLUMN ax_kommunalesgebiet.gemeinde IS 'gemeindekennzeichen AX_Gemeindekennzeichen|gemeinde   1';
@@ -13917,16 +12690,16 @@ COMMENT ON COLUMN ax_kommunalesgebiet.regierungsbezirk IS 'gemeindekennzeichen A
 CREATE TABLE IF NOT EXISTS ax_gebiet_verwaltungsgemeinschaft (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	schluesselgesamt text NOT NULL,
 	artderverbandsgemeinde integer NOT NULL,
 	kreis text NOT NULL,
@@ -13936,28 +12709,20 @@ CREATE TABLE IF NOT EXISTS ax_gebiet_verwaltungsgemeinschaft (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_gebiet_verwaltungsgemeinschaft_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_gebiet_verwaltungsgemeinschaft_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_gebiet_verwaltungsgemeinschaft IS 'FeatureType: "AX_Gebiet_Verwaltungsgemeinschaft"';
 COMMENT ON COLUMN ax_gebiet_verwaltungsgemeinschaft.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_gebiet_verwaltungsgemeinschaft.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_gebiet_verwaltungsgemeinschaft.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_gebiet_verwaltungsgemeinschaft.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_gebiet_verwaltungsgemeinschaft.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_gebiet_verwaltungsgemeinschaft.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_gebiet_verwaltungsgemeinschaft.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_gebiet_verwaltungsgemeinschaft.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_gebiet_verwaltungsgemeinschaft.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_gebiet_verwaltungsgemeinschaft.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_gebiet_verwaltungsgemeinschaft.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_gebiet_verwaltungsgemeinschaft.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_gebiet_verwaltungsgemeinschaft.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_gebiet_verwaltungsgemeinschaft.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_gebiet_verwaltungsgemeinschaft.schluesselgesamt IS 'schluesselGesamt    1';
 COMMENT ON COLUMN ax_gebiet_verwaltungsgemeinschaft.artderverbandsgemeinde IS 'artDerVerbandsgemeinde  enumeration AX_Art_Verbandsgemeinde 1';
 COMMENT ON COLUMN ax_gebiet_verwaltungsgemeinschaft.kreis IS 'verwaltungsgemeinschaft AX_Verwaltungsgemeinschaft_Schluessel|kreis   1';
@@ -13968,16 +12733,16 @@ COMMENT ON COLUMN ax_gebiet_verwaltungsgemeinschaft.verwaltungsgemeinschaft IS '
 CREATE TABLE IF NOT EXISTS ax_bodenschaetzung (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	ackerzahlodergruenlandzahl text,
 	bodenart integer NOT NULL,
 	bodenzahlodergruenlandgrundzahl text,
@@ -13990,28 +12755,20 @@ CREATE TABLE IF NOT EXISTS ax_bodenschaetzung (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_bodenschaetzung_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_bodenschaetzung_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_bodenschaetzung IS 'FeatureType: "AX_Bodenschaetzung"';
 COMMENT ON COLUMN ax_bodenschaetzung.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_bodenschaetzung.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_bodenschaetzung.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_bodenschaetzung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_bodenschaetzung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_bodenschaetzung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_bodenschaetzung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_bodenschaetzung.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_bodenschaetzung.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_bodenschaetzung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_bodenschaetzung.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN ax_bodenschaetzung.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_bodenschaetzung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_bodenschaetzung.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 COMMENT ON COLUMN ax_bodenschaetzung.ackerzahlodergruenlandzahl IS 'ackerzahlOderGruenlandzahl    0..1';
 COMMENT ON COLUMN ax_bodenschaetzung.bodenart IS 'bodenart  enumeration AX_Bodenart_Bodenschaetzung 1';
 COMMENT ON COLUMN ax_bodenschaetzung.bodenzahlodergruenlandgrundzahl IS 'bodenzahlOderGruenlandgrundzahl    0..1';
@@ -14025,18 +12782,18 @@ COMMENT ON COLUMN ax_bodenschaetzung.zustandsstufeoderbodenstufe IS 'zustandsstu
 CREATE TABLE IF NOT EXISTS ax_gewaesserstationierungsachse (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(LINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	artdergewaesserachse integer,
-	fliessrichtung boolean NOT NULL,
+	fliessrichtung character varying NOT NULL,
 	gewaesserkennzahl text,
 	identnummer text,
 	name text,
@@ -14045,29 +12802,20 @@ CREATE TABLE IF NOT EXISTS ax_gewaesserstationierungsachse (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-	inverszu_gehoertzubauwerk text[],
-CONSTRAINT ax_gewaesserstationierungsachse_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_gewaesserstationierungsachse_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_gewaesserstationierungsachse IS 'FeatureType: "AX_Gewaesserstationierungsachse"';
 COMMENT ON COLUMN ax_gewaesserstationierungsachse.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_gewaesserstationierungsachse.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_gewaesserstationierungsachse.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_gewaesserstationierungsachse.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_gewaesserstationierungsachse.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_gewaesserstationierungsachse.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_gewaesserstationierungsachse.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_gewaesserstationierungsachse.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_gewaesserstationierungsachse.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_gewaesserstationierungsachse.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_gewaesserstationierungsachse.position IS 'position   GM_Curve 1';
+COMMENT ON COLUMN ax_gewaesserstationierungsachse.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_gewaesserstationierungsachse.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_gewaesserstationierungsachse.wkb_geometry IS 'wkb_geometry   GM_Curve 0..1';
 COMMENT ON COLUMN ax_gewaesserstationierungsachse.artdergewaesserachse IS 'artDerGewaesserachse  enumeration AX_ArtDerGewaesserachse 0..1';
 COMMENT ON COLUMN ax_gewaesserstationierungsachse.fliessrichtung IS 'fliessrichtung   Boolean 1';
 COMMENT ON COLUMN ax_gewaesserstationierungsachse.gewaesserkennzahl IS 'gewaesserkennzahl    0..1';
@@ -14075,133 +12823,108 @@ COMMENT ON COLUMN ax_gewaesserstationierungsachse.identnummer IS 'identnummer   
 COMMENT ON COLUMN ax_gewaesserstationierungsachse.name IS 'name    0..1';
 COMMENT ON COLUMN ax_gewaesserstationierungsachse.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_gewaesserstationierungsachse.zweitname IS 'zweitname    0..1';
-COMMENT ON COLUMN ax_gewaesserstationierungsachse.inverszu_gehoertzubauwerk IS 'Assoziation zu: FeatureType AX_SonstigesBauwerkOderSonstigeEinrichtung (ax_sonstigesbauwerkodersonstigeeinrichtung) 0..*';
 
 CREATE TABLE IF NOT EXISTS ax_besondereflurstuecksgrenze (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(LINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	artderflurstuecksgrenze integer[] NOT NULL,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_besondereflurstuecksgrenze_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_besondereflurstuecksgrenze_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_besondereflurstuecksgrenze IS 'FeatureType: "AX_BesondereFlurstuecksgrenze"';
 COMMENT ON COLUMN ax_besondereflurstuecksgrenze.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_besondereflurstuecksgrenze.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_besondereflurstuecksgrenze.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_besondereflurstuecksgrenze.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_besondereflurstuecksgrenze.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_besondereflurstuecksgrenze.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_besondereflurstuecksgrenze.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_besondereflurstuecksgrenze.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_besondereflurstuecksgrenze.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_besondereflurstuecksgrenze.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_besondereflurstuecksgrenze.position IS 'position   GM_Curve 1';
+COMMENT ON COLUMN ax_besondereflurstuecksgrenze.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_besondereflurstuecksgrenze.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_besondereflurstuecksgrenze.wkb_geometry IS 'wkb_geometry   GM_Curve 0..1';
 COMMENT ON COLUMN ax_besondereflurstuecksgrenze.artderflurstuecksgrenze IS 'artDerFlurstuecksgrenze  enumeration AX_ArtDerFlurstuecksgrenze_BesondereFlurstuecksgrenze 1..*';
 
 CREATE TABLE IF NOT EXISTS ax_gebietsgrenze (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(LINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	artdergebietsgrenze integer[] NOT NULL,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_gebietsgrenze_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_gebietsgrenze_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_gebietsgrenze IS 'FeatureType: "AX_Gebietsgrenze"';
 COMMENT ON COLUMN ax_gebietsgrenze.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_gebietsgrenze.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_gebietsgrenze.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_gebietsgrenze.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_gebietsgrenze.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_gebietsgrenze.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_gebietsgrenze.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_gebietsgrenze.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_gebietsgrenze.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_gebietsgrenze.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_gebietsgrenze.position IS 'position   GM_Curve 1';
+COMMENT ON COLUMN ax_gebietsgrenze.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_gebietsgrenze.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_gebietsgrenze.wkb_geometry IS 'wkb_geometry   GM_Curve 0..1';
 COMMENT ON COLUMN ax_gebietsgrenze.artdergebietsgrenze IS 'artDerGebietsgrenze  enumeration AX_ArtDerGebietsgrenze_Gebietsgrenze 1..*';
 
 CREATE TABLE IF NOT EXISTS ax_gewaesserachse (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(LINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	breitedesgewaessers integer,
-	fliessrichtung boolean NOT NULL,
+	fliessrichtung character varying NOT NULL,
 	funktion integer,
 	hydrologischesmerkmal integer,
 	zustand integer,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_gewaesserachse_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_gewaesserachse_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_gewaesserachse IS 'FeatureType: "AX_Gewaesserachse"';
 COMMENT ON COLUMN ax_gewaesserachse.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_gewaesserachse.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_gewaesserachse.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_gewaesserachse.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_gewaesserachse.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_gewaesserachse.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_gewaesserachse.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_gewaesserachse.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_gewaesserachse.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_gewaesserachse.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_gewaesserachse.position IS 'position   GM_Curve 1';
+COMMENT ON COLUMN ax_gewaesserachse.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_gewaesserachse.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_gewaesserachse.wkb_geometry IS 'wkb_geometry   GM_Curve 0..1';
 COMMENT ON COLUMN ax_gewaesserachse.breitedesgewaessers IS 'breiteDesGewaessers   Integer 0..1';
 COMMENT ON COLUMN ax_gewaesserachse.fliessrichtung IS 'fliessrichtung   Boolean 1';
 COMMENT ON COLUMN ax_gewaesserachse.funktion IS 'funktion  enumeration AX_Funktion_Gewaesserachse 0..1';
@@ -14211,16 +12934,16 @@ COMMENT ON COLUMN ax_gewaesserachse.zustand IS 'zustand  enumeration AX_Zustand_
 CREATE TABLE IF NOT EXISTS ax_strassenachse (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(LINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	anzahlderfahrstreifen integer,
 	besonderefahrstreifen integer,
 	breitederfahrbahn double precision,
@@ -14233,28 +12956,20 @@ CREATE TABLE IF NOT EXISTS ax_strassenachse (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_strassenachse_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_strassenachse_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_strassenachse IS 'FeatureType: "AX_Strassenachse"';
 COMMENT ON COLUMN ax_strassenachse.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_strassenachse.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_strassenachse.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_strassenachse.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_strassenachse.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_strassenachse.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_strassenachse.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_strassenachse.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_strassenachse.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_strassenachse.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_strassenachse.position IS 'position   GM_Curve 1';
+COMMENT ON COLUMN ax_strassenachse.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_strassenachse.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_strassenachse.wkb_geometry IS 'wkb_geometry   GM_Curve 0..1';
 COMMENT ON COLUMN ax_strassenachse.anzahlderfahrstreifen IS 'anzahlDerFahrstreifen   Integer 0..1';
 COMMENT ON COLUMN ax_strassenachse.besonderefahrstreifen IS 'besondereFahrstreifen  enumeration AX_BesondereFahrstreifen 0..1';
 COMMENT ON COLUMN ax_strassenachse.breitederfahrbahn IS 'breiteDerFahrbahn   Length 0..1';
@@ -14268,16 +12983,16 @@ COMMENT ON COLUMN ax_strassenachse.zustand IS 'zustand  enumeration AX_Zustand 0
 CREATE TABLE IF NOT EXISTS ax_bahnstrecke (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(LINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	anzahlderstreckengleise integer NOT NULL,
 	bahnkategorie integer[] NOT NULL,
 	elektrifizierung integer NOT NULL,
@@ -14289,28 +13004,20 @@ CREATE TABLE IF NOT EXISTS ax_bahnstrecke (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_bahnstrecke_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_bahnstrecke_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_bahnstrecke IS 'FeatureType: "AX_Bahnstrecke"';
 COMMENT ON COLUMN ax_bahnstrecke.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_bahnstrecke.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_bahnstrecke.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_bahnstrecke.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_bahnstrecke.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_bahnstrecke.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_bahnstrecke.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_bahnstrecke.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_bahnstrecke.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_bahnstrecke.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_bahnstrecke.position IS 'position   GM_Curve 1';
+COMMENT ON COLUMN ax_bahnstrecke.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_bahnstrecke.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_bahnstrecke.wkb_geometry IS 'wkb_geometry   GM_Curve 0..1';
 COMMENT ON COLUMN ax_bahnstrecke.anzahlderstreckengleise IS 'anzahlDerStreckengleise  enumeration AX_AnzahlDerStreckengleise 1';
 COMMENT ON COLUMN ax_bahnstrecke.bahnkategorie IS 'bahnkategorie  enumeration AX_Bahnkategorie 1..*';
 COMMENT ON COLUMN ax_bahnstrecke.elektrifizierung IS 'elektrifizierung  enumeration AX_Elektrifizierung 1';
@@ -14323,16 +13030,16 @@ COMMENT ON COLUMN ax_bahnstrecke.zweitname IS 'zweitname    0..1';
 CREATE TABLE IF NOT EXISTS ax_fahrwegachse (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(LINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	befestigung integer,
 	breitedesverkehrsweges integer,
 	funktion integer NOT NULL,
@@ -14343,28 +13050,20 @@ CREATE TABLE IF NOT EXISTS ax_fahrwegachse (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_fahrwegachse_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_fahrwegachse_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_fahrwegachse IS 'FeatureType: "AX_Fahrwegachse"';
 COMMENT ON COLUMN ax_fahrwegachse.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_fahrwegachse.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_fahrwegachse.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_fahrwegachse.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_fahrwegachse.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_fahrwegachse.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_fahrwegachse.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_fahrwegachse.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_fahrwegachse.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_fahrwegachse.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_fahrwegachse.position IS 'position   GM_Curve 1';
+COMMENT ON COLUMN ax_fahrwegachse.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_fahrwegachse.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_fahrwegachse.wkb_geometry IS 'wkb_geometry   GM_Curve 0..1';
 COMMENT ON COLUMN ax_fahrwegachse.befestigung IS 'befestigung  enumeration AX_Befestigung_Fahrwegachse 0..1';
 COMMENT ON COLUMN ax_fahrwegachse.breitedesverkehrsweges IS 'breiteDesVerkehrsweges   Integer 0..1';
 COMMENT ON COLUMN ax_fahrwegachse.funktion IS 'funktion  enumeration AX_Funktion_Wegachse 1';
@@ -14376,16 +13075,16 @@ COMMENT ON COLUMN ax_fahrwegachse.zweitname IS 'zweitname    0..1';
 CREATE TABLE IF NOT EXISTS ax_fahrbahnachse (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(LINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	anzahlderfahrstreifen integer,
 	besonderefahrstreifen integer,
 	breitederfahrbahn double precision,
@@ -14395,28 +13094,20 @@ CREATE TABLE IF NOT EXISTS ax_fahrbahnachse (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_fahrbahnachse_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_fahrbahnachse_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_fahrbahnachse IS 'FeatureType: "AX_Fahrbahnachse"';
 COMMENT ON COLUMN ax_fahrbahnachse.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_fahrbahnachse.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_fahrbahnachse.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_fahrbahnachse.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_fahrbahnachse.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_fahrbahnachse.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_fahrbahnachse.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_fahrbahnachse.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_fahrbahnachse.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_fahrbahnachse.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_fahrbahnachse.position IS 'position   GM_Curve 1';
+COMMENT ON COLUMN ax_fahrbahnachse.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_fahrbahnachse.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_fahrbahnachse.wkb_geometry IS 'wkb_geometry   GM_Curve 0..1';
 COMMENT ON COLUMN ax_fahrbahnachse.anzahlderfahrstreifen IS 'anzahlDerFahrstreifen   Integer 0..1';
 COMMENT ON COLUMN ax_fahrbahnachse.besonderefahrstreifen IS 'besondereFahrstreifen  enumeration AX_BesondereFahrstreifen 0..1';
 COMMENT ON COLUMN ax_fahrbahnachse.breitederfahrbahn IS 'breiteDerFahrbahn   Length 0..1';
@@ -14427,55 +13118,45 @@ COMMENT ON COLUMN ax_fahrbahnachse.zustand IS 'zustand  enumeration AX_Zustand 0
 CREATE TABLE IF NOT EXISTS ax_punktortta (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(POINT) NOT NULL,
+	wkb_geometry geometry(POINT),
 	hinweise character varying,
-	kartendarstellung boolean,
+	kartendarstellung character varying,
 	koordinatenstatus integer,
-	genauigkeitsstufe character varying,
-	genauigkeitswert text,
+	genauigkeitsstufe integer,
 	herkunft text,
-	lagezuverlaessigkeit boolean,
-	vertrauenswuerdigkeit character varying,
+	lagezuverlaessigkeit character varying,
+	vertrauenswuerdigkeit integer,
 	ueberpruefungsdatum date,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_punktortta_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_punktortta_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_punktortta IS 'FeatureType: "AX_PunktortTA"';
 COMMENT ON COLUMN ax_punktortta.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_punktortta.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_punktortta.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_punktortta.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_punktortta.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_punktortta.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_punktortta.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_punktortta.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_punktortta.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_punktortta.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_punktortta.position IS 'position   GM_Point 1';
+COMMENT ON COLUMN ax_punktortta.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_punktortta.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_punktortta.wkb_geometry IS 'wkb_geometry   GM_Point 0..1';
 COMMENT ON COLUMN ax_punktortta.hinweise IS 'hinweise   CharacterString 0..1';
 COMMENT ON COLUMN ax_punktortta.kartendarstellung IS 'kartendarstellung   Boolean 0..1';
 COMMENT ON COLUMN ax_punktortta.koordinatenstatus IS 'koordinatenstatus  enumeration AX_Koordinatenstatus_Punktort 0..1';
 COMMENT ON COLUMN ax_punktortta.genauigkeitsstufe IS 'qualitaetsangaben AX_DQPunktort|genauigkeitsstufe enumeration AX_Genauigkeitsstufe_Punktort 0..1';
-COMMENT ON COLUMN ax_punktortta.genauigkeitswert IS 'qualitaetsangaben AX_DQPunktort|genauigkeitswert  DQ_RelativeInternalPositionalAccuracy 0..1';
 COMMENT ON COLUMN ax_punktortta.herkunft IS 'qualitaetsangaben AX_DQPunktort|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_punktortta.lagezuverlaessigkeit IS 'qualitaetsangaben AX_DQPunktort|lagezuverlaessigkeit  Boolean 0..1';
 COMMENT ON COLUMN ax_punktortta.vertrauenswuerdigkeit IS 'qualitaetsangaben AX_DQPunktort|vertrauenswuerdigkeit enumeration AX_Vertrauenswuerdigkeit_Punktort 0..1';
@@ -14484,16 +13165,16 @@ COMMENT ON COLUMN ax_punktortta.ueberpruefungsdatum IS 'ueberpruefungsdatum   Da
 CREATE TABLE IF NOT EXISTS ax_stehendesgewaesser (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	bezeichnung text,
@@ -14511,35 +13192,27 @@ CREATE TABLE IF NOT EXISTS ax_stehendesgewaesser (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_stehendesgewaesser_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_stehendesgewaesser_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_stehendesgewaesser IS 'FeatureType: "AX_StehendesGewaesser"';
 COMMENT ON COLUMN ax_stehendesgewaesser.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_stehendesgewaesser.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_stehendesgewaesser.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_stehendesgewaesser.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_stehendesgewaesser.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_stehendesgewaesser.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_stehendesgewaesser.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_stehendesgewaesser.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_stehendesgewaesser.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_stehendesgewaesser.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_stehendesgewaesser.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_stehendesgewaesser.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_stehendesgewaesser.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_stehendesgewaesser.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_stehendesgewaesser.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_stehendesgewaesser.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_stehendesgewaesser.bezeichnung IS 'bezeichnung    0..1';
 COMMENT ON COLUMN ax_stehendesgewaesser.funktion IS 'funktion  enumeration AX_Funktion_StehendesGewaesser 0..1';
 COMMENT ON COLUMN ax_stehendesgewaesser.gewaesserkennziffer IS 'gewaesserkennziffer    0..1';
 COMMENT ON COLUMN ax_stehendesgewaesser.hydrologischesmerkmal IS 'hydrologischesMerkmal  enumeration AX_HydrologischesMerkmal_StehendesGewaesser 0..1';
-COMMENT ON COLUMN ax_stehendesgewaesser.unverschluesselt IS 'name AX_Lagebezeichnung|unverschluesselt   1';
+COMMENT ON COLUMN ax_stehendesgewaesser.unverschluesselt IS 'name AX_Lagebezeichnung|unverschluesselt   0..1';
 COMMENT ON COLUMN ax_stehendesgewaesser.gemeinde IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|gemeinde   1';
 COMMENT ON COLUMN ax_stehendesgewaesser.kreis IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|kreis   1';
 COMMENT ON COLUMN ax_stehendesgewaesser.lage IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|lage   1';
@@ -14551,16 +13224,16 @@ COMMENT ON COLUMN ax_stehendesgewaesser.widmung IS 'widmung  enumeration AX_Widm
 CREATE TABLE IF NOT EXISTS ax_meer (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	bezeichnung text,
@@ -14576,33 +13249,25 @@ CREATE TABLE IF NOT EXISTS ax_meer (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_meer_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_meer_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_meer IS 'FeatureType: "AX_Meer"';
 COMMENT ON COLUMN ax_meer.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_meer.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_meer.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_meer.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_meer.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_meer.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_meer.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_meer.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_meer.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_meer.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_meer.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_meer.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_meer.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_meer.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_meer.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_meer.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_meer.bezeichnung IS 'bezeichnung    0..1';
 COMMENT ON COLUMN ax_meer.funktion IS 'funktion  enumeration AX_Funktion_Meer 0..1';
-COMMENT ON COLUMN ax_meer.unverschluesselt IS 'name AX_Lagebezeichnung|unverschluesselt   1';
+COMMENT ON COLUMN ax_meer.unverschluesselt IS 'name AX_Lagebezeichnung|unverschluesselt   0..1';
 COMMENT ON COLUMN ax_meer.gemeinde IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|gemeinde   1';
 COMMENT ON COLUMN ax_meer.kreis IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|kreis   1';
 COMMENT ON COLUMN ax_meer.lage IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|lage   1';
@@ -14614,16 +13279,16 @@ COMMENT ON COLUMN ax_meer.zweitname IS 'zweitname    0..*';
 CREATE TABLE IF NOT EXISTS ax_fliessgewaesser (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	funktion integer,
@@ -14638,33 +13303,25 @@ CREATE TABLE IF NOT EXISTS ax_fliessgewaesser (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_fliessgewaesser_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_fliessgewaesser_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_fliessgewaesser IS 'FeatureType: "AX_Fliessgewaesser"';
 COMMENT ON COLUMN ax_fliessgewaesser.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_fliessgewaesser.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_fliessgewaesser.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_fliessgewaesser.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_fliessgewaesser.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_fliessgewaesser.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_fliessgewaesser.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_fliessgewaesser.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_fliessgewaesser.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_fliessgewaesser.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_fliessgewaesser.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_fliessgewaesser.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_fliessgewaesser.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_fliessgewaesser.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_fliessgewaesser.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_fliessgewaesser.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_fliessgewaesser.funktion IS 'funktion  enumeration AX_Funktion_Fliessgewaesser 0..1';
 COMMENT ON COLUMN ax_fliessgewaesser.hydrologischesmerkmal IS 'hydrologischesMerkmal  enumeration AX_HydrologischesMerkmal_Fliessgewaesser 0..1';
-COMMENT ON COLUMN ax_fliessgewaesser.unverschluesselt IS 'name AX_Lagebezeichnung|unverschluesselt   1';
+COMMENT ON COLUMN ax_fliessgewaesser.unverschluesselt IS 'name AX_Lagebezeichnung|unverschluesselt   0..1';
 COMMENT ON COLUMN ax_fliessgewaesser.gemeinde IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|gemeinde   1';
 COMMENT ON COLUMN ax_fliessgewaesser.kreis IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|kreis   1';
 COMMENT ON COLUMN ax_fliessgewaesser.lage IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|lage   1';
@@ -14675,16 +13332,16 @@ COMMENT ON COLUMN ax_fliessgewaesser.zustand IS 'zustand  enumeration AX_Zustand
 CREATE TABLE IF NOT EXISTS ax_hafenbecken (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	funktion integer,
@@ -14698,32 +13355,24 @@ CREATE TABLE IF NOT EXISTS ax_hafenbecken (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_hafenbecken_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_hafenbecken_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_hafenbecken IS 'FeatureType: "AX_Hafenbecken"';
 COMMENT ON COLUMN ax_hafenbecken.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_hafenbecken.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_hafenbecken.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_hafenbecken.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_hafenbecken.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_hafenbecken.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_hafenbecken.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_hafenbecken.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_hafenbecken.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_hafenbecken.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_hafenbecken.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_hafenbecken.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_hafenbecken.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_hafenbecken.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_hafenbecken.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_hafenbecken.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_hafenbecken.funktion IS 'funktion  enumeration AX_Funktion_Hafenbecken 0..1';
-COMMENT ON COLUMN ax_hafenbecken.unverschluesselt IS 'name AX_Lagebezeichnung|unverschluesselt   1';
+COMMENT ON COLUMN ax_hafenbecken.unverschluesselt IS 'name AX_Lagebezeichnung|unverschluesselt   0..1';
 COMMENT ON COLUMN ax_hafenbecken.gemeinde IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|gemeinde   1';
 COMMENT ON COLUMN ax_hafenbecken.kreis IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|kreis   1';
 COMMENT ON COLUMN ax_hafenbecken.lage IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|lage   1';
@@ -14734,16 +13383,16 @@ COMMENT ON COLUMN ax_hafenbecken.nutzung IS 'nutzung  enumeration AX_Nutzung_Haf
 CREATE TABLE IF NOT EXISTS ax_bergbaubetrieb (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	abbaugut integer,
@@ -14753,28 +13402,20 @@ CREATE TABLE IF NOT EXISTS ax_bergbaubetrieb (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_bergbaubetrieb_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_bergbaubetrieb_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_bergbaubetrieb IS 'FeatureType: "AX_Bergbaubetrieb"';
 COMMENT ON COLUMN ax_bergbaubetrieb.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_bergbaubetrieb.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_bergbaubetrieb.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_bergbaubetrieb.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_bergbaubetrieb.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_bergbaubetrieb.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_bergbaubetrieb.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_bergbaubetrieb.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_bergbaubetrieb.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_bergbaubetrieb.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_bergbaubetrieb.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_bergbaubetrieb.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_bergbaubetrieb.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_bergbaubetrieb.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_bergbaubetrieb.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_bergbaubetrieb.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_bergbaubetrieb.abbaugut IS 'abbaugut  enumeration AX_Abbaugut_Bergbaubetrieb 0..1';
@@ -14785,16 +13426,16 @@ COMMENT ON COLUMN ax_bergbaubetrieb.zustand IS 'zustand  enumeration AX_Zustand_
 CREATE TABLE IF NOT EXISTS ax_friedhof (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	funktion integer,
@@ -14803,28 +13444,20 @@ CREATE TABLE IF NOT EXISTS ax_friedhof (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_friedhof_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_friedhof_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_friedhof IS 'FeatureType: "AX_Friedhof"';
 COMMENT ON COLUMN ax_friedhof.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_friedhof.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_friedhof.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_friedhof.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_friedhof.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_friedhof.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_friedhof.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_friedhof.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_friedhof.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_friedhof.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_friedhof.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_friedhof.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_friedhof.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_friedhof.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_friedhof.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_friedhof.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_friedhof.funktion IS 'funktion  enumeration AX_Funktion_Friedhof 0..1';
@@ -14834,16 +13467,16 @@ COMMENT ON COLUMN ax_friedhof.zustand IS 'zustand  enumeration AX_Zustand_Friedh
 CREATE TABLE IF NOT EXISTS ax_flaechegemischternutzung (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	artderbebauung integer,
@@ -14853,28 +13486,20 @@ CREATE TABLE IF NOT EXISTS ax_flaechegemischternutzung (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_flaechegemischternutzung_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_flaechegemischternutzung_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_flaechegemischternutzung IS 'FeatureType: "AX_FlaecheGemischterNutzung"';
 COMMENT ON COLUMN ax_flaechegemischternutzung.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_flaechegemischternutzung.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_flaechegemischternutzung.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_flaechegemischternutzung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_flaechegemischternutzung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_flaechegemischternutzung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_flaechegemischternutzung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_flaechegemischternutzung.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_flaechegemischternutzung.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_flaechegemischternutzung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_flaechegemischternutzung.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_flaechegemischternutzung.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_flaechegemischternutzung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_flaechegemischternutzung.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_flaechegemischternutzung.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_flaechegemischternutzung.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_flaechegemischternutzung.artderbebauung IS 'artDerBebauung  enumeration AX_ArtDerBebauung_FlaecheGemischterNutzung 0..1';
@@ -14885,16 +13510,16 @@ COMMENT ON COLUMN ax_flaechegemischternutzung.zustand IS 'zustand  enumeration A
 CREATE TABLE IF NOT EXISTS ax_wohnbauflaeche (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	artderbebauung integer,
@@ -14904,28 +13529,20 @@ CREATE TABLE IF NOT EXISTS ax_wohnbauflaeche (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_wohnbauflaeche_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_wohnbauflaeche_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_wohnbauflaeche IS 'FeatureType: "AX_Wohnbauflaeche"';
 COMMENT ON COLUMN ax_wohnbauflaeche.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_wohnbauflaeche.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_wohnbauflaeche.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_wohnbauflaeche.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_wohnbauflaeche.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_wohnbauflaeche.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_wohnbauflaeche.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_wohnbauflaeche.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_wohnbauflaeche.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_wohnbauflaeche.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_wohnbauflaeche.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_wohnbauflaeche.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_wohnbauflaeche.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_wohnbauflaeche.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_wohnbauflaeche.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_wohnbauflaeche.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_wohnbauflaeche.artderbebauung IS 'artDerBebauung  enumeration AX_ArtDerBebauung_Wohnbauflaeche 0..1';
@@ -14936,16 +13553,16 @@ COMMENT ON COLUMN ax_wohnbauflaeche.zweitname IS 'zweitname    0..1';
 CREATE TABLE IF NOT EXISTS ax_flaechebesondererfunktionalerpraegung (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	artderbebauung integer,
@@ -14955,28 +13572,20 @@ CREATE TABLE IF NOT EXISTS ax_flaechebesondererfunktionalerpraegung (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_flaechebesondererfunktionalerpraegung_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_flaechebesondererfunktionalerpraegung_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_flaechebesondererfunktionalerpraegung IS 'FeatureType: "AX_FlaecheBesondererFunktionalerPraegung"';
 COMMENT ON COLUMN ax_flaechebesondererfunktionalerpraegung.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_flaechebesondererfunktionalerpraegung.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_flaechebesondererfunktionalerpraegung.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_flaechebesondererfunktionalerpraegung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_flaechebesondererfunktionalerpraegung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_flaechebesondererfunktionalerpraegung.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_flaechebesondererfunktionalerpraegung.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_flaechebesondererfunktionalerpraegung.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_flaechebesondererfunktionalerpraegung.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_flaechebesondererfunktionalerpraegung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_flaechebesondererfunktionalerpraegung.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_flaechebesondererfunktionalerpraegung.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_flaechebesondererfunktionalerpraegung.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_flaechebesondererfunktionalerpraegung.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_flaechebesondererfunktionalerpraegung.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_flaechebesondererfunktionalerpraegung.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_flaechebesondererfunktionalerpraegung.artderbebauung IS 'artDerBebauung  enumeration AX_ArtDerBebauung_FlaecheBesondererFunktionalerPraegung 0..1';
@@ -14987,16 +13596,16 @@ COMMENT ON COLUMN ax_flaechebesondererfunktionalerpraegung.zustand IS 'zustand  
 CREATE TABLE IF NOT EXISTS ax_industrieundgewerbeflaeche (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	bezeichnung text,
@@ -15009,28 +13618,20 @@ CREATE TABLE IF NOT EXISTS ax_industrieundgewerbeflaeche (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_industrieundgewerbeflaeche_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_industrieundgewerbeflaeche_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_industrieundgewerbeflaeche IS 'FeatureType: "AX_IndustrieUndGewerbeflaeche"';
 COMMENT ON COLUMN ax_industrieundgewerbeflaeche.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_industrieundgewerbeflaeche.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_industrieundgewerbeflaeche.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_industrieundgewerbeflaeche.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_industrieundgewerbeflaeche.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_industrieundgewerbeflaeche.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_industrieundgewerbeflaeche.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_industrieundgewerbeflaeche.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_industrieundgewerbeflaeche.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_industrieundgewerbeflaeche.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_industrieundgewerbeflaeche.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_industrieundgewerbeflaeche.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_industrieundgewerbeflaeche.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_industrieundgewerbeflaeche.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_industrieundgewerbeflaeche.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_industrieundgewerbeflaeche.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_industrieundgewerbeflaeche.bezeichnung IS 'bezeichnung    0..1';
@@ -15044,16 +13645,16 @@ COMMENT ON COLUMN ax_industrieundgewerbeflaeche.zustand IS 'zustand  enumeration
 CREATE TABLE IF NOT EXISTS ax_siedlungsflaeche (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	artderbebauung integer,
@@ -15061,28 +13662,20 @@ CREATE TABLE IF NOT EXISTS ax_siedlungsflaeche (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_siedlungsflaeche_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_siedlungsflaeche_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_siedlungsflaeche IS 'FeatureType: "AX_Siedlungsflaeche"';
 COMMENT ON COLUMN ax_siedlungsflaeche.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_siedlungsflaeche.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_siedlungsflaeche.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_siedlungsflaeche.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_siedlungsflaeche.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_siedlungsflaeche.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_siedlungsflaeche.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_siedlungsflaeche.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_siedlungsflaeche.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_siedlungsflaeche.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_siedlungsflaeche.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_siedlungsflaeche.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_siedlungsflaeche.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_siedlungsflaeche.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_siedlungsflaeche.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_siedlungsflaeche.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_siedlungsflaeche.artderbebauung IS 'artDerBebauung  enumeration AX_ArtDerBebauung_Siedlungsflaeche 0..1';
@@ -15091,16 +13684,16 @@ COMMENT ON COLUMN ax_siedlungsflaeche.name IS 'name    0..1';
 CREATE TABLE IF NOT EXISTS ax_tagebaugrubesteinbruch (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	abbaugut integer,
@@ -15110,28 +13703,20 @@ CREATE TABLE IF NOT EXISTS ax_tagebaugrubesteinbruch (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_tagebaugrubesteinbruch_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_tagebaugrubesteinbruch_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_tagebaugrubesteinbruch IS 'FeatureType: "AX_TagebauGrubeSteinbruch"';
 COMMENT ON COLUMN ax_tagebaugrubesteinbruch.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_tagebaugrubesteinbruch.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_tagebaugrubesteinbruch.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_tagebaugrubesteinbruch.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_tagebaugrubesteinbruch.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_tagebaugrubesteinbruch.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_tagebaugrubesteinbruch.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_tagebaugrubesteinbruch.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_tagebaugrubesteinbruch.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_tagebaugrubesteinbruch.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_tagebaugrubesteinbruch.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_tagebaugrubesteinbruch.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_tagebaugrubesteinbruch.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_tagebaugrubesteinbruch.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_tagebaugrubesteinbruch.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_tagebaugrubesteinbruch.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_tagebaugrubesteinbruch.abbaugut IS 'abbaugut  enumeration AX_Abbaugut_TagebauGrubeSteinbruch 0..1';
@@ -15142,16 +13727,16 @@ COMMENT ON COLUMN ax_tagebaugrubesteinbruch.zustand IS 'zustand  enumeration AX_
 CREATE TABLE IF NOT EXISTS ax_sportfreizeitunderholungsflaeche (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	bezeichnung text[],
@@ -15161,28 +13746,20 @@ CREATE TABLE IF NOT EXISTS ax_sportfreizeitunderholungsflaeche (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_sportfreizeitunderholungsflaeche_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_sportfreizeitunderholungsflaeche_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_sportfreizeitunderholungsflaeche IS 'FeatureType: "AX_SportFreizeitUndErholungsflaeche"';
 COMMENT ON COLUMN ax_sportfreizeitunderholungsflaeche.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_sportfreizeitunderholungsflaeche.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_sportfreizeitunderholungsflaeche.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_sportfreizeitunderholungsflaeche.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_sportfreizeitunderholungsflaeche.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_sportfreizeitunderholungsflaeche.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_sportfreizeitunderholungsflaeche.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_sportfreizeitunderholungsflaeche.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_sportfreizeitunderholungsflaeche.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_sportfreizeitunderholungsflaeche.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_sportfreizeitunderholungsflaeche.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_sportfreizeitunderholungsflaeche.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_sportfreizeitunderholungsflaeche.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_sportfreizeitunderholungsflaeche.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_sportfreizeitunderholungsflaeche.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_sportfreizeitunderholungsflaeche.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_sportfreizeitunderholungsflaeche.bezeichnung IS 'bezeichnung    0..*';
@@ -15193,16 +13770,16 @@ COMMENT ON COLUMN ax_sportfreizeitunderholungsflaeche.zustand IS 'zustand  enume
 CREATE TABLE IF NOT EXISTS ax_halde (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	lagergut integer,
@@ -15211,28 +13788,20 @@ CREATE TABLE IF NOT EXISTS ax_halde (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_halde_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_halde_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_halde IS 'FeatureType: "AX_Halde"';
 COMMENT ON COLUMN ax_halde.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_halde.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_halde.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_halde.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_halde.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_halde.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_halde.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_halde.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_halde.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_halde.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_halde.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_halde.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_halde.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_halde.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_halde.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_halde.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_halde.lagergut IS 'lagergut  enumeration AX_Lagergut_Halde 0..1';
@@ -15242,87 +13811,71 @@ COMMENT ON COLUMN ax_halde.zustand IS 'zustand  enumeration AX_Zustand_Halde 0..
 CREATE TABLE IF NOT EXISTS ax_flaechezurzeitunbestimmbar (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_flaechezurzeitunbestimmbar_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_flaechezurzeitunbestimmbar_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_flaechezurzeitunbestimmbar IS 'FeatureType: "AX_FlaecheZurZeitUnbestimmbar"';
 COMMENT ON COLUMN ax_flaechezurzeitunbestimmbar.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_flaechezurzeitunbestimmbar.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_flaechezurzeitunbestimmbar.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_flaechezurzeitunbestimmbar.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_flaechezurzeitunbestimmbar.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_flaechezurzeitunbestimmbar.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_flaechezurzeitunbestimmbar.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_flaechezurzeitunbestimmbar.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_flaechezurzeitunbestimmbar.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_flaechezurzeitunbestimmbar.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_flaechezurzeitunbestimmbar.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_flaechezurzeitunbestimmbar.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_flaechezurzeitunbestimmbar.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_flaechezurzeitunbestimmbar.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_flaechezurzeitunbestimmbar.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_flaechezurzeitunbestimmbar.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 
 CREATE TABLE IF NOT EXISTS ax_sumpf (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	name text,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_sumpf_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_sumpf_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_sumpf IS 'FeatureType: "AX_Sumpf"';
 COMMENT ON COLUMN ax_sumpf.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_sumpf.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_sumpf.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_sumpf.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_sumpf.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_sumpf.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_sumpf.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_sumpf.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_sumpf.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_sumpf.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_sumpf.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_sumpf.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_sumpf.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_sumpf.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_sumpf.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_sumpf.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_sumpf.name IS 'name    0..1';
@@ -15330,16 +13883,16 @@ COMMENT ON COLUMN ax_sumpf.name IS 'name    0..1';
 CREATE TABLE IF NOT EXISTS ax_unlandvegetationsloseflaeche (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	funktion integer,
@@ -15348,28 +13901,20 @@ CREATE TABLE IF NOT EXISTS ax_unlandvegetationsloseflaeche (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_unlandvegetationsloseflaeche_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_unlandvegetationsloseflaeche_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_unlandvegetationsloseflaeche IS 'FeatureType: "AX_UnlandVegetationsloseFlaeche"';
 COMMENT ON COLUMN ax_unlandvegetationsloseflaeche.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_unlandvegetationsloseflaeche.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_unlandvegetationsloseflaeche.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_unlandvegetationsloseflaeche.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_unlandvegetationsloseflaeche.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_unlandvegetationsloseflaeche.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_unlandvegetationsloseflaeche.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_unlandvegetationsloseflaeche.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_unlandvegetationsloseflaeche.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_unlandvegetationsloseflaeche.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_unlandvegetationsloseflaeche.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_unlandvegetationsloseflaeche.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_unlandvegetationsloseflaeche.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_unlandvegetationsloseflaeche.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_unlandvegetationsloseflaeche.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_unlandvegetationsloseflaeche.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_unlandvegetationsloseflaeche.funktion IS 'funktion  enumeration AX_Funktion_UnlandVegetationsloseFlaeche 0..1';
@@ -15379,16 +13924,16 @@ COMMENT ON COLUMN ax_unlandvegetationsloseflaeche.oberflaechenmaterial IS 'oberf
 CREATE TABLE IF NOT EXISTS ax_gehoelz (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	funktion integer,
@@ -15397,28 +13942,20 @@ CREATE TABLE IF NOT EXISTS ax_gehoelz (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_gehoelz_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_gehoelz_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_gehoelz IS 'FeatureType: "AX_Gehoelz"';
 COMMENT ON COLUMN ax_gehoelz.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_gehoelz.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_gehoelz.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_gehoelz.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_gehoelz.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_gehoelz.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_gehoelz.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_gehoelz.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_gehoelz.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_gehoelz.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_gehoelz.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_gehoelz.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_gehoelz.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_gehoelz.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_gehoelz.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_gehoelz.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_gehoelz.funktion IS 'funktion  enumeration AX_Funktion_Gehoelz 0..1';
@@ -15428,16 +13965,16 @@ COMMENT ON COLUMN ax_gehoelz.vegetationsmerkmal IS 'vegetationsmerkmal  enumerat
 CREATE TABLE IF NOT EXISTS ax_wald (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	bezeichnung text,
@@ -15446,28 +13983,20 @@ CREATE TABLE IF NOT EXISTS ax_wald (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_wald_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_wald_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_wald IS 'FeatureType: "AX_Wald"';
 COMMENT ON COLUMN ax_wald.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_wald.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_wald.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_wald.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_wald.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_wald.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_wald.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_wald.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_wald.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_wald.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_wald.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_wald.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_wald.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_wald.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_wald.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_wald.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_wald.bezeichnung IS 'bezeichnung    0..1';
@@ -15477,44 +14006,36 @@ COMMENT ON COLUMN ax_wald.vegetationsmerkmal IS 'vegetationsmerkmal  enumeration
 CREATE TABLE IF NOT EXISTS ax_heide (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	name text,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_heide_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_heide_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_heide IS 'FeatureType: "AX_Heide"';
 COMMENT ON COLUMN ax_heide.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_heide.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_heide.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_heide.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_heide.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_heide.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_heide.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_heide.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_heide.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_heide.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_heide.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_heide.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_heide.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_heide.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_heide.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_heide.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_heide.name IS 'name    0..1';
@@ -15522,44 +14043,36 @@ COMMENT ON COLUMN ax_heide.name IS 'name    0..1';
 CREATE TABLE IF NOT EXISTS ax_moor (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	name text,
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_moor_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_moor_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_moor IS 'FeatureType: "AX_Moor"';
 COMMENT ON COLUMN ax_moor.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_moor.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_moor.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_moor.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_moor.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_moor.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_moor.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_moor.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_moor.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_moor.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_moor.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_moor.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_moor.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_moor.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_moor.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_moor.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_moor.name IS 'name    0..1';
@@ -15567,16 +14080,16 @@ COMMENT ON COLUMN ax_moor.name IS 'name    0..1';
 CREATE TABLE IF NOT EXISTS ax_landwirtschaft (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	fachdatenobjekt_name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	name text,
@@ -15584,28 +14097,20 @@ CREATE TABLE IF NOT EXISTS ax_landwirtschaft (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_landwirtschaft_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_landwirtschaft_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_landwirtschaft IS 'FeatureType: "AX_Landwirtschaft"';
 COMMENT ON COLUMN ax_landwirtschaft.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_landwirtschaft.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_landwirtschaft.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_landwirtschaft.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_landwirtschaft.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_landwirtschaft.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_landwirtschaft.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_landwirtschaft.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_landwirtschaft.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_landwirtschaft.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_landwirtschaft.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_landwirtschaft.fachdatenobjekt_name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_landwirtschaft.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_landwirtschaft.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_landwirtschaft.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_landwirtschaft.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_landwirtschaft.name IS 'name    0..1';
@@ -15614,16 +14119,16 @@ COMMENT ON COLUMN ax_landwirtschaft.vegetationsmerkmal IS 'vegetationsmerkmal  e
 CREATE TABLE IF NOT EXISTS ax_bahnverkehr (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	bahnkategorie integer[],
@@ -15640,32 +14145,24 @@ CREATE TABLE IF NOT EXISTS ax_bahnverkehr (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_bahnverkehr_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_bahnverkehr_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_bahnverkehr IS 'FeatureType: "AX_Bahnverkehr"';
 COMMENT ON COLUMN ax_bahnverkehr.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_bahnverkehr.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_bahnverkehr.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_bahnverkehr.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_bahnverkehr.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_bahnverkehr.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_bahnverkehr.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_bahnverkehr.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_bahnverkehr.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_bahnverkehr.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_bahnverkehr.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_bahnverkehr.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_bahnverkehr.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_bahnverkehr.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_bahnverkehr.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_bahnverkehr.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_bahnverkehr.bahnkategorie IS 'bahnkategorie  enumeration AX_Bahnkategorie 0..*';
-COMMENT ON COLUMN ax_bahnverkehr.unverschluesselt IS 'bezeichnung AX_Lagebezeichnung|unverschluesselt   1';
+COMMENT ON COLUMN ax_bahnverkehr.unverschluesselt IS 'bezeichnung AX_Lagebezeichnung|unverschluesselt   0..1';
 COMMENT ON COLUMN ax_bahnverkehr.gemeinde IS 'bezeichnung AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|gemeinde   1';
 COMMENT ON COLUMN ax_bahnverkehr.kreis IS 'bezeichnung AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|kreis   1';
 COMMENT ON COLUMN ax_bahnverkehr.lage IS 'bezeichnung AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|lage   1';
@@ -15679,16 +14176,16 @@ COMMENT ON COLUMN ax_bahnverkehr.zweitname IS 'zweitname    0..1';
 CREATE TABLE IF NOT EXISTS ax_weg (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	bezeichnung text,
@@ -15702,33 +14199,25 @@ CREATE TABLE IF NOT EXISTS ax_weg (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_weg_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_weg_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_weg IS 'FeatureType: "AX_Weg"';
 COMMENT ON COLUMN ax_weg.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_weg.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_weg.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_weg.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_weg.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_weg.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_weg.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_weg.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_weg.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_weg.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_weg.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_weg.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_weg.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_weg.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_weg.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_weg.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_weg.bezeichnung IS 'bezeichnung    0..1';
 COMMENT ON COLUMN ax_weg.funktion IS 'funktion  enumeration AX_Funktion_Weg 0..1';
-COMMENT ON COLUMN ax_weg.unverschluesselt IS 'name AX_Lagebezeichnung|unverschluesselt   1';
+COMMENT ON COLUMN ax_weg.unverschluesselt IS 'name AX_Lagebezeichnung|unverschluesselt   0..1';
 COMMENT ON COLUMN ax_weg.gemeinde IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|gemeinde   1';
 COMMENT ON COLUMN ax_weg.kreis IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|kreis   1';
 COMMENT ON COLUMN ax_weg.lage IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|lage   1';
@@ -15738,16 +14227,16 @@ COMMENT ON COLUMN ax_weg.regierungsbezirk IS 'name AX_Lagebezeichnung|verschlues
 CREATE TABLE IF NOT EXISTS ax_schiffsverkehr (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	funktion integer,
@@ -15761,32 +14250,24 @@ CREATE TABLE IF NOT EXISTS ax_schiffsverkehr (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_schiffsverkehr_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_schiffsverkehr_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_schiffsverkehr IS 'FeatureType: "AX_Schiffsverkehr"';
 COMMENT ON COLUMN ax_schiffsverkehr.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_schiffsverkehr.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_schiffsverkehr.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_schiffsverkehr.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_schiffsverkehr.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_schiffsverkehr.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_schiffsverkehr.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_schiffsverkehr.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_schiffsverkehr.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_schiffsverkehr.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_schiffsverkehr.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_schiffsverkehr.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_schiffsverkehr.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_schiffsverkehr.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_schiffsverkehr.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_schiffsverkehr.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_schiffsverkehr.funktion IS 'funktion  enumeration AX_Funktion_Schiffsverkehr 0..1';
-COMMENT ON COLUMN ax_schiffsverkehr.unverschluesselt IS 'name AX_Lagebezeichnung|unverschluesselt   1';
+COMMENT ON COLUMN ax_schiffsverkehr.unverschluesselt IS 'name AX_Lagebezeichnung|unverschluesselt   0..1';
 COMMENT ON COLUMN ax_schiffsverkehr.gemeinde IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|gemeinde   1';
 COMMENT ON COLUMN ax_schiffsverkehr.kreis IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|kreis   1';
 COMMENT ON COLUMN ax_schiffsverkehr.lage IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|lage   1';
@@ -15797,16 +14278,16 @@ COMMENT ON COLUMN ax_schiffsverkehr.zustand IS 'zustand  enumeration AX_Zustand_
 CREATE TABLE IF NOT EXISTS ax_flugverkehr (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	art integer,
@@ -15823,34 +14304,26 @@ CREATE TABLE IF NOT EXISTS ax_flugverkehr (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_flugverkehr_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_flugverkehr_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_flugverkehr IS 'FeatureType: "AX_Flugverkehr"';
 COMMENT ON COLUMN ax_flugverkehr.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_flugverkehr.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_flugverkehr.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_flugverkehr.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_flugverkehr.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_flugverkehr.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_flugverkehr.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_flugverkehr.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_flugverkehr.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_flugverkehr.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_flugverkehr.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_flugverkehr.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_flugverkehr.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_flugverkehr.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_flugverkehr.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_flugverkehr.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_flugverkehr.art IS 'art  enumeration AX_Art_Flugverkehr 0..1';
 COMMENT ON COLUMN ax_flugverkehr.bezeichnung IS 'bezeichnung    0..1';
 COMMENT ON COLUMN ax_flugverkehr.funktion IS 'funktion  enumeration AX_Funktion_Flugverkehr 0..1';
-COMMENT ON COLUMN ax_flugverkehr.unverschluesselt IS 'name AX_Lagebezeichnung|unverschluesselt   1';
+COMMENT ON COLUMN ax_flugverkehr.unverschluesselt IS 'name AX_Lagebezeichnung|unverschluesselt   0..1';
 COMMENT ON COLUMN ax_flugverkehr.gemeinde IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|gemeinde   1';
 COMMENT ON COLUMN ax_flugverkehr.kreis IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|kreis   1';
 COMMENT ON COLUMN ax_flugverkehr.lage IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|lage   1';
@@ -15862,16 +14335,16 @@ COMMENT ON COLUMN ax_flugverkehr.zustand IS 'zustand  enumeration AX_Zustand_Flu
 CREATE TABLE IF NOT EXISTS ax_platz (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	funktion integer,
@@ -15886,32 +14359,24 @@ CREATE TABLE IF NOT EXISTS ax_platz (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_platz_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_platz_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_platz IS 'FeatureType: "AX_Platz"';
 COMMENT ON COLUMN ax_platz.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_platz.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_platz.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_platz.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_platz.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_platz.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_platz.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_platz.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_platz.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_platz.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_platz.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_platz.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_platz.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_platz.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_platz.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_platz.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_platz.funktion IS 'funktion  enumeration AX_Funktion_Platz 0..1';
-COMMENT ON COLUMN ax_platz.unverschluesselt IS 'name AX_Lagebezeichnung|unverschluesselt   1';
+COMMENT ON COLUMN ax_platz.unverschluesselt IS 'name AX_Lagebezeichnung|unverschluesselt   0..1';
 COMMENT ON COLUMN ax_platz.gemeinde IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|gemeinde   1';
 COMMENT ON COLUMN ax_platz.kreis IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|kreis   1';
 COMMENT ON COLUMN ax_platz.lage IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|lage   1';
@@ -15923,16 +14388,16 @@ COMMENT ON COLUMN ax_platz.zweitname IS 'zweitname    0..1';
 CREATE TABLE IF NOT EXISTS ax_strassenverkehr (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	datumderletztenueberpruefung timestamp without time zone,
 	herkunft text,
 	funktion integer,
@@ -15947,32 +14412,24 @@ CREATE TABLE IF NOT EXISTS ax_strassenverkehr (
 	istabgeleitetaus text[],
 	traegtbeizu text[],
 	hatdirektunten text[],
-	inverszu_hatdirektunten text[],
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ax_strassenverkehr_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ax_strassenverkehr_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ax_strassenverkehr IS 'FeatureType: "AX_Strassenverkehr"';
 COMMENT ON COLUMN ax_strassenverkehr.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ax_strassenverkehr.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ax_strassenverkehr.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ax_strassenverkehr.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ax_strassenverkehr.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ax_strassenverkehr.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ax_strassenverkehr.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ax_strassenverkehr.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ax_strassenverkehr.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ax_strassenverkehr.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
-COMMENT ON COLUMN ax_strassenverkehr.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ax_strassenverkehr.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ax_strassenverkehr.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
+COMMENT ON COLUMN ax_strassenverkehr.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 COMMENT ON COLUMN ax_strassenverkehr.datumderletztenueberpruefung IS 'datumDerLetztenUeberpruefung   DateTime 0..1';
 COMMENT ON COLUMN ax_strassenverkehr.herkunft IS 'qualitaetsangaben AX_DQMitDatenerhebung|herkunft  LI_Lineage 0..1';
 COMMENT ON COLUMN ax_strassenverkehr.funktion IS 'funktion  enumeration AX_Funktion_Strasse 0..1';
-COMMENT ON COLUMN ax_strassenverkehr.unverschluesselt IS 'name AX_Lagebezeichnung|unverschluesselt   1';
+COMMENT ON COLUMN ax_strassenverkehr.unverschluesselt IS 'name AX_Lagebezeichnung|unverschluesselt   0..1';
 COMMENT ON COLUMN ax_strassenverkehr.gemeinde IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|gemeinde   1';
 COMMENT ON COLUMN ax_strassenverkehr.kreis IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|kreis   1';
 COMMENT ON COLUMN ax_strassenverkehr.lage IS 'name AX_Lagebezeichnung|verschluesselt|AX_VerschluesselteLagebezeichnung|lage   1';
@@ -15984,329 +14441,273 @@ COMMENT ON COLUMN ax_strassenverkehr.zweitname IS 'zweitname    0..1';
 CREATE TABLE IF NOT EXISTS ta_compositesolidcomponent_3d (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
 	levelofdetail text NOT NULL,
-	position geometry(MULTIPOLYGON) NOT NULL,
+	wkb_geometry geometry(MULTIPOLYGON),
 	detailliert  text,
 	generalisiert  text,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ta_compositesolidcomponent_3d_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ta_compositesolidcomponent_3d_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ta_compositesolidcomponent_3d IS 'FeatureType: "TA_CompositeSolidComponent_3D"';
 COMMENT ON COLUMN ta_compositesolidcomponent_3d.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ta_compositesolidcomponent_3d.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ta_compositesolidcomponent_3d.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ta_compositesolidcomponent_3d.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ta_compositesolidcomponent_3d.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ta_compositesolidcomponent_3d.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ta_compositesolidcomponent_3d.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ta_compositesolidcomponent_3d.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ta_compositesolidcomponent_3d.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ta_compositesolidcomponent_3d.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ta_compositesolidcomponent_3d.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ta_compositesolidcomponent_3d.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ta_compositesolidcomponent_3d.levelofdetail IS 'levelOfDetail  codelist AA_LevelOfDetail 1';
-COMMENT ON COLUMN ta_compositesolidcomponent_3d.position IS 'position   GM_CompositeSolid 1';
+COMMENT ON COLUMN ta_compositesolidcomponent_3d.wkb_geometry IS 'wkb_geometry   GM_CompositeSolid 0..1';
 
 CREATE TABLE IF NOT EXISTS ta_surfacecomponent_3d (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
 	levelofdetail text NOT NULL,
-	position geometry(POLYGON) NOT NULL,
+	wkb_geometry geometry(POLYGON),
 	detailliert  text,
 	generalisiert  text,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ta_surfacecomponent_3d_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ta_surfacecomponent_3d_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ta_surfacecomponent_3d IS 'FeatureType: "TA_SurfaceComponent_3D"';
 COMMENT ON COLUMN ta_surfacecomponent_3d.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ta_surfacecomponent_3d.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ta_surfacecomponent_3d.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ta_surfacecomponent_3d.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ta_surfacecomponent_3d.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ta_surfacecomponent_3d.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ta_surfacecomponent_3d.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ta_surfacecomponent_3d.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ta_surfacecomponent_3d.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ta_surfacecomponent_3d.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ta_surfacecomponent_3d.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ta_surfacecomponent_3d.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ta_surfacecomponent_3d.levelofdetail IS 'levelOfDetail  codelist AA_LevelOfDetail 1';
-COMMENT ON COLUMN ta_surfacecomponent_3d.position IS 'position   GM_Surface 1';
+COMMENT ON COLUMN ta_surfacecomponent_3d.wkb_geometry IS 'wkb_geometry   GM_Surface 0..1';
 
 CREATE TABLE IF NOT EXISTS ta_curvecomponent_3d (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
 	levelofdetail text NOT NULL,
-	position geometry(LINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	detailliert  text,
 	generalisiert  text,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ta_curvecomponent_3d_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ta_curvecomponent_3d_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ta_curvecomponent_3d IS 'FeatureType: "TA_CurveComponent_3D"';
 COMMENT ON COLUMN ta_curvecomponent_3d.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ta_curvecomponent_3d.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ta_curvecomponent_3d.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ta_curvecomponent_3d.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ta_curvecomponent_3d.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ta_curvecomponent_3d.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ta_curvecomponent_3d.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ta_curvecomponent_3d.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ta_curvecomponent_3d.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ta_curvecomponent_3d.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ta_curvecomponent_3d.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ta_curvecomponent_3d.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ta_curvecomponent_3d.levelofdetail IS 'levelOfDetail  codelist AA_LevelOfDetail 1';
-COMMENT ON COLUMN ta_curvecomponent_3d.position IS 'position   GM_Curve 1';
+COMMENT ON COLUMN ta_curvecomponent_3d.wkb_geometry IS 'wkb_geometry   GM_Curve 0..1';
 
 CREATE TABLE IF NOT EXISTS ta_pointcomponent_3d (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
 	levelofdetail text NOT NULL,
-	position geometry(POINT) NOT NULL,
+	wkb_geometry geometry(POINT),
 	detailliert  text,
 	generalisiert  text,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT ta_pointcomponent_3d_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ta_pointcomponent_3d_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ta_pointcomponent_3d IS 'FeatureType: "TA_PointComponent_3D"';
 COMMENT ON COLUMN ta_pointcomponent_3d.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ta_pointcomponent_3d.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ta_pointcomponent_3d.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ta_pointcomponent_3d.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ta_pointcomponent_3d.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ta_pointcomponent_3d.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ta_pointcomponent_3d.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ta_pointcomponent_3d.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ta_pointcomponent_3d.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ta_pointcomponent_3d.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ta_pointcomponent_3d.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ta_pointcomponent_3d.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ta_pointcomponent_3d.levelofdetail IS 'levelOfDetail  codelist AA_LevelOfDetail 1';
-COMMENT ON COLUMN ta_pointcomponent_3d.position IS 'position   GM_Point 1';
+COMMENT ON COLUMN ta_pointcomponent_3d.wkb_geometry IS 'wkb_geometry   GM_Point 0..1';
 
 CREATE TABLE IF NOT EXISTS au_trianguliertesoberflaechenobjekt_3d (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
 	levelofdetail text NOT NULL,
-	position geometry(MULTIPOLYGON) NOT NULL,
+	wkb_geometry geometry(MULTIPOLYGON),
 	detailliert  text,
 	generalisiert  text,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT au_trianguliertesoberflaechenobjekt_3d_pkey PRIMARY KEY (gml_id)
+CONSTRAINT au_trianguliertesoberflaechenobjekt_3d_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE au_trianguliertesoberflaechenobjekt_3d IS 'FeatureType: "AU_TrianguliertesOberflaechenObjekt_3D"';
 COMMENT ON COLUMN au_trianguliertesoberflaechenobjekt_3d.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN au_trianguliertesoberflaechenobjekt_3d.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN au_trianguliertesoberflaechenobjekt_3d.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN au_trianguliertesoberflaechenobjekt_3d.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN au_trianguliertesoberflaechenobjekt_3d.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN au_trianguliertesoberflaechenobjekt_3d.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN au_trianguliertesoberflaechenobjekt_3d.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN au_trianguliertesoberflaechenobjekt_3d.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN au_trianguliertesoberflaechenobjekt_3d.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN au_trianguliertesoberflaechenobjekt_3d.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN au_trianguliertesoberflaechenobjekt_3d.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN au_trianguliertesoberflaechenobjekt_3d.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN au_trianguliertesoberflaechenobjekt_3d.levelofdetail IS 'levelOfDetail  codelist AA_LevelOfDetail 1';
-COMMENT ON COLUMN au_trianguliertesoberflaechenobjekt_3d.position IS 'position   GM_TriangulatedSurface 1';
+COMMENT ON COLUMN au_trianguliertesoberflaechenobjekt_3d.wkb_geometry IS 'wkb_geometry   GM_TriangulatedSurface 0..1';
 
 CREATE TABLE IF NOT EXISTS au_mehrfachflaechenobjekt_3d (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
 	levelofdetail text NOT NULL,
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	detailliert  text,
 	generalisiert  text,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT au_mehrfachflaechenobjekt_3d_pkey PRIMARY KEY (gml_id)
+CONSTRAINT au_mehrfachflaechenobjekt_3d_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE au_mehrfachflaechenobjekt_3d IS 'FeatureType: "AU_MehrfachFlaechenObjekt_3D"';
 COMMENT ON COLUMN au_mehrfachflaechenobjekt_3d.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN au_mehrfachflaechenobjekt_3d.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN au_mehrfachflaechenobjekt_3d.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN au_mehrfachflaechenobjekt_3d.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN au_mehrfachflaechenobjekt_3d.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN au_mehrfachflaechenobjekt_3d.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN au_mehrfachflaechenobjekt_3d.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN au_mehrfachflaechenobjekt_3d.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN au_mehrfachflaechenobjekt_3d.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN au_mehrfachflaechenobjekt_3d.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN au_mehrfachflaechenobjekt_3d.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN au_mehrfachflaechenobjekt_3d.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN au_mehrfachflaechenobjekt_3d.levelofdetail IS 'levelOfDetail  codelist AA_LevelOfDetail 1';
-COMMENT ON COLUMN au_mehrfachflaechenobjekt_3d.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN au_mehrfachflaechenobjekt_3d.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 
 CREATE TABLE IF NOT EXISTS au_mehrfachlinienobjekt_3d (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
 	levelofdetail text NOT NULL,
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	detailliert  text,
 	generalisiert  text,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT au_mehrfachlinienobjekt_3d_pkey PRIMARY KEY (gml_id)
+CONSTRAINT au_mehrfachlinienobjekt_3d_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE au_mehrfachlinienobjekt_3d IS 'FeatureType: "AU_MehrfachLinienObjekt_3D"';
 COMMENT ON COLUMN au_mehrfachlinienobjekt_3d.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN au_mehrfachlinienobjekt_3d.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN au_mehrfachlinienobjekt_3d.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN au_mehrfachlinienobjekt_3d.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN au_mehrfachlinienobjekt_3d.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN au_mehrfachlinienobjekt_3d.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN au_mehrfachlinienobjekt_3d.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN au_mehrfachlinienobjekt_3d.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN au_mehrfachlinienobjekt_3d.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN au_mehrfachlinienobjekt_3d.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN au_mehrfachlinienobjekt_3d.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN au_mehrfachlinienobjekt_3d.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN au_mehrfachlinienobjekt_3d.levelofdetail IS 'levelOfDetail  codelist AA_LevelOfDetail 1';
-COMMENT ON COLUMN au_mehrfachlinienobjekt_3d.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN au_mehrfachlinienobjekt_3d.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
 
 CREATE TABLE IF NOT EXISTS au_umringobjekt_3d (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
 	levelofdetail text NOT NULL,
-	position geometry(MULTILINESTRING) NOT NULL,
+	wkb_geometry geometry,
 	detailliert  text,
 	generalisiert  text,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT au_umringobjekt_3d_pkey PRIMARY KEY (gml_id)
+CONSTRAINT au_umringobjekt_3d_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE au_umringobjekt_3d IS 'FeatureType: "AU_UmringObjekt_3D"';
 COMMENT ON COLUMN au_umringobjekt_3d.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN au_umringobjekt_3d.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN au_umringobjekt_3d.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN au_umringobjekt_3d.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN au_umringobjekt_3d.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN au_umringobjekt_3d.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN au_umringobjekt_3d.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN au_umringobjekt_3d.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN au_umringobjekt_3d.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN au_umringobjekt_3d.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN au_umringobjekt_3d.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN au_umringobjekt_3d.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN au_umringobjekt_3d.levelofdetail IS 'levelOfDetail  codelist AA_LevelOfDetail 1';
-COMMENT ON COLUMN au_umringobjekt_3d.position IS 'position   GM_MultiCurve 1';
+COMMENT ON COLUMN au_umringobjekt_3d.wkb_geometry IS 'wkb_geometry   GM_MultiCurve 0..1';
 
 CREATE TABLE IF NOT EXISTS ap_kpo_3d (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	zeigtaufexternes_art character varying[],
 	name text[],
 	uri character varying[],
 	levelofdetail text NOT NULL,
-	position geometry(POINT) NOT NULL,
+	wkb_geometry geometry(POINT),
 	art character varying,
 	darstellungsprioritaet integer,
 	dateityp integer,
@@ -16316,28 +14717,21 @@ CREATE TABLE IF NOT EXISTS ap_kpo_3d (
 	detailliert  text,
 	generalisiert  text,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
 	dientzurdarstellungvon text[],
-CONSTRAINT ap_kpo_3d_pkey PRIMARY KEY (gml_id)
+CONSTRAINT ap_kpo_3d_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE ap_kpo_3d IS 'FeatureType: "AP_KPO_3D"';
 COMMENT ON COLUMN ap_kpo_3d.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN ap_kpo_3d.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN ap_kpo_3d.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN ap_kpo_3d.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN ap_kpo_3d.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN ap_kpo_3d.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN ap_kpo_3d.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN ap_kpo_3d.zeigtaufexternes_art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN ap_kpo_3d.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN ap_kpo_3d.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN ap_kpo_3d.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN ap_kpo_3d.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN ap_kpo_3d.levelofdetail IS 'levelOfDetail  codelist AA_LevelOfDetail 1';
-COMMENT ON COLUMN ap_kpo_3d.position IS 'position   GM_Point 1';
+COMMENT ON COLUMN ap_kpo_3d.wkb_geometry IS 'wkb_geometry   GM_Point 0..1';
 COMMENT ON COLUMN ap_kpo_3d.art IS 'art   CharacterString 0..1';
 COMMENT ON COLUMN ap_kpo_3d.darstellungsprioritaet IS 'darstellungsprioritaet   Integer 0..1';
 COMMENT ON COLUMN ap_kpo_3d.dateityp IS 'dateiTyp  enumeration AP_DateiTyp_3D 0..1';
@@ -16349,116 +14743,255 @@ COMMENT ON COLUMN ap_kpo_3d.dientzurdarstellungvon IS 'Assoziation zu: FeatureTy
 CREATE TABLE IF NOT EXISTS au_punkthaufenobjekt_3d (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
 	levelofdetail text NOT NULL,
-	position geometry(MULTIPOINT) NOT NULL,
+	wkb_geometry geometry(MULTIPOINT),
 	detailliert  text,
 	generalisiert  text,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT au_punkthaufenobjekt_3d_pkey PRIMARY KEY (gml_id)
+CONSTRAINT au_punkthaufenobjekt_3d_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE au_punkthaufenobjekt_3d IS 'FeatureType: "AU_PunkthaufenObjekt_3D"';
 COMMENT ON COLUMN au_punkthaufenobjekt_3d.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN au_punkthaufenobjekt_3d.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN au_punkthaufenobjekt_3d.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN au_punkthaufenobjekt_3d.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN au_punkthaufenobjekt_3d.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN au_punkthaufenobjekt_3d.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN au_punkthaufenobjekt_3d.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN au_punkthaufenobjekt_3d.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN au_punkthaufenobjekt_3d.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN au_punkthaufenobjekt_3d.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN au_punkthaufenobjekt_3d.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN au_punkthaufenobjekt_3d.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN au_punkthaufenobjekt_3d.levelofdetail IS 'levelOfDetail  codelist AA_LevelOfDetail 1';
-COMMENT ON COLUMN au_punkthaufenobjekt_3d.position IS 'position   GM_MultiPoint 1';
+COMMENT ON COLUMN au_punkthaufenobjekt_3d.wkb_geometry IS 'wkb_geometry   GM_MultiPoint 0..1';
 
 CREATE TABLE IF NOT EXISTS au_koerperobjekt_3d (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
 	levelofdetail text NOT NULL,
-	position geometry(MULTIPOLYGON) NOT NULL,
+	wkb_geometry geometry(MULTIPOLYGON),
 	detailliert  text,
 	generalisiert  text,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT au_koerperobjekt_3d_pkey PRIMARY KEY (gml_id)
+CONSTRAINT au_koerperobjekt_3d_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE au_koerperobjekt_3d IS 'FeatureType: "AU_KoerperObjekt_3D"';
 COMMENT ON COLUMN au_koerperobjekt_3d.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN au_koerperobjekt_3d.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN au_koerperobjekt_3d.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN au_koerperobjekt_3d.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN au_koerperobjekt_3d.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN au_koerperobjekt_3d.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN au_koerperobjekt_3d.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN au_koerperobjekt_3d.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN au_koerperobjekt_3d.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN au_koerperobjekt_3d.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN au_koerperobjekt_3d.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN au_koerperobjekt_3d.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN au_koerperobjekt_3d.levelofdetail IS 'levelOfDetail  codelist AA_LevelOfDetail 1';
-COMMENT ON COLUMN au_koerperobjekt_3d.position IS 'position   GM_Solid 1';
+COMMENT ON COLUMN au_koerperobjekt_3d.wkb_geometry IS 'wkb_geometry   GM_Solid 0..1';
 
 CREATE TABLE IF NOT EXISTS au_geometrieobjekt_3d (
 	ogc_fid serial NOT NULL,
 	identifier character varying,
-	gml_id text,
+	gml_id character varying(16),
 	anlass text[],
 	beginnt timestamp without time zone NOT NULL,
 	endet timestamp without time zone,
-	advstandardmodell character varying[] NOT NULL,
-	sonstigesmodell text[] NOT NULL,
+	advstandardmodell character varying[],
+	sonstigesmodell text[],
 	art character varying[],
 	name text[],
 	uri character varying[],
 	levelofdetail text NOT NULL,
-	position geometry NOT NULL,
+	wkb_geometry geometry,
 	detailliert  text,
 	generalisiert  text,
 	istteilvon text[],
-	inverszu_dientzurdarstellungvon_ap_lto text[],
-	inverszu_dientzurdarstellungvon_ap_pto text[],
-	inverszu_dientzurdarstellungvon_ap_ppo text[],
-	inverszu_dientzurdarstellungvon_ap_lpo text[],
-	inverszu_dientzurdarstellungvon_ap_fpo text[],
-	inverszu_dientzurdarstellungvon_ap_darstellung text[],
-	inverszu_dientzurdarstellungvon_ap_kpo_3d text[],
-CONSTRAINT au_geometrieobjekt_3d_pkey PRIMARY KEY (gml_id)
+CONSTRAINT au_geometrieobjekt_3d_pkey PRIMARY KEY (ogc_fid)
 ) WITH OIDS;
 
 COMMENT ON TABLE au_geometrieobjekt_3d IS 'FeatureType: "AU_GeometrieObjekt_3D"';
 COMMENT ON COLUMN au_geometrieobjekt_3d.anlass IS 'anlass  codelist AA_Anlassart 0..*';
 COMMENT ON COLUMN au_geometrieobjekt_3d.beginnt IS 'lebenszeitintervall AA_Lebenszeitintervall|beginnt  DateTime 1';
 COMMENT ON COLUMN au_geometrieobjekt_3d.endet IS 'lebenszeitintervall AA_Lebenszeitintervall|endet  DateTime 0..1';
-COMMENT ON COLUMN au_geometrieobjekt_3d.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 1';
-COMMENT ON COLUMN au_geometrieobjekt_3d.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 1';
+COMMENT ON COLUMN au_geometrieobjekt_3d.advstandardmodell IS 'modellart AA_Modellart|advStandardModell enumeration AA_AdVStandardModell 0..1';
+COMMENT ON COLUMN au_geometrieobjekt_3d.sonstigesmodell IS 'modellart AA_Modellart|sonstigesModell codelist AA_WeitereModellart 0..1';
 COMMENT ON COLUMN au_geometrieobjekt_3d.art IS 'zeigtAufExternes AA_Fachdatenverbindung|art  URI 1';
-COMMENT ON COLUMN au_geometrieobjekt_3d.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   1';
-COMMENT ON COLUMN au_geometrieobjekt_3d.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 1';
+COMMENT ON COLUMN au_geometrieobjekt_3d.name IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|name   0..1';
+COMMENT ON COLUMN au_geometrieobjekt_3d.uri IS 'zeigtAufExternes AA_Fachdatenverbindung|fachdatenobjekt|AA_Fachdatenobjekt|uri  URI 0..1';
 COMMENT ON COLUMN au_geometrieobjekt_3d.levelofdetail IS 'levelOfDetail  codelist AA_LevelOfDetail 1';
-COMMENT ON COLUMN au_geometrieobjekt_3d.position IS 'position   GM_Object 1';
+COMMENT ON COLUMN au_geometrieobjekt_3d.wkb_geometry IS 'wkb_geometry   GM_Object 0..1';
+
+-- Table: aaa_ogr.delete
+CREATE TABLE aaa_ogr.delete (
+  ogc_fid serial NOT NULL,
+  typename character varying, -- Objektart, also Name der Tabelle, aus der das Objekt zu löschen ist.
+  featureid character varying, -- gml_id des zu löschenden Objekts.
+  context character varying, -- Operation 'delete', 'replace' oder 'update'.
+  safetoignore character varying, -- Attribut safeToIgnore von wfsext:Replace
+  replacedby character varying, -- gml_id des Objekts, das featureid ersetzt
+  anlass character varying[],
+  endet character(20),
+  ignored boolean DEFAULT false, -- Löschsatz wurde ignoriert
+  dummy geometry(Point,25832),
+  CONSTRAINT delete_pk PRIMARY KEY (ogc_fid)
+) WITH (OIDS=TRUE);
+COMMENT ON TABLE aaa_ogr.delete
+  IS 'Hilfstabelle für das Speichern von Löschinformationen.';
+COMMENT ON COLUMN aaa_ogr.delete.typename IS 'Objektart, also Name der Tabelle, aus der das Objekt zu löschen ist.';
+COMMENT ON COLUMN aaa_ogr.delete.featureid IS 'gml_id des zu löschenden Objekts.';
+COMMENT ON COLUMN aaa_ogr.delete.context IS 'Operation ''delete'', ''replace'' oder ''update''.';
+COMMENT ON COLUMN aaa_ogr.delete.safetoignore IS 'Attribut safeToIgnore von wfsext:Replace';
+COMMENT ON COLUMN aaa_ogr.delete.replacedby IS 'gml_id des Objekts, das featureid ersetzt';
+COMMENT ON COLUMN aaa_ogr.delete.ignored IS 'Löschsatz wurde ignoriert';
+
+-- Function: aaa_ogr.delete_feature_hist()
+CREATE OR REPLACE FUNCTION aaa_ogr.delete_feature_hist()
+RETURNS trigger AS
+$BODY$
+	DECLARE
+		n INTEGER;
+		vbeginnt TEXT;
+		replgml TEXT;
+		featgml TEXT;
+		s TEXT;
+	BEGIN
+		NEW.context := coalesce(lower(NEW.context),'delete');
+
+		--IF NEW.anlass IS NULL THEN		-- am 28.06.2016 angepasst
+		--	NEW.anlass := '';
+		--END IF;
+		featgml := substr(NEW.featureid, 1, 16); -- gml_id ohne Timestamp
+
+		IF length(NEW.featureid)=32 THEN
+			-- beginnt-Zeit der zu ersetzenden Vorgaenger-Version des Objektes
+			vbeginnt := substr(NEW.featureid, 17, 4) || '-'
+				|| substr(NEW.featureid, 21, 2) || '-'
+				|| substr(NEW.featureid, 23, 2) || 'T'
+				|| substr(NEW.featureid, 26, 2) || ':'
+				|| substr(NEW.featureid, 28, 2) || ':'
+				|| substr(NEW.featureid, 30, 2) || 'Z' ;
+		ELSIF length(NEW.featureid)=16 THEN
+			-- Ältestes nicht gelöschtes Objekt
+			EXECUTE 'SELECT min(beginnt) FROM ' || NEW.typename
+			        || ' WHERE gml_id=''' || featgml || ''''
+			        || ' AND endet IS NULL'
+				INTO vbeginnt;
+
+			IF vbeginnt IS NULL THEN
+				RAISE EXCEPTION '%: Keinen Kandidaten zum Löschen gefunden.', NEW.featureid;
+			END IF;
+		ELSE
+			RAISE EXCEPTION '%: Identifikator gescheitert.', NEW.featureid;
+		END IF;
+
+		IF NEW.context='delete' THEN
+			NEW.endet := to_char(CURRENT_TIMESTAMP AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS"Z"');
+
+		ELSIF NEW.context='update' THEN
+			IF NEW.endet IS NULL THEN
+				RAISE EXCEPTION '%: Endedatum nicht gesetzt', NEW.featureid;
+			END IF;
+
+		ELSIF NEW.context='replace' THEN
+			NEW.safetoignore := lower(NEW.safetoignore);
+			replgml := substr(NEW.replacedby, 1, 16); -- ReplcedBy gml_id ohne Timestamp
+			IF NEW.safetoignore IS NULL THEN
+				RAISE EXCEPTION '%: safeToIgnore nicht gesetzt.', NEW.featureid;
+			ELSIF NEW.safetoignore<>'true' AND NEW.safetoignore<>'false' THEN
+				RAISE EXCEPTION '%: safeToIgnore ''%'' ungültig (''true'' oder ''false'' erwartet).', NEW.featureid, NEW.safetoignore;
+			END IF;
+
+			IF length(NEW.replacedby)=32 AND NEW.replacedby<>NEW.featureid THEN
+				NEW.endet := substr(NEW.replacedby, 17, 4) || '-'
+					|| substr(NEW.replacedby, 21, 2) || '-'
+					|| substr(NEW.replacedby, 23, 2) || 'T'
+					|| substr(NEW.replacedby, 26, 2) || ':'
+					|| substr(NEW.replacedby, 28, 2) || ':'
+					|| substr(NEW.replacedby, 30, 2) || 'Z' ;
+			END IF;
+
+			-- Satz-Paarung Vorgänger-Nachfolger in der Objekttabelle suchen.
+			-- Der Vorgänger muss noch beendet werden. Der Nachfolger kann bereits beendet sein.
+			-- Das "beginn" des Nachfolgers anschließend als "endet" des Vorgaengers verwenden.
+			-- Normalfall bei NBA-Aktualisierungslaeufen. v=Vorgänger, n=Nachfolger.
+			IF NEW.endet IS NULL THEN
+				EXECUTE 'SELECT min(n.beginnt) FROM ' || NEW.typename || ' n'
+					|| ' JOIN ' || NEW.typename || ' v ON v.ogc_fid<n.ogc_fid'
+					|| ' WHERE v.gml_id=''' || featgml
+					|| ''' AND n.gml_id=''' || replgml
+					|| ''' AND v.endet IS NULL'
+					INTO NEW.endet;
+			--	RAISE NOTICE 'endet setzen fuer Vorgaenger % ', NEW.endet;
+			END IF;
+
+			-- Satz-Paarung Vorgänger-Nachfolger in der Objekttabelle suchen.
+			-- Der Vorgänger ist bereits beendet worden weil "endet" in den Daten gefüllt war.
+			-- Dieser Fall kommt bei der Erstabgabe mit Vollhistorie vor.
+			IF NEW.endet IS NULL THEN
+				EXECUTE 'SELECT min(n.beginnt) FROM ' || NEW.typename || ' n'
+					|| ' JOIN ' || NEW.typename || ' v ON v.endet=n.beginnt '
+					|| ' WHERE v.gml_id=''' || featgml
+					|| ''' AND n.gml_id=''' || replgml
+					|| ''' AND v.beginnt=''' || vbeginnt || ''''
+					INTO NEW.endet;
+
+				IF NOT NEW.endet IS NULL THEN
+				--	RAISE NOTICE '%: Vorgaenger ist schon endet', NEW.featureid;
+					NEW.ignored=false;
+					RETURN NEW;
+				END IF;
+			END IF;
+
+			IF NEW.endet IS NULL THEN -- "endet" für den Vorgänger konnte nicht ermittelt werden
+				IF NEW.safetoignore='false' THEN
+					RAISE EXCEPTION '%: Beginn des ersetzenden Objekts % nicht gefunden.', NEW.featureid, NEW.replacedby;
+				END IF;
+				NEW.ignored=true;
+				RETURN NEW;
+			END IF; 
+		ELSE
+			RAISE EXCEPTION '%: Ungültiger Kontext % (''delete'', ''replace'' oder ''update'' erwartet).', NEW.featureid, NEW.context;
+		END IF;
+
+		-- Vorgaenger aaa_ogr-Objekt nun beenden
+		s := 'UPDATE ' || NEW.typename || ' SET endet=''' || NEW.endet || '''';			-- am 28.06.2016 angepasst
+		IF NEW.context='update' AND NEW.anlass IS NOT NULL THEN
+			s := s || ',anlass = ''' || NEW.anlass::text || '''';
+		END IF;
+		s := s || ' WHERE gml_id=''' || featgml || ''' AND beginnt=''' || vbeginnt || '''' ;
+
+		EXECUTE s;
+		GET DIAGNOSTICS n = ROW_COUNT;
+	  --RAISE NOTICE 'SQL[%]:%', n, s;
+		IF n<>1 THEN
+			RAISE EXCEPTION '%: % schlug fehl [%]', NEW.featureid, NEW.context, n;
+		END IF;
+
+		NEW.ignored := false;
+		RETURN NEW;
+	END;
+$BODY$
+LANGUAGE plpgsql VOLATILE
+COST 100;
+
+-- Trigger: delete_feature_trigger on aaa_ogr.delete
+CREATE TRIGGER delete_feature_trigger
+  BEFORE INSERT
+  ON aaa_ogr.delete
+  FOR EACH ROW
+  EXECUTE PROCEDURE aaa_ogr.delete_feature_hist();

@@ -1,6 +1,10 @@
 <?php
 class OgrSchema extends Schema {
 
+	function create_delete_trigger() {
+		return str_replace('schema_name', $this->schemaName, file_get_contents('../sql/delete_trigger.sql'));
+	}
+
 	function createEnumerationTable($enumeration, $dbSchema) {
 		if ($this->is_table_filtered($enumeration['name'])) {
 			$this->logger->log("<br>Ignoriere Enumeration: {$enumeration['name']}");
@@ -65,8 +69,8 @@ class OgrSchema extends Schema {
 			$featureType->ogrSchema = $this;
 
 			$featureType->setId($class['id']);
-			$featureType->primaryKey = 'gml_id';
-			$featureType->primaryKeyType = 'character varying(16) NOT NULL';
+			$featureType->primaryKey = 'ogc_fid';
+			$featureType->primaryKeyType = 'serial NOT NULL';
 			$featureType->primaryKeyNullable = false;
 
 			if ($parent != null)
@@ -77,7 +81,7 @@ class OgrSchema extends Schema {
 				$featureType->attribute_filter = array();
 
 			$this->logger->log('<br><b>Hole Attribute und verfolge dabei Datentypen bis zum Ende.</b>');
-			$featureType->getAttributesUntilLeafs($featureType->alias, array());
+			$featureType->getAttributesUntilLeafs($featureType->alias, $stereotype, array());
 
 			$featureType->flattenAttributes();
 
@@ -121,7 +125,7 @@ class OgrSchema extends Schema {
 		if ($parent != null)
 			$this->logger->log(' abgeleitet von: <b>' . $parent->alias . '</b>');
 
-		$featureType->getAttributesUntilLeafs($featureType->alias, array());
+		$featureType->getAttributesUntilLeafs($featureType->alias, $stereotype, array());
 
 		$featureType->flattenAttributes();
 
