@@ -6,7 +6,7 @@
 -- Name: comments; Type: TABLE; Schema: schema_name; Owner: pgadmin; Tablespace: 
 --
 
-CREATE TABLE comments (
+CREATE TABLE schema_name.comments (
     id integer NOT NULL,
     xmi_id character varying,
     "isSpecification" boolean,

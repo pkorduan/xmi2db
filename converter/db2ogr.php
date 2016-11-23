@@ -73,11 +73,12 @@ echo '<!DOCTYPE html>
 		$sql .= $ogrSchema->createFeatureTypeTables('FeatureType', null, $topClass);
 	}
 	$logger->log('<br><hr><br>');
+	$sql .= "\n\n" . $ogrSchema->create_delete_trigger();
 
 #	$gmlSchema->execSql($sql);
 
 ?><pre><?php
-	echo $sql;
+	echo htmlspecialchars($sql);
 ?></pre>
 <?php
 echo '	</body>

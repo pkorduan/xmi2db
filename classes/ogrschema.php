@@ -1,6 +1,10 @@
 <?php
 class OgrSchema extends Schema {
 
+	function create_delete_trigger() {
+		return str_replace('schema_name', $this->schemaName, file_get_contents('../sql/delete_trigger.sql'));
+	}
+
 	function createEnumerationTable($enumeration, $dbSchema) {
 		if ($this->is_table_filtered($enumeration['name'])) {
 			$this->logger->log("<br>Ignoriere Enumeration: {$enumeration['name']}");

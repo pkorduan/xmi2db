@@ -314,7 +314,7 @@
 			<option value="<?php //echo OGR_SCHEMA; ?>" selected><?php //echo OGR_SCHEMA; ?></option>
 		</datalist>
 		-->
-		
+		<p>
 		<div class="text-center" id="queryButton">
 		<button type="submit" class="btn btn-primary btn-sm" id="queryNERC" onclick="execDb2Ogr()"><span class="glyphicon glyphicon-ok"> </span> Erzeuge OGR-Schema</button>
 		</div>	
@@ -332,5 +332,6 @@
 	</script><?php
 	} # end of Konfigurationsdatei ist vorhanden
 ?>
+<p><p>
 	</body>
 </html>

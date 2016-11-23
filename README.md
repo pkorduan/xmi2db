@@ -1,7 +1,7 @@
 # xmi2db
 Konvertiert UML Klassenmodelle aus XMI Dateien in Tabellen und Typen nach PostgreSQL.
 
-Version vom 16.11.2016 16:25
+Version vom 22.11.2016 11:24
 
 Abstract
 XMI files are XML representations of UML models. Sometimes there is a need to have theses UML model elements especially the classes its attributes, the assosiations and generalisations in a database table structure.
