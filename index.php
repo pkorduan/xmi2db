@@ -89,13 +89,13 @@
 		}
 
 		function execDb2Ogr() {
-			var selectedConf = document.getElementById("selectedConf");
-			var conf = selectedConf.options[selectedConf.selectedIndex].value;
-			
-			var umlSchema = document.getElementById("db2ogr_umlSchema").value,
-					ogrSchema = document.getElementById("db2ogr_ogrSchema").value;
+			var selectedConf = document.getElementById("selectedConf"),
+					conf = selectedConf.options[selectedConf.selectedIndex].value,
+					umlSchema = document.getElementById("db2ogr_umlSchema").value,
+					ogrSchema = document.getElementById("db2ogr_ogrSchema").value,
+					epsgCode = document.getElementById("db2ogr_epsgCode").value;
 
-			window.location = 'converter/db2ogr.php?umlSchema=' + umlSchema + '&ogrSchema=' + ogrSchema;
+			window.location = 'converter/db2ogr.php?umlSchema=' + umlSchema + '&ogrSchema=' + ogrSchema + '&epsgCode=' + epsgCode;
 		}
 		
 		function test() {
@@ -305,6 +305,15 @@
 			$schemas = explode(";", $schemas);
 			foreach ($schemas as $schema) {
 				echo '<option value="'.$schema.'_ogr">'.$schema.'_ogr</option>';
+			}
+		?>
+		</select>
+
+		<h4>EPSG-Code für Geometriespalten</h4>
+		<select class="form-control" id="db2ogr_epsgCode">
+		<?php
+			foreach (array(25832, 25833) as $epsg_code) {
+				echo '<option value="' . $epsg_code . '">EPSG:' . $epsg_code . '</option>';
 			}
 		?>
 		</select>

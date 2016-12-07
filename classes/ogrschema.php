@@ -2,7 +2,16 @@
 class OgrSchema extends Schema {
 
 	function create_delete_trigger() {
-		return str_replace('schema_name', $this->schemaName, file_get_contents('../sql/delete_trigger.sql'));
+		$sql = str_replace('schema_name', $this->schemaName, file_get_contents('../sql/delete_trigger.sql'));
+		if (!empty(GEOMETRY_EPSG_CODE)) {
+			$sql = str_replace('25832', GEOMETRY_EPSG_CODE, $sql);
+		}
+		return $sql;
+	}
+
+	function create_ax_fortfuehrungsauftrag() {
+		$sql = file_get_contents('../sql/ax_fortfuehrungsauftrag.sql');
+		return $sql;
 	}
 
 	function createEnumerationTable($enumeration, $dbSchema) {

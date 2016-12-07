@@ -54,6 +54,15 @@
 	foreach($topClasses as $topClass) {
 		$ogrSchema->listFeatureTypesAttributes('FeatureType', null, $topClass, false);
 	}
+
+	# Für alle Aufzählungen
+	foreach($umlSchema->getEnumerations() AS $enumeration) {
+		$enumType = new EnumType($enumeration['name'], $logger);
+		if (strlen($enumType->name) != strlen($enumType->alias)) {
+			$ogrSchema->renameList[$enumType->alias] = $enumType->name;
+		}
+	}
+
 	# Sortiere Ausgabeliste
 	ksort($ogrSchema->renameList);
 	header('Content-Type: application/json');

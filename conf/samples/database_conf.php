@@ -31,6 +31,10 @@
 
 	$geometryColumnVar = ($_REQUEST['geometryColumn'] != '') ? $_REQUEST['geometryColumn'] : 'wkb_geometry';
 	define('GEOMETRY_COLUMN_NAME', $geometryColumnVar);
+
+	$epsgCode = ($_REQUEST['epsgCode'] != '') ? $_REQUEST['epsgCode'] : '';
+	define('GEOMETRY_EPSG_CODE', $epsgCode);
+
 	define('LINESTRING_AS_GEOMETRY', true);
 
 	define('WITH_UUID_OSSP', false);

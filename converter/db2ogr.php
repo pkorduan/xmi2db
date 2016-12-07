@@ -75,6 +75,9 @@ echo '<!DOCTYPE html>
 	$logger->log('<br><hr><br>');
 	$sql .= "\n\n" . $ogrSchema->create_delete_trigger();
 
+	$logger->log('<br><hr><br>');
+	$sql .= "\n\n" . $ogrSchema->create_ax_fortfuehrungsauftrag();
+
 #	$gmlSchema->execSql($sql);
 
 ?><pre><?php

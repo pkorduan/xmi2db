@@ -372,6 +372,16 @@ class FeatureType {
 		return $output;
 	}
 
+	function hasGeometryColumn() {
+		$hasGeometryColumn = false;
+		foreach($this->attributes AS $attribute) {
+			if ($attribute->name == GEOMETRY_COLUMN_NAME) {
+				$hasGeometryColumn = true;
+			}
+		}
+		return $hasGeometryColumn;
+	}
+
 	function asSql() {
 		$attribute_parts = array();
 		$sql = "
@@ -432,6 +442,13 @@ CREATE TABLE IF NOT EXISTS " . $this->name . " (
 
 		$sql .= ';
 ';	# Tabellenende
+
+		# Set epsg code
+		if (!empty(GEOMETRY_EPSG_CODE) and $this->hasGeometryColumn()) {
+			$sql .= "
+SELECT UpdateGeometrySRID('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "', " . GEOMETRY_EPSG_CODE . ");
+			";
+		}
 
 		# Ausgabe Tabellenkommentare
 		if (!empty($this->comments)) {
@@ -535,6 +552,13 @@ CREATE TABLE IF NOT EXISTS " . $this->name . " (
 
 		$sql .= ';
 ';	# Tabellenende
+
+		# Set epsg code
+		if (!empty(GEOMETRY_EPSG_CODE) and $this->hasGeometryColumn()) {
+			$sql .= "
+SELECT UpdateGeometrySRID('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "', " . GEOMETRY_EPSG_CODE . ");
+			";
+		}
 
 		# Ausgabe Tabellenkommentare
 		if (!empty($this->comments)) {
