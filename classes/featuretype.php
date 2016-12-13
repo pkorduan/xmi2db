@@ -37,9 +37,11 @@ class FeatureType {
 	function createUserInfoColumns() {
 		$this->logger->log('<br><b>Erzeuge userinfo Spalten</b>');
 		$this->addAttribute(new Attribute('user_id', 'integer'));
-		$this->addAttribute(new Attribute('created_at', 'timestamp without time zone','',array(), true, 'current_timestamp'));
 		$this->addAttribute(new Attribute('updated_at', 'timestamp without time zone','',array(), true, 'current_timestamp'));
 		$this->addAttribute(new Attribute('konvertierung_id', 'integer'));
+		$this->addAttribute(new Attribute('gid', 'integer'));
+		$this->addAttribute(new Attribute('beginnt', 'timestamp without time zone','',array(), true, 'current_timestamp'));
+		$this->addAttribute(new Attribute('endet', 'timestamp without time zone'));
 	}
 
 	function setAssociationEnds($class) {
