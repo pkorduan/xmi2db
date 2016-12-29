@@ -10,7 +10,7 @@
 <html lang="de">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+	<script src="https://gdi-service.de/3rdparty/jQuery-1.12.0/jquery-1.12.0.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.7.0/bootstrap-table.min.js"></script>
 	
@@ -22,22 +22,11 @@
 	
 	<script language="javascript" type="text/javascript">
 		function execXmi2Db() {
-			var selectedConf = document.getElementById("selectedConf");
-			var conf = selectedConf.options[selectedConf.selectedIndex].value;
-		
-			var selectedFile = document.getElementById("selectedFile");
-			var file = selectedFile.options[selectedFile.selectedIndex].value;
-			//alert(file);
+			var selectedFile = document.getElementById("selectedFile"),
+				file = selectedFile.options[selectedFile.selectedIndex].value,
+				basepkg = document.getElementById("basepkg").value,
+				truncateChkbx = document.getElementById("truncate").checked;
 
-			var selecteddbSchemaUML = document.getElementById("dbSchemaUML");
-			var dbSchemaUML = selecteddbSchemaUML.options[selecteddbSchemaUML.selectedIndex].value;
-			//var umlSchema = document.getElementById("xmi2db_umlSchema").value;
-			//alert(schema);
-
-			var basepkg = document.getElementById("basepkg").value;
-			//alert(basepkg);
-
-			var truncateChkbx = document.getElementById("truncate").checked;
 			if (truncateChkbx == true)
 				var truncate = "1";
 			else
@@ -49,31 +38,29 @@
 			else
 				var argo = "0";
 
+			$('html, body').animate({ scrollTop: 0 }, 'fast');
 			//window.location = 'converter/xmi2db.php?truncate=' + truncate + '&file=' + file + '&schema=' + umlSchema + '&basepackage=' + basepkg + '&argo=' + argo;
-			
+
 			var args = {};
 			args['url_params'] = new Array ();
 			args['url_params']['url'] = "converter/xmi2db.php";
 			args['url_params']['truncate'] = truncate;
-			args['url_params']['schema'] = dbSchemaUML;
 			args['url_params']['basepackage'] = basepkg;
 			args['url_params']['file'] = file;
 			args['url_params']['argo'] = argo;
 			
 			//Styling the progress div/box
 			args['html_params'] = new Array ();
-			args['html_params']['divLogBoxStyle'] = "border:1px solid #000; padding:10px; width:300px; height:250px; overflow:auto; background:#eee;";
-			args['html_params']['progressDivTitle'] = "Progress";
-			args['html_params']['percentageSpanStyle'] = "text-align:right; display:block; margin-top:5px;";
-			
+			args['html_params']['divLogBoxStyle'] = "border:1px solid #000; left: 20px; padding:10px; width:100%; height:600px; overflow:auto; background:#eee;";
+			args['html_params']['progressDivTitle'] = "UML-Daten Einlesen";
+			args['html_params']['progressElemStyle'] = "float: left;";
+			args['html_params']['percentageSpanStyle'] = "float:left; text-align:right; display:block; margin-left:5px;";
+
 			Pascoul.init(args);
 			Pascoul.startTask();
 		}
 
 		function execDb2Classes() {
-			var selectedConf = document.getElementById("selectedConf");
-			var conf = selectedConf.options[selectedConf.selectedIndex].value;
-			
 			var umlSchema = document.getElementById("db2classes_umlSchema").value,
 					gmlSchema = document.getElementById("db2classes_gmlSchema").value,
 					createUserInfoColumns = document.getElementById('createUserInfoColumns').checked,
@@ -89,9 +76,7 @@
 		}
 
 		function execDb2Ogr() {
-			var selectedConf = document.getElementById("selectedConf"),
-					conf = selectedConf.options[selectedConf.selectedIndex].value,
-					umlSchema = document.getElementById("db2ogr_umlSchema").value,
+			var umlSchema = document.getElementById("db2ogr_umlSchema").value,
 					ogrSchema = document.getElementById("db2ogr_ogrSchema").value,
 					epsgCode = document.getElementById("db2ogr_epsgCode").value;
 
@@ -128,10 +113,8 @@
 			<br>Kopiere die Datei conf/samples/model_aaa_conf.php nach conf/model_aaa_conf.php, passe die Konstante SCHEMA_CONF_FILE in conf/database_conf.php an sowie den Schema- und die Paketnamen in conf/model_aaa_conf.php.<?php
 		}
 		else { ?>
-		Gewählte Konfigurationsdatei:
-			<select class="form-control" id="selectedConf">
-				<option value="<?php echo SCHEMA_CONF_FILE; ?>"><?php echo SCHEMA_CONF_FILE; ?></option>
-			</select><?php
+			Gewählte Konfigurationsdatei: <b><?php echo SCHEMA_CONF_FILE; ?></b><br>
+			<i>Die Einstellung erfolgt in der Konfigurationsdatei 'conf/database_conf.php' in der Konstante <b>SCHEMA_CONF_FILE</b></i><?php
 		} ?>
 		<h3>xmi2db</h3>
 		xmi2db überträgt die UML-Modell Elemente der ausgewählten xmi Datei in das ausgewählte Datenbank Schema. Eingelesen werden nur die Elemente ab dem ausgewählten Basispaket.
@@ -150,7 +133,9 @@
 			else echo "Keine Pakete gewählt!";
 		?>
 		</ul>
-		<i><b>(Beachte: Hierchien sind unbedingt zu beachten bei der Angabe der Pakete in der database_conf.php! Das heißt: Möchte man Pakete in einem XPlan Modell auswählen, muss man das oberste Paket "XPlanGML 4.1" unbedingt mitangeben. Möchte man "BP_Bebauung" wählen, muss auch das Paket "Bebauungsplan" gewählt werden, da sich "BP_Bebauung" in "Bebauungsplan" befindet.)</b></i>
+		<div style="clear: both;">
+			<i><b>(Beachte: Hierarchien sind unbedingt zu beachten bei der Angabe der Pakete in der database_conf.php! Das heißt: Möchte man Pakete in einem XPlan Modell auswählen, muss man das oberste Paket "XPlanGML 4.1" unbedingt mitangeben. Möchte man "BP_Bebauung" wählen, muss auch das Paket "Bebauungsplan" gewählt werden, da sich "BP_Bebauung" in "Bebauungsplan" befindet.)</b></i>
+		</div>
 	</div>
 	<div class="container">
 		<h4>Dateiauswahl</h4>
@@ -165,22 +150,9 @@
 			} ?>
 		</select>
 		<h4>Schemaauswahl/-eingabe</h4>
-		<i>Das Schema wird entsprechend der gewählten Konfiguration (laut database_conf.php) in der Datenbank "<?php echo PG_DBNAME; ?>" angelegt.</i><br>
-		<select class="form-control" id="dbSchemaUML">
-		<?php
-			$schemas = str_replace("'", "", SCHEMAS);
-			$schemas = explode(";", $schemas);
-			foreach ($schemas as $schema) {
-				echo '<option value="'.$schema.'_uml">'.$schema.'_uml</option>';
-			}
-		?>
-		</select>
-		<!-- wird das nochgebraucht?
-		<input type="text" id="xmi2db_umlSchema" name="umlSchema" list="xmi2db_umlSchemaName" size="50"/ value="<?php //echo UML_SCHEMA; ?>">
-		<datalist id="xmi2db_umlSchemaName">
-			<option value="<?php //echo UML_SCHEMA; ?>" selected><?php //echo UML_SCHEMA; ?></option>
-		</datalist>
-		-->
+		Gewähltes Schema: <b><?php echo UML_SCHEMA; ?></b><br>
+		<i>Die Einstellung erfolgt in der Konfigurationsdatei 'conf/database_conf.php' in der Konstante <b>UML_SCHEMA</b></i>
+
 		<h4>BasePackageauswahl/-eingabe</h4>
 		<i>Bei einem EA-Export des XPlan-Modells "XPlanGML 4.1" wählen, bei einem ArgoUML Export leer lassen oder ein Package eintragen, falls man nur das eine laden möchte.</i>
 		<input type="text" id="basepkg" name="basepkg" list="basepkgNameListe" size="50"/>

@@ -41,7 +41,7 @@ class Pascoul {
 		echo "id: $id" . PHP_EOL;
 		echo "data: " . json_encode($d) . PHP_EOL;
 		echo PHP_EOL;
-		  
+
 		ob_flush();
 		flush();
 	}

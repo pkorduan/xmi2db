@@ -8,9 +8,16 @@
 */
 
 #progress {
-	height: 100px;
-	width: 500px;
-	position:absolute;
-   top:0;
-   right:0;
+ 	height: 5000px;
+ 	width: 100%;
+ 	position:absolute;
+  top: 0px;
+  padding: 10px;
+  background-color: #ccc;
+  opacity: 0.95;
+}
+
+#ready_button {
+  display: none;
+  margin-left: 25px;
 }
