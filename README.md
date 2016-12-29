@@ -27,13 +27,13 @@ Installation
 ```
 git clone https://github.com/pkorduan/xmi2db.git
 ```
-* Erzeuge und editiere die Datei database_config.php
+* Erzeuge und editiere die Datei conf/database_conf.php
 ```
-cp conf/database_conf_sample.php conf/database_conf.php
+cp conf/samples/database_conf.php conf/database_conf.php
 ```
 * Passe Datenbankzugang an: PG_HOST, PG_USER, PG_PASSWORD, PG_DBNAME
 
-* Erzeuge eine Datenbank, die $PG_USER gehört und installiere die Erweiterung PostGIS
+* Erzeuge eine Datenbank, die PG_USER gehört und installiere die Erweiterung PostGIS
 
 * Lege die zu importierende XMI-Datei im Unterordner xmis ab.
 
@@ -41,10 +41,9 @@ cp conf/database_conf_sample.php conf/database_conf.php
 
 xmi2db
 
-Führe als erstes die Funktion xmi2db "Fülle DB mit XMI Inhalten" aus um die UML-Elemente nach Postgres einzulesen.
+Führe als erstes die Funktion xmi2db aus, um die UML-Elemente nach Postgres einzulesen.
 Die Funktion erzeugt das Datenbankschema zur Speicherung der UML-Elemente und liest alle Klassen, Attribute, Beziehungen, Generalisierungen und Assoziationen aus der XMI-Datei aus und trägt sie in Tabellen ein.
 * Wähle die XMI Datei aus dem Ordner xmis aus,
-* Wähle ein Schemaname, z.b. aaa_uml
 * Wähle den Namen des Basis Paketes des UML models aus.
 * Klick auf "Fülle DB mit XMI Inhalten"
 Die Schemanamen können auch in conf/database_config.php vordefiniert werden.
@@ -84,7 +83,7 @@ ruby rename_nas.rb eingabedatei.xml [ausgabedatei.xml]
 
 Filter
 
-Das Schema, welches mit db2ogr erzeugt wird, kann durch einen Filter beschränkt werden. Dazu dient eine Filterdatei im JSON Format, dessen Name in conf/database_conf.php im Parameter FILTER_FILE eingestellt werden kann. Die Beispieldatei conf/filter_sample.json enthält folgende Filter.
+Das Schema, welches mit db2ogr erzeugt wird, kann durch einen Filter beschränkt werden. Dazu dient eine Filterdatei im JSON Format, dessen Name in conf/database_conf.php im Parameter FILTER_FILE eingestellt werden kann. Die Beispieldatei conf/samples/filter_sample_conf.json enthält folgende Filter.
 ```
 {
 	"AA_Modellart": {
@@ -112,11 +111,10 @@ Zum Einlesen von NAS-Dateien in Postgres benötigt man in der Datenbank ein aufb
 1.1 Erstellung des Schemas "aaa_ogr"
 
 Ein vollständiges Schema kann unter
-http://gdi-service.de/xmi2db/converter/db2ogr
+http://gdi-service.de/xmi2db/sql/schema_aaa_uml_2016-12-29.sql
 heruntergeladen werden, z.B. in der Datei aaa_ogr_schema.sql ablegen.
 
-Länderspezifische Schemata lassen sich mit dem Zusatz filter= mv,rp oder sl erzeugen. z.B.
-http://gdi-service.de/xmi2db/converter/db2ogr?filter=mv. Siehe Punkt "Filter" oben, um zu erfahren was gefiltert wird und wie er funktioniert.
+Länderspezifische Schemata lassen sich mit entsprechenden Filtern erzeugen.
 
 Den SQL-Text in aaa_ogr_schema.sql in einer Datenbank in einem SQL-Client ausführen z.B. pgAdmin3 oder psql ausführen. Die Befehle zum Anlegen der Datenbank lauten wie folgt:
 
@@ -175,7 +173,7 @@ done
 
 In der Schleife der Abarbeitung ist jedoch noch zu berücksichtigen, dass die erste Datei Metadaten enthält und ignoriert werden kann und Fehler abgefangen werden müssen.
 
-Ein Vorschlag für ein Bash-Skript für Linux, welches die Metadaten und Fehlerbehandlung berücksichtigt in Log-Dateien protokolliert und abgearbeitete Dateien in einen Archivordner schreibt, findet sich in der Datei tools/import_nas.sh Die Datei muss im Modus "Ausführbar" sein
+Ein Vorschlag für ein Bash-Skript für Linux, welches die Metadaten und Fehlerbehandlung berücksichtigt in Log-Dateien protokolliert und abgearbeitete Dateien in einen Archivordner schreibt, findet sich in der Datei converter/import_nas.sh Die Datei muss im Modus "Ausführbar" sein
 
 ```
 chmod a+x import_nas.sh
