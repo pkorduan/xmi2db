@@ -912,6 +912,8 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		$table->addAttribute($attribute);
 		$attribute = new Attribute('id', 'character varying');
 		$table->addAttribute($attribute);
+		$attribute = new Attribute('value', 'text');
+		$table->addAttribute($attribute);
 
 		# definiere Primärschlüssel
 		$table->primaryKey = 'id';
