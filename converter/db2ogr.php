@@ -61,6 +61,15 @@ echo '<!DOCTYPE html>
 
 	$logger->log('<br><hr><br>');
 
+	#***********
+	# CodeLists
+	#***********
+	# Lade CodeLists
+	foreach($umlSchema->getCodeLists() AS $code_list) {
+		$sql .= $umlSchema->createCodeListTable($code_list);
+	}
+	$logger->log('<br><hr><br>');
+
 	#**************
 	# FeatureTypes
 	#**************

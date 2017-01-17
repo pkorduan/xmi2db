@@ -1,7 +1,7 @@
 # xmi2db
 Konvertiert UML Klassenmodelle aus XMI Dateien in Tabellen und Typen nach PostgreSQL.
 
-Version vom 07.12.2016 01:20
+Version vom 17.01.2016 14:43
 
 Abstract
 XMI files are XML representations of UML models. Sometimes there is a need to have theses UML model elements especially the classes its attributes, the assosiations and generalisations in a database table structure.
@@ -16,6 +16,10 @@ XMI Dateien sind XML-Repräsentationen von UML-Modellen. Manchmal braucht man di
 xmi2db liest eine XMI Datei und schreibt die UML Dinge in die Datenbankstrktur, welche sich an UML Strukturen orientiert. Es gibt Tabellen für uml_classes, uml_attributes, class_generalizations, datatypes, stereotypes usw.
 In einem zweiten Schritt kann mit der Funktion db2classes ein relationales Datenbankschema erzeugt werden, welches für jede einzelne Klasse eine separate Tabelle erzeugt, mit Attributen, die zur Klasse passen. Die Tabellendefinition berücksichtigt die Generalisierung von UML-Klassen und die Vererbung. Multiplizität wird durch Definition der Attribute als Arrays berücksichtigt. Die Assoziationen werden verbunden durch gml_id Attribute vom Typ uuid. Die Funktion db2ogr erzeugt ein relationales Databankmodell ohne komplexe Datentypen. Dieses Schema kann für den Import von GML-Dateien mit ogr2ogr verwendet werden.
 Der xmi2db converter fokusiert sich auf GML-Anwendungsschemas wie die für INSPIRE, das AAA-Modell oder XPlanung-Schema. Der Type UNION wird in geometry umgesetzt und die PostGIS Erweiterung für die Datenbank ist erforderlich.
+
+Changelog
+
+17.01.2016 Tabellendefinitionen für CodeListen hinzugefügt.
 
 db2classes wird für einen Shape-to-XPlanGML-Konverter für XPlanung konforme Raumordnungspläne verwendet wird.
 
