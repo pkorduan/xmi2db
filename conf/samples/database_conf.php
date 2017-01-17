@@ -46,4 +46,6 @@
 
 	# Definition of the model conf file
 	define('SCHEMA_CONF_FILE', $rel_path . 'conf/model_aaa_conf.php');
+
+	define('WITH_CODE_LISTS', ($_REQUEST['withCodeLists'] == '1'));
 ?>
