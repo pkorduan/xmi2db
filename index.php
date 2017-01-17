@@ -78,9 +78,10 @@
 		function execDb2Ogr() {
 			var umlSchema = document.getElementById("db2ogr_umlSchema").value,
 					ogrSchema = document.getElementById("db2ogr_ogrSchema").value,
-					epsgCode = document.getElementById("db2ogr_epsgCode").value;
+					epsgCode = document.getElementById("db2ogr_epsgCode").value,
+					withCodeLists = $('#db2ogr_withCodeLists').val();
 
-			window.location = 'converter/db2ogr.php?umlSchema=' + umlSchema + '&ogrSchema=' + ogrSchema + '&epsgCode=' + epsgCode;
+			window.location = 'converter/db2ogr.php?umlSchema=' + umlSchema + '&ogrSchema=' + ogrSchema + '&epsgCode=' + epsgCode + '&withCodeLists=' + withCodeLists;
 		}
 		
 		function test() {
@@ -289,6 +290,9 @@
 			}
 		?>
 		</select>
+
+		<h4>Ausgabe mit Codelisten</h4>
+		Das ausgegebene Schema soll die Tabellendefinitionen und Werte von externen Codelisten beinhalten: <input id="db2ogr_withCodeLists" type="checkbox" name="db2ogr_withCodeLists" value="1" checked><br>
 		<!--
 		<input type="text" id="db2ogr_ogrSchema" name="ogrSchema" list="db2ogr_ogrSchemaListe" size="50" value="<?php //echo OGR_SCHEMA; ?>"/>
 		<datalist id="db2ogr_ogrSchemaListe">

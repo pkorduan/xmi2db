@@ -61,14 +61,16 @@ echo '<!DOCTYPE html>
 
 	$logger->log('<br><hr><br>');
 
-	#***********
-	# CodeLists
-	#***********
-	# Lade CodeLists
-	foreach($umlSchema->getCodeLists() AS $code_list) {
-		$sql .= $umlSchema->createCodeListTable($code_list);
+	if (WITH_CODE_LISTS) {
+		#***********
+		# CodeLists
+		#***********
+		# Lade CodeLists
+		foreach($umlSchema->getCodeLists() AS $code_list) {
+			$sql .= $umlSchema->createCodeListTable($code_list);
+		}
+		$logger->log('<br><hr><br>');
 	}
-	$logger->log('<br><hr><br>');
 
 	#**************
 	# FeatureTypes
@@ -88,6 +90,11 @@ echo '<!DOCTYPE html>
 	$sql .= "\n\n" . $ogrSchema->create_ax_fortfuehrungsauftrag();
 
 #	$gmlSchema->execSql($sql);
+
+	if (WITH_CODE_LISTS) {
+		# Gebe values für CodeLists aus
+		$sql .= "\n\n" . file_get_contents('../sql/Codelisten/aa_anlassart.sql');
+	}
 
 ?><pre><?php
 	echo htmlspecialchars($sql);
