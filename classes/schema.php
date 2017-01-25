@@ -999,7 +999,11 @@ IS '" . $table_orig .
 		$attributes = array();
 
 		switch (true) {
-			case (in_array($type, array('DQ_AbsoluteExternalPositionalAccuracy', 'DQ_RelativeExternalPositionalAccuracy'))) : {
+			case (in_array($type, array(
+				'DQ_AbsoluteExternalPositionalAccuracy',
+				'DQ_RelativeExternalPositionalAccuracy',
+				'DQ_RelativeInternalPositionalAccuracy'
+			))) : {
 				#*******************************
 				# DQ_Element
 				#*******************************
@@ -1075,8 +1079,209 @@ IS '" . $table_orig .
 					'multiplicity_range_upper' => '2'
 				);
 			} break;
+			case ($type == 'LI_Lineage') : {
+				#*******************************
+				# LI_Lineage
+				#*******************************
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'statement',
+					'attribute_datatype' => 'CharacterString',
+					'attribute_stereotype' => '',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '1'
+				);
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'processStep',
+					'attribute_datatype' => 'LI_ProcessStep',
+					'attribute_stereotype' => 'datatype',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '-1'
+				);
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'source',
+					'attribute_datatype' => 'LI_Source',
+					'attribute_stereotype' => 'datatype',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '-1'
+				);
+			} break;
+			case ($type == 'LI_ProcessStep') : {
+				#*******************************
+				# LI_ProcessStep
+				#*******************************
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'description',
+					'attribute_datatype' => 'AX_LI_ProcessStep_Punktort_Description',
+					'attribute_stereotype' => 'enumeration',
+					'multiplicity_range_lower' => '1',
+					'multiplicity_range_upper' => '1'
+				);
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'rationale',
+					'attribute_datatype' => 'CharacterString',
+					'attribute_stereotype' => '',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '1'
+				);
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'dateTime',
+					'attribute_datatype' => 'DateTime',
+					'attribute_stereotype' => '',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '1'
+				);
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'processor',
+					'attribute_datatype' => 'CI_ResponsibleParty',
+					'attribute_stereotype' => 'datatype',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '-1'
+				);
+			} break;
+			case ($type == 'LI_Source') : {
+				#*******************************
+				# LI_ProcessStep
+				#*******************************
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'description',
+					'attribute_datatype' => 'AX_Datenerhebung_Punktort',
+					'attribute_stereotype' => 'enumeration',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '1'
+				);
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'scaleDenominator',
+					'attribute_datatype' => 'CharacterString',
+					'attribute_stereotype' => '',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '1'
+				);
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'sourceReferenceSystem',
+					'attribute_datatype' => 'CharacterString',
+					'attribute_stereotype' => '',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '1'
+				);
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'sourceCitation',
+					'attribute_datatype' => 'CI_Citation',
+					'attribute_stereotype' => 'datatype',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '1'
+				);
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'sourcExtent',
+					'attribute_datatype' => 'CharacterString',
+					'attribute_stereotype' => '',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '-1'
+				);
+			} break;
+			case ($type == 'CI_ResponsibleParty') : {
+				#*******************************
+				# CI_ResponsibleParty
+				#*******************************
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'individualName',
+					'attribute_datatype' => 'CharacterString',
+					'attribute_stereotype' => '',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '1'
+				);
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'organisationName',
+					'attribute_datatype' => 'CharacterString',
+					'attribute_stereotype' => '',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '1'
+				);
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'positionName',
+					'attribute_datatype' => 'CharacterString',
+					'attribute_stereotype' => '',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '1'
+				);
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'contactInfo',
+					'attribute_datatype' => 'CI_Contact',
+					'attribute_stereotype' => 'datatype',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '1'
+				);
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'role',
+					'attribute_datatype' => 'CI_RoleCode',
+					'attribute_stereotype' => 'enumeration',
+					'multiplicity_range_lower' => '1',
+					'multiplicity_range_upper' => '1'
+				);
+			} break;
+			case ($type == 'CI_Contact') : {
+				#*******************************
+				# CI_Contact
+				#*******************************
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'phone',
+					'attribute_datatype' => 'CharacterString',
+					'attribute_stereotype' => '',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '1'
+				);
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'address',
+					'attribute_datatype' => 'CharacterString',
+					'attribute_stereotype' => '',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '1'
+				);
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'onlineResource',
+					'attribute_datatype' => 'CharacterString',
+					'attribute_stereotype' => '',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '1'
+				);
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'hoursOfService',
+					'attribute_datatype' => 'CharacterString',
+					'attribute_stereotype' => '',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '1'
+				);
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'contactInstructions',
+					'attribute_datatype' => 'CharacterString',
+					'attribute_stereotype' => '',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '1'
+				);
+			} break;
 		}
-		$this->logger->log(' <textarea cols="5" rows="1">' . json_encode($attributes) . '</textarea>');
+		$this->logger->log(' <textarea cols="5" rows="1">' . print_r($attributes, true) . '</textarea>');
 		return $attributes;
 	}
 

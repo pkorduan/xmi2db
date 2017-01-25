@@ -70,26 +70,17 @@ class FeatureType {
 			)
 		);
 
-		$this->logger->log("<br>Prüfe ob {$attribute_type}: {$attribute_name} in class: {$class_name} gefiltert wird:");
 		if ($is_filtered) {
 			$this->logger->log("<br>Ignoriere Klasse: {$class_name} Attribute: {$attribute_name}");
-		}
-		else {
-			$this->logger->log(" nein");
 		}
 		return $is_filtered;
 	}
 
 	function getAttributesUntilLeafs($type, $stereotype, $parts) {
 		$return_attributes = array();
-		if (substr($type, 0, 3) == 'DQ_') {
-			/* Damit die DQ_ Elemente gefunden werden mussen Sie in classes existieren.
-			* Hier Beispiele zum anlegen der uml_classes
-			* INSERT INTO aaa_uml.uml_classes (xmi_id, name, stereotype_id)
-			*	values ('eaxmiid51', 'DQ_AbsoluteExternalPositionalAccuracy', 'EAID_BED119C1_311A_4a74_996D_121184388A0F')
-
-			*	INSERT INTO aaa_uml.uml_classes (xmi_id, name, stereotype_id)
-			*	values ('eaxmiid47', 'DQ_RelativeInternalPositionalAccuracy', 'EAID_BED119C1_311A_4a74_996D_121184388A0F')
+		if (in_array(substr($type, 0, 3), array('DQ_', 'LI_', 'CI_'))) {
+			/* Damit die DQ_, LI_ und CI_ Elemente gefunden werden, mussen Sie in classes existieren.
+			* Zum Anlegen kann das SQL-Script sql/external_uml_classes.sql verwendet werden.
 			*/
 			$attributes = $this->umlSchema->getExternalClassAttributes($type);
 		}
@@ -97,6 +88,7 @@ class FeatureType {
 			$attributes = $this->umlSchema->getClassAttributes($type);
 		}
 		foreach ($attributes AS $attribute) {
+			$this->logger->log("<br><b>Class:</b> {$attribute['class_name']} <b>Attribut:</b> {$attribute['attribute_name']} <b>datatype:</b> {$attribute['attribute_datatype']} <b>stereotype:</b> {$attribute['attribute_stereotype']}");
 			if (!$this->is_filtered('attribute', $type, $attribute['attribute_name'])) {
 				if (!empty($attribute['attribute_name'])) {
 					if (empty($parts)) {
@@ -356,10 +348,8 @@ class FeatureType {
 				if (RENAME_ZEIGT_AUF_EXTERNES) {
 					$zeigt_auf_externes_pos = strpos($attribute->path_name, 'zeigtAufExternes');
 					if ($zeigt_auf_externes_pos !== false) {
-						$this->logger->log('<br>zeigtAufExternes gefunden.');
 						$zeigt_auf_externes_path_name = substr($attribute->path_name, 0, $zeigt_auf_externes_pos + 16);
 						if (!array_key_exists($zeigt_auf_externes_path_name, $output)) {
-							$this->logger->log('<br>Add ' . $zeigt_auf_externes_path_name . ' to umbennn Liste: ');
 							$output[$zeigt_auf_externes_path_name] = 'zeigtaufexternes_';
 						}
 					}
