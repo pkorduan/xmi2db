@@ -1,4 +1,4 @@
-renamefile = File.expand_path(File.dirname(__FILE__)) + '/../conf/umbenenn.json'
+renamefile = File.expand_path(File.dirname(__FILE__)) + '/../conf/umbenenn_conf.json'
 
 require 'xml'
 require 'json'
