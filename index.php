@@ -84,6 +84,15 @@
 			window.location = 'converter/db2ogr.php?umlSchema=' + umlSchema + '&ogrSchema=' + ogrSchema + '&epsgCode=' + epsgCode + '&withCodeLists=' + withCodeLists;
 		}
 		
+		function execDb2Gfs() {
+			var umlSchema = document.getElementById("db2ogr_umlSchema").value,
+					ogrSchema = document.getElementById("db2ogr_ogrSchema").value,
+					epsgCode = document.getElementById("db2ogr_epsgCode").value,
+					withCodeLists = $('#db2ogr_withCodeLists').val();
+
+			window.location = 'converter/db2gfs.php?umlSchema=' + umlSchema + '&ogrSchema=' + ogrSchema + '&epsgCode=' + epsgCode + '&withCodeLists=' + withCodeLists;
+		}
+		
 		function test() {
 			var selectedConf = document.getElementById("selectedConf");
 			var conf = selectedConf.options[selectedConf.selectedIndex].value;
@@ -302,6 +311,7 @@
 		<p>
 		<div class="text-center" id="queryButton">
 		<button type="submit" class="btn btn-primary btn-sm" id="queryNERC" onclick="execDb2Ogr()"><span class="glyphicon glyphicon-ok"> </span> Erzeuge OGR-Schema</button>
+		<button type="submit" class="btn btn-primary btn-sm" id="queryNERC" onclick="execDb2Gfs()"><span class="glyphicon glyphicon-ok"> </span> Erzeuge GFS-Datei</button>
 		</div>	
 	</div>
 	<script language="javascript" type="text/javascript">

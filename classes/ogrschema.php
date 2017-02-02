@@ -123,6 +123,64 @@ class OgrSchema extends Schema {
 
 		return $sql;
 	}
+	
+	function createFeatureTypeGfs($stereotype, $parent, $class, $attributPath = array(), $createUserInfoColumns = false) {
+		if ($this->is_table_filtered($class['name'])) {
+			$this->logger->log("<br>Ignoriere FeatureType: {$class['name']} komplett");
+		}
+		else {
+			$this->logger->log('<br><b>Create ' . $stereotype . ': ' . $class['name'] .' </b>');
+
+			# Erzeuge FeatueType
+			$featureType = new FeatureType($class['name'], $parent, $this->logger, $this->umlSchema, $this->enumerations);
+			$featureType->ogrSchema = $this;
+
+			$featureType->setId($class['id']);
+			$featureType->primaryKey = 'ogc_fid';
+			$featureType->primaryKeyType = 'serial NOT NULL';
+			$featureType->primaryKeyNullable = false;
+
+			if ($parent != null)
+				$this->logger->log(' abgeleitet von: <b>' . $parent->alias . '</b>');
+
+			$featureType->attribute_filter = $this->filter[$class['name']]['attribute'];
+			if (!is_array($attribute_filter))
+				$featureType->attribute_filter = array();
+
+			$this->logger->log('<br><b>Hole Attribute und verfolge dabei Datentypen bis zum Ende.</b>');
+			$featureType->getAttributesUntilLeafs($featureType->alias, $stereotype, array());
+
+			$featureType->flattenAttributes();
+
+			$featureType->outputFlattenedAttributes();
+			if ($this->logger->level > 0)
+				$featureType->outputFlattendedAttributTable();
+
+			$featureType->setAssociationEnds($class);
+
+			#echo '<pre>' . $featureType->asFlattenedSql() . '</pre>';
+
+			# lade abgeleitete Klassen
+			$subClasses = $this->umlSchema->getSubUmlClasses($stereotype, $class);
+			if (empty($subClasses)) {
+				$featureType->unifyShortNames(1);
+				$this->renameList = array_merge(
+					$this->renameList,
+					$featureType->outputFlattenedAttributes()
+				);
+				if ($this->logger->level > 0)
+					$featureType->outputFlattendedAttributTable();
+				$this->logger->log('<br>Gebe FeatureTypes Attributes asGfs aus.');
+				$gfs .= $featureType->asGfs();
+			}
+
+			foreach($subClasses as $subClass) {
+				# übergibt den featureType als parent an die Sub-Klassen
+				$gfs .= $this->createFeatureTypeGfs($stereotype, $featureType, $subClass);
+			}
+		}
+		return $gfs;
+	}	
 
 	function listFeatureTypesAttributes($stereotype, $parent, $class, $with_first_attrib_name = false) {
 		$this->logger->log('<br><b>Klasse: ' . $class['name'] . '</b> (' . $class['xmi_id'] . ')');
