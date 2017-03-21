@@ -408,7 +408,7 @@ WHERE
 			SELECT
 				ca.name a_class_name,
 				b.id b_id,
-				CASE WHEN b.name = '<undefined>' AND NOT b.\"isNavigable\" THEN 'inversZu_' || a.name || '_' || cb.name ELSE b.name END AS b_name,
+				trim(both ' ' FROM CASE WHEN b.name = '<undefined>' AND NOT b.\"isNavigable\" THEN 'inversZu_' || a.name || '_' || cb.name ELSE b.name END) AS b_name,
 				-- b.name b_name,
 				b.multiplicity_range_lower b_multiplicity_range_lower,
 				b.multiplicity_range_upper b_multiplicity_range_upper,
