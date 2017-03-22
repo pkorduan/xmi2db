@@ -441,6 +441,10 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
     $sql = "  " .
       $this->short_name . " " . $this->get_database_type(false, false) . $this->getBrackets() . $this->getNotNull();
 
+		if ($this->stereotype == 'enumeration' and $this->short_name != $this->datatype) {
+		#	 $sql .= ' -- datatype: ' . $this->datatype . ' stereotype: ' . $this->stereotype;
+		}
+
     # Ausgabe DEFAULT
     if ($this->default != '')
       $sql .= ' DEFAULT ' . $this->default;

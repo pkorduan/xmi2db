@@ -1114,7 +1114,8 @@ IS '" . $table_orig .
 				#*******************************
 				$attributes[] = array(
 					'class_name' => $type,
-					'attribute_name' => 'description',
+#					'attribute_name' => 'description',
+					'attribute_name' => 'AX_LI_ProcessStep_Punktort_Description',
 					'attribute_datatype' => 'AX_LI_ProcessStep_Punktort_Description',
 					'attribute_stereotype' => 'enumeration',
 					'multiplicity_range_lower' => '1',
@@ -1151,7 +1152,8 @@ IS '" . $table_orig .
 				#*******************************
 				$attributes[] = array(
 					'class_name' => $type,
-					'attribute_name' => 'description',
+#					'attribute_name' => 'description',
+					'attribute_name' => 'AX_Datenerhebung_Punktort',
 					'attribute_datatype' => 'AX_Datenerhebung_Punktort',
 					'attribute_stereotype' => 'enumeration',
 					'multiplicity_range_lower' => '0',
