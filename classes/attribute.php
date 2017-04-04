@@ -65,8 +65,10 @@ COMMENT ON COLUMN " . $table_name . "." . $this->name . " IS '";
     return $sql;
   }
 
-  function getAttributePath() {
-    $parts = $this->parts;
+  function getAttributePath($parts = array()) {
+		if (empty($parts)) {
+    	$parts = $this->parts;
+		}
     $attribute_path = $parts[0]->alias;
     array_shift($parts);
     if (!empty($parts)) {
@@ -82,6 +84,19 @@ COMMENT ON COLUMN " . $table_name . "." . $this->name . " IS '";
     }
     return $attribute_path;
   }
+
+	function has_parent($parts = array(), $parent_name) {
+		$has_parent = false;
+		if (empty($parts)) {
+			$parts = $this->parts;
+		}
+		foreach($parts AS $part) {
+			if ($part->parent->name == strtolower($parent_name)) {
+				$has_parent = true;
+			}
+		}
+		return $has_parent;
+	}
 
   function getFlattenedComment($table_name) {
     $attribute_path = $this->getAttributePath();
@@ -110,6 +125,53 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
     $this->stereotype = strtolower(substr($stereotype, 0, PG_MAX_NAME_LENGTH));
     $this->stereotype_alias = $stereotype;
   }
+
+  function overwriteIso19139Type($overwriteTypes, $parts) {
+#		echo 'overwriteIso19139Type: ' . $this->name;
+		$msg = '';
+		if (array_key_exists($this->datatype_alias, $overwriteTypes) and $overwriteTypes[$this->datatype_alias] == $this->stereotype) {
+			$msg .= '<br>Overwrite ' . $this->name . ' with: ' . $this->datatype;
+			$this->name = $this->datatype;
+			$this->alias = $this->datatype_alias;
+		}
+
+		if ($this->name == 'description') {
+#			echo '<br>' . $this->parent->alias . ' - ' . $this->name;
+#			if (is_array($parts)) {
+#				echo '<br>' . $this->getAttributePath($parts);
+#			}
+			switch (true) {
+				case ($this->has_parent($parts, 'AX_DQOhneDatenerhebung') AND $this->parent->alias == 'LI_ProcessStep') :
+					$new_name = 'AX_LI_ProcessStep_OhneDatenerhebung_Description';
+					break;
+				case ($this->has_parent($parts, 'AX_DQOhneDatenerhebung') AND $this->parent->alias == 'LI_Source') :
+					$new_name = 'AX_Datenerhebung';
+					break;
+				case ($this->has_parent($parts, 'AX_DQMitDatenerhebung') AND $this->parent->alias == 'LI_ProcessStep') :
+					$new_name = 'AX_LI_ProcessStep_MitDatenerhebung_Description';
+					break;
+				case ($this->has_parent($parts, 'AX_DQMitDatenerhebung') AND $this->parent->alias == 'LI_Source') :
+					$new_name = 'AX_Datenerhebung';
+					break;
+				case ($this->has_parent($parts, 'AX_DQPunktort') AND $this->parent->alias == 'LI_ProcessStep') :
+					$new_name = 'AX_LI_ProcessStep_Punktort_Description';
+					break;
+				case ($this->has_parent($parts, 'AX_DQMitDatenerhebung') AND $this->parent->alias == 'LI_Source') :
+					$new_name = 'AX_Datenerhebung_Punktort';
+					break;
+				default :
+					$new_name = '';
+			}
+
+			if ($new_name != '') {
+				$msg .= '<br>Overwrite ' . $this->name . ' with: ' . $new_name;
+				$this->name = strtolower($new_name);
+				$this->alias = $new_name;
+			}
+		}
+
+		return $msg;
+	}
 
   function get_database_type($with_enum_type = true, $with_codelist_type = true) {
     $database_type = $this->datatype;

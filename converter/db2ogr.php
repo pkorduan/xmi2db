@@ -72,6 +72,8 @@ echo '<!DOCTYPE html>
 		$logger->log('<br><hr><br>');
 	}
 
+  $umlSchema->iso19139SubstitutionClasses = $umlSchema->getIso19139SubstitutionClasses();
+
 	#**************
 	# FeatureTypes
 	#**************

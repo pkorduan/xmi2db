@@ -1,7 +1,7 @@
 # xmi2db
 Konvertiert UML Klassenmodelle aus XMI Dateien in Tabellen und Typen nach PostgreSQL.
 
-Version vom 22.03.2017 17:39
+Version vom 04.04.2017 15:54
 
 Abstract
 XMI files are XML representations of UML models. Sometimes there is a need to have theses UML model elements especially the classes its attributes, the assosiations and generalisations in a database table structure.
@@ -19,6 +19,7 @@ Der xmi2db converter fokusiert sich auf GML-Anwendungsschemas wie die für INSPI
 
 Changelog
 
+* 04.04.2017 Attribute, die in AAA Modell mit xsdEncodingRule ISO19139_2007 getagged sind kontextabhängig durch AAA-Enumeration-Typen überschrieben
 * 25.01.2017 Datentypen LI_Lineage, LI_ProcessStep, LI_Source, CI_ResponsibleParty und CI_Contact sowie enumeration CI_RoleCode aus dem ISO 19115 Modell übernommen. Zum hinzufügen sql/external_uml_classes.sql nutzen. Damit werden aber immer noch nicht alle ISO Typen unterstützt, insbesondere nicht die MD_- und EX_-Typen der Attribute des Typen LI_Sources.
 * 17.01.2017 Tabellendefinitionen für CodeListen hinzugefügt.
 

@@ -9,6 +9,7 @@ class Schema {
 		$this->enumerations = array();
 		$this->codeLists = array();
 		$this->featureTypes = array();
+		$this->iso19139SubstitutionClasses = array();
 		$this->attributes = array();
 		$this->renameList = array();
 		$this->unions = array();
@@ -78,8 +79,8 @@ WHERE
 	lower(s.name) LIKE '" . strtolower($stereotype) . "'"
 	.$packSql."
 ";
-		$this->logger->log(' <b>Get Top ' . $stereotype . 's: </b>');
-		$this->logger->log(' <textarea cols="5" rows="1">' . $sql . '</textarea>');
+		$this->logger->log('<br><b>Get Top ' . $stereotype . 's: </b>');
+		$this->logger->log('<textarea cols="5" rows="1">' . $sql . '</textarea>');
 
 	//Fixed: 'pg_query(): Query failed: ERROR: invalid byte sequence for encoding "UTF8"'
 		$result = pg_fetch_all(
@@ -994,8 +995,55 @@ IS '" . $table_orig .
 		return $sql;
 	}
 
-	function getExternalClassAttributes($type) {
-		$this->logger->log('<br><b>Get Attributes for external class: ' . $type . '</b>');
+	/*
+	* Abfrage von Enumerations, die den Typ gco:CharacterString von ISO Attributen überschreiben.
+	*
+	Die Abfrage liefert im AAA Model:
+		"AX_Datenerhebung"
+		"AX_Datenerhebung_Punktort"
+		"AX_DQErfassungsmethode"
+		"AX_DQErfassungsmethodeBesondererHoehenpunkt"
+		"AX_DQErfassungsmethodeGewaesserbegrenzung"
+		"AX_DQErfassungsmethodeMarkanterGelaendepunkt"
+		"AX_DQErfassungsmethodeSekundaeresDGM"
+		"AX_DQErfassungsmethodeStrukturierteGelaendepunkte"
+		"AX_LI_ProcessStep_MitDatenerhebung_Description"
+		"AX_LI_ProcessStep_OhneDatenerhebung_Description"
+		"AX_LI_ProcessStep_Punktort_Description"	
+	*/
+	function getIso19139SubstitutionClasses() {
+		$sql = "
+select
+	c.xmi_id,
+	c.name AS name,
+	s.name AS stereotype
+from
+	aaa_uml.uml_classes c join
+	aaa_uml.taggedvalues v on c.id = v.class_id JOIN
+	aaa_uml.tagdefinitions d ON v.type = d.xmi_id JOIN
+	aaa_uml.stereotypes s ON c.stereotype_id = s.xmi_id
+where
+	v.datavalue like 'iso19139%'
+ORDER BY
+	c.name
+		";
+
+		$this->logger->log(' <b>Get Classes with tagdefinition xsdEncodingRule=iso19139_207</b>');
+		$this->logger->log(' <textarea cols="5" rows="1">' . $sql . '</textarea>');
+
+		$classes = array();
+		$query = pg_query($this->dbConn, $sql);
+		while ($rs = pg_fetch_assoc($query)) {
+			$classes[$rs['name']] = $rs['stereotype'];
+		}
+		return $classes;
+	}
+
+	function getExternalClassAttributes($type, $stereotype, $parts) {
+		$this->logger->log('<br><b>Get Attributes for external class: ' . $type . ' stereotyp: ' . $stereotype . '</b>');
+#		if ($type == 'LI_ProcessStep') {
+#			echo '<br>Parts 0 Name: ' . $parts[0]->name;
+#		}
 		$attributes = array();
 
 		switch (true) {
@@ -1112,11 +1160,13 @@ IS '" . $table_orig .
 				#*******************************
 				# LI_ProcessStep
 				#*******************************
+				# description wird überschrieben von enumerationstypen
 				$attributes[] = array(
 					'class_name' => $type,
-#					'attribute_name' => 'description',
-					'attribute_name' => 'AX_LI_ProcessStep_Punktort_Description',
-					'attribute_datatype' => 'AX_LI_ProcessStep_Punktort_Description',
+					'attribute_name' => 'description',
+# wird je nach Kontext in 
+#					'attribute_name' => 'AX_LI_ProcessStep_Punktort_Description',
+#					'attribute_datatype' => 'AX_LI_ProcessStep_Punktort_Description',
 					'attribute_stereotype' => 'enumeration',
 					'multiplicity_range_lower' => '1',
 					'multiplicity_range_upper' => '1'
@@ -1145,17 +1195,26 @@ IS '" . $table_orig .
 					'multiplicity_range_lower' => '0',
 					'multiplicity_range_upper' => '-1'
 				);
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'source',
+					'attribute_datatype' => 'LI_Source',
+					'attribute_stereotype' => 'datatype',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '-1'
+				);
 			} break;
 			case ($type == 'LI_Source') : {
 				#*******************************
-				# LI_ProcessStep
+				# LI_Source
 				#*******************************
+				# description wird überschrieben von enumerationstypen
 				$attributes[] = array(
 					'class_name' => $type,
-#					'attribute_name' => 'description',
-					'attribute_name' => 'AX_Datenerhebung_Punktort',
-					'attribute_datatype' => 'AX_Datenerhebung_Punktort',
-					'attribute_stereotype' => 'enumeration',
+					'attribute_name' => 'description',
+#					'attribute_name' => 'AX_Datenerhebung_Punktort',
+					'attribute_datatype' => 'CharacterString',
+					'attribute_stereotype' => '',
 					'multiplicity_range_lower' => '0',
 					'multiplicity_range_upper' => '1'
 				);
@@ -1186,6 +1245,16 @@ IS '" . $table_orig .
 				$attributes[] = array(
 					'class_name' => $type,
 					'attribute_name' => 'sourcExtent',
+					'attribute_datatype' => 'CharacterString',
+					'attribute_stereotype' => '',
+					'multiplicity_range_lower' => '0',
+					'multiplicity_range_upper' => '-1'
+				);
+				# sourceStep ist eigentlich vom Typ LI_ProcessStep,
+				# hier aber Abbruch duch CharacterString wegen möglicher Endlosschleife
+				$attributes[] = array(
+					'class_name' => $type,
+					'attribute_name' => 'sourcStep',
 					'attribute_datatype' => 'CharacterString',
 					'attribute_stereotype' => '',
 					'multiplicity_range_lower' => '0',
@@ -1283,7 +1352,7 @@ IS '" . $table_orig .
 				);
 			} break;
 		}
-		$this->logger->log(' <textarea cols="5" rows="1">' . print_r($attributes, true) . '</textarea>');
+		$this->logger->log('<textarea cols="5" rows="1">' . print_r($attributes, true) . '</textarea>');
 		return $attributes;
 	}
 

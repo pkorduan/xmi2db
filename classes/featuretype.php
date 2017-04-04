@@ -82,7 +82,7 @@ class FeatureType {
       /* Damit die DQ_, LI_ und CI_ Elemente gefunden werden, mussen Sie in classes existieren.
       * Zum Anlegen kann das SQL-Script sql/external_uml_classes.sql verwendet werden.
       */
-      $attributes = $this->umlSchema->getExternalClassAttributes($type);
+      $attributes = $this->umlSchema->getExternalClassAttributes($type, $stereotype, $parts);
     }
     else {
       $attributes = $this->umlSchema->getClassAttributes($type);
@@ -119,6 +119,12 @@ class FeatureType {
             (($attribute['attribute_name'] == 'position' or $stereotype == 'union') ? 0 : $attribute['multiplicity_range_lower']),
             $attribute['multiplicity_range_upper']
           );
+
+          $msg = $attributeObj->overwriteIso19139Type($this->umlSchema->iso19139SubstitutionClasses, $parts);
+          if ($msg != '') {
+            $this->logger->log($msg);
+          }
+
           $new_path = $parts;
           array_push($new_path, $attributeObj);
           if (in_array(strtolower($attribute['attribute_stereotype']), array('datatype', 'union'))) {
@@ -173,6 +179,7 @@ class FeatureType {
   }
 
   function unifyShortNames($level) {
+    $this->logger->log('<br><b>unifyShortNames:</b>');
     $multiple_occured = false;
     foreach($this->attributes AS $a) {
       $frequency = 0;
@@ -186,16 +193,30 @@ class FeatureType {
         $multiple_occured = true;
       }
     }
-    if ($multiple_occured AND $level < 10) {
+    if ($multiple_occured) {
+      $this->logger->log('<br>gleichlautende Namen gefunden in Runde ' . $level . ' der Umbenennung!');
       foreach($this->attributes AS $a) {
-        $n = count($a->parts) - $level - 1;
+        $n = count($a->parts) - $level - 1; # Stufe der Klasse im Pfad
+        if ($a->frequency > 1 AND $n < 0) {
+          $this->logger->log('<br>' . $a->path_name . ' (nicht umbenannt)');
+        }
         if ($a->frequency > 1 AND $n > -1) {
-          $this->logger->log('<br>Attribut: ' . $a->short_name);
+          $this->logger->log('<br>' . $a->path_name);
+          $this->logger->log('<br>' . $a->short_name);
           $a->short_name = $a->parts[$n]->name . '_' . $a->short_name;
-          $this->logger->log(' umbenannt nach: ' . $a->short_name);
+          $this->logger->log(' => ' . $a->short_name . ' (kam ' . $a->frequency . ' mal vor)');
         }
       }
-      $this->unifyShortNames($level++);
+      if ($level > 10) {
+        $this->logger->log('<br>Abbruch bei level: ' . $level . ' weil Umbenennung nicht möglich.');
+      }
+      else {
+        $level += 1;
+        $this->unifyShortNames($level);
+      }
+    }
+    else {
+      $this->logger->log('<br>keine gleichlautenden Namen gefunden!');
     }
   }
 
@@ -228,6 +249,7 @@ class FeatureType {
           $this->logger->log(' umbenannt nach: ' . $a->short_name);
         }
       }
+      
       $this->unifyShortNames($level++);
     }
   }
@@ -341,10 +363,11 @@ class FeatureType {
   }
 
   function outputFlattenedAttributes() {
+    $this->logger->log('<br><b>Attribute mit Pfad:</b>');
     $output = array();
     if (!empty($this->attributes)) {
       foreach ($this->attributes AS $attribute) {
-        $this->logger->log('<br>Attribut Pfad: ' . $attribute->path_name);
+        $this->logger->log('<br>Attribut Pfad: ' . $attribute->path_name . ' (' . $attribute->short_name . ')');
         if (RENAME_ZEIGT_AUF_EXTERNES) {
           $zeigt_auf_externes_pos = strpos($attribute->path_name, 'zeigtAufExternes');
           if ($zeigt_auf_externes_pos !== false) {
