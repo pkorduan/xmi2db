@@ -112,7 +112,7 @@
 			file('README.md')[3]
 		); ?>
 		<br><b>Es wurde noch keine Konfigurationsdatei angelegt!</b><br>
-		Kopiere die Datei conf/samples/database_conf.php nach conf/database_conf.php und passe die Variablen entsprechen an. <?php
+		Kopiere die Datei conf/samples/database_conf.php nach conf/database_conf.php und passe die Variablen entsprechend an. <?php
 	} else { 
 		include('conf/database_conf.php');
 		echo VERSION; ?>
@@ -144,7 +144,7 @@
 		?>
 		</ul>
 		<div style="clear: both;">
-			<i><b>(Beachte: Hierarchien sind unbedingt zu beachten bei der Angabe der Pakete in der database_conf.php! Das heißt: Möchte man Pakete in einem XPlan Modell auswählen, muss man das oberste Paket "XPlanGML 4.1" unbedingt mitangeben. Möchte man "BP_Bebauung" wählen, muss auch das Paket "Bebauungsplan" gewählt werden, da sich "BP_Bebauung" in "Bebauungsplan" befindet.)</b></i>
+			<i><b>(Beachte: Hierarchien sind unbedingt zu beachten bei der Angabe der Pakete in der database_conf.php! Das heißt: Möchte man Pakete in einem XPlan Modell auswählen, muss man das oberste Paket "XPlanGML 4.1" bzw. "XPlanGML 5.0" unbedingt mitangeben. Möchte man "BP_Bebauung" wählen, muss auch das Paket "Bebauungsplan" gewählt werden, da sich "BP_Bebauung" in "Bebauungsplan" befindet.)</b></i>
 		</div>
 	</div>
 	<div class="container">
@@ -164,10 +164,11 @@
 		<i>Die Einstellung erfolgt in der Konfigurationsdatei 'conf/database_conf.php' in der Konstante <b>UML_SCHEMA</b></i>
 
 		<h4>BasePackageauswahl/-eingabe</h4>
-		<i>Bei einem EA-Export des XPlan-Modells "XPlanGML 4.1" wählen, bei einem ArgoUML Export leer lassen oder ein Package eintragen, falls man nur das eine laden möchte.</i>
+		<i>Bei einem EA-Export des XPlan-Modells "XPlanGML 4.1" oder "XPlanGML 5.0" wählen, bei einem ArgoUML Export leer lassen oder ein Package eintragen, falls man nur das eine laden möchte.</i><br>
 		<input type="text" id="basepkg" name="basepkg" list="basepkgNameListe" size="50"/>
 		<datalist id="basepkgNameListe">
 			<option value="XPlanGML 4.1" selected>XPlanGML 4.1</option>
+			<option value="XPlanGML 5.0" selected>XPlanGML 5.0</option>
 			<option value="Raumordnungsplan_Kernmodell">Raumordnungsplan_Kernmodell</option>
 		</datalist>
 		<!--input type="text" id="basepkg" name="basepkg" list="basepkgNameListe" value="XPlanGML 4.1"/>
@@ -193,11 +194,11 @@
 		</div>
 
 		<h3>db2classes</h4>
-		db2classes erzeugt ein GML-Klassenschema an Hand der mit xmi2db eingelesenen UML-Modell-Elemente.
-		Das GML-Klassenschema enthält nach dem Ausführen des erzeugten SQL im ausgewählten Schema je
+		db2classes erzeugt ein GML-Klassenschema anhand der mit xmi2db eingelesenen UML-Modell-Elemente.
+		Das GML-Klassenschema enthält nach dem Ausführen des erzeugten SQL im ausgewählten Schema
 		<ul>
 			<li>je einen PostgreSQL Enum-DataType pro Enumeration. Die Aufzählung enthält die Werte, nicht die Beschreibungen aus dem UML-Model.</li>
-			<li>je eine Tabelle für Enumerations, wenn diese Beschreibungen enthält. Die Tabellennamen werden mit Perfix "enum_" versehen und befüllt mit wert und beschreibung aus dem UML-Modell.</li>
+			<li>je eine Tabelle für Enumerations, wenn diese Beschreibungen enthält. Die Tabellennamen werden mit dem Perfix "enum_" versehen und befüllt mit 'wert' und 'beschreibung' aus dem UML-Modell.</li>
 			<li>je eine leere Tabelle pro FeatureType</li>
 			<li>FeatureType-Tabellen haben Attribute für die Assoziationen</li>
 			<li>FeatureType-Attribute mit Kardinalität > 1 sind Arrays</li>
@@ -252,11 +253,11 @@
 		</div>
 
 		<h3>db2ogr</h4>
-		db2ogr erzeugt aus dem UML-Modell ein flaches GML-Schema welches zum Einlesen von komplexen GML-Dateien mit ogr2ogr geeignet sein sollte. Die Tabellen der FeatureTypen enthalten alle Attribute der abgeleiteten Klassen und der verzweigenden komplexen Datentypen. Das Schema enthält nach dem Ausführen des erzeugten SQL im ausgewählten Schema je
+		db2ogr erzeugt aus dem UML-Modell ein flaches GML-Schema welches zum Einlesen von komplexen GML-Dateien mit ogr2ogr geeignet sein sollte. Die Tabellen der FeatureTypen enthalten alle Attribute der abgeleiteten Klassen und der verzweigenden komplexen Datentypen. Das Schema enthält nach dem Ausführen des erzeugten SQL im ausgewählten Schema
 		<ul>
-			<li>eine mit den Werten befüllte Tabelle pro Enumeration</li>
-			<li>eine leere Tabelle pro FeatureType</li>
-			<li>eine mit den Werten befüllte Tabelle pro CodeListe (falls im UML-Modell enthalten)</li>
+			<li>je eine mit den Werten befüllte Tabelle pro Enumeration</li>
+			<li>je eine leere Tabelle pro FeatureType</li>
+			<li>je eine mit den Werten befüllte Tabelle pro CodeListe (falls im UML-Modell enthalten)</li>
 		</ul>
 	</div>
 	<div class="container">
