@@ -210,15 +210,17 @@
 	<div class="container">
 		<h4>UML-Schema</h4>
 		<i>Das Schema in dem vorher die UML-Elemente mit xmi2db eingelesen wurden.</i><br>
+		Gewähltes Schema: <br>
 		<select class="form-control" id="db2classes_umlSchema">
 		<?php
-			$schemas = str_replace("'", "", SCHEMAS);
+			$schemas = str_replace("'", "", UML_SCHEMA);
 			$schemas = explode(";", $schemas);
 			foreach ($schemas as $schema) {
-				echo '<option value="'.$schema.'_uml">'.$schema.'_uml</option>';
+				echo '<option value="'.$schema.'">'.$schema.'</option>';
 			}
 		?>
 		</select>
+		<i>(Die Einstellung erfolgt in der Konfigurationsdatei 'conf/database_conf.php' in der Konstante <b>UML_SCHEMA</b>)</i>
 		<!--
 		<input type="text" id="db2classes_umlSchema" name="umlSchema" list="db2classes_umlSchemaListe" size="50" value="<?php //echo UML_SCHEMA; ?>"/>
 		<datalist id="db2classes_umlSchemaListe">
@@ -228,15 +230,17 @@
 		
 		<h4>GML-Klassenschema</h4>
 		<i>Das Schema in dem die GML-Tabellen und Datentypen angelegt werden sollen.</i><br>
+		Gewähltes Schema:<br>
 		<select class="form-control" id="db2classes_gmlSchema">
 		<?php
-			$schemas = str_replace("'", "", SCHEMAS);
+			$schemas = str_replace("'", "", CLASSES_SCHEMA);
 			$schemas = explode(";", $schemas);
 			foreach ($schemas as $schema) {
-				echo '<option value="'.$schema.'_gml">'.$schema.'_gml</option>';
+				echo '<option value="'.$schema.'">'.$schema.'</option>';
 			}
 		?>
 		</select>
+		<i>(Die Einstellung erfolgt in der Konfigurationsdatei 'conf/database_conf.php' in der Konstante <b>CLASSES_SCHEMA</b>)</i>
 		<!--
 		<input type="text" id="db2classes_gmlSchema" name="gmlSchema" list="db2classes_gmlSchemaListe" size="50" value="<?php //echo CLASSES_SCHEMA; ?>"/>
 		<datalist id="db2classes_gmlSchemaListe">
