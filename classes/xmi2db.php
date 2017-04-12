@@ -578,6 +578,7 @@ class xmi2db {
   }
         
   function iterateModel($root_package) {	
+	Pascoul::send_message(0, " Funktion iterateModel() erreicht ", $progress++);
 	$packages = $root_package->{'Namespace.ownedElement'}->Package;
 	if (empty($packages)) {
 		$packages = array($root_package);
@@ -869,7 +870,11 @@ class xmi2db {
 		else
 		  $this->setBasePackage("XPlanGML 4.1");
 				
-		
+		if (file_exists(SCHEMA_CONF_FILE)) {
+			include(SCHEMA_CONF_FILE);
+			Pascoul::send_message(0, 'SCHEMA_CONF_FILE eingelesen' , $progress++);
+		}
+		else Pascoul::send_message(0, 'SCHEMA_CONF_FILE NICHT eingelesen' , $progress++);
 		$packages_conf = str_replace("'", "", PACKAGES);
 		$packages_conf = explode(";", $packages_conf);
 		//Delete single empty value so that array is really eampty when there are no PACKAGES given in database_conf
@@ -1045,6 +1050,8 @@ class xmi2db {
 
 		$progress++;
 		Pascoul::send_message(0, '#Ende Übergeordnetes', $progress);
+		
+		Pascoul::send_message(0, 'Base Package:' . $this->basePackage, $progress);
 
 		if(!isset($this->basePackage) or $this->basePackage=='') {
 			Pascoul::send_message(0, 'Iterate through the model', $progress++);
@@ -1053,25 +1060,25 @@ class xmi2db {
 		else {
 			//look for package that contains most of the model
 			//das müsste für INSPIRE-Kompatibilität angepasst werden
-      foreach ($xmi->{$this->root_element}->children($namespaces["UML"])->Model->{'Namespace.ownedElement'}->Package as $package_top) {
-        //Only use "XPlanGML 4.1" and ignore the other two ("XPlanung-Operationen" and "Weitere Diagramme")
-        //Gilt nur für den EA Export, sonst sollen alle Packages durchgegangen werden! (dann ist basePackage nicht gesetzt bzw. leer!)
-        
-        //echo "basePackage: ".$this->basePackage."<br>";
-        //echo "aktuelles Package: ".$package_top->attributes()->name."<br>";
-        //if ($package_top->attributes()->name == $this->basePackage) echo "true";
-        //else echo "false";
-        
-        //echo "basePackage: ".$this->basePackage."<br>";
-        //echo "aktuelles Package: ".$package_top->attributes()->name."<br>";
-        
-        if (isset($this->basePackage) and $package_top->attributes()->name == $this->basePackage and $this->basePackage!=='')
-					$this->iterateModel($package_top);//$root_package = $package_top;
-        else
-					if(!isset($this->basePackage) or $this->basePackage=='')
-						$this->iterateModel($package_top);
-      }
-    }
+		  foreach ($xmi->{$this->root_element}->children($namespaces["UML"])->Model->{'Namespace.ownedElement'}->Package as $package_top) {
+			//Only use "XPlanGML 4.1" and ignore the other two ("XPlanung-Operationen" and "Weitere Diagramme")
+			//Gilt nur für den EA Export, sonst sollen alle Packages durchgegangen werden! (dann ist basePackage nicht gesetzt bzw. leer!)
+			
+			//echo "basePackage: ".$this->basePackage."<br>";
+			//echo "aktuelles Package: ".$package_top->attributes()->name."<br>";
+			//if ($package_top->attributes()->name == $this->basePackage) echo "true";
+			//else echo "false";
+			
+			//echo "basePackage: ".$this->basePackage."<br>";
+			//echo "aktuelles Package: ".$package_top->attributes()->name."<br>";
+			
+			if (isset($this->basePackage) and $package_top->attributes()->name == $this->basePackage and $this->basePackage!=='')
+						$this->iterateModel($package_top);//$root_package = $package_top;
+			else
+						if(!isset($this->basePackage) or $this->basePackage=='')
+							$this->iterateModel($package_top);
+		  }
+		}
 
     //Now use this to convert the model
     //iterate through packages
