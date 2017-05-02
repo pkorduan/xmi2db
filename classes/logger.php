@@ -10,10 +10,18 @@ class Logger {
 		}
 	}
 
-	function log($text) {
+	function log($text, $indent = 0, $log_allways = false) {
+		$space = '';
+		for ($i = 0; $i < $indent; $i++) {
+			$space .= '&nbsp;&nbsp;';
+		}
 		$this->text[] = $text;
-		if ($this->level > 0)
+		if ($this->level > 0 or $log_allways) {
+			if ($indent > 0) {
+				$text = str_replace('<br>', '<br>' . $space . '|--', $text);
+			}
 			echo $text;
+		}
 		if ($this->level > 1)
 			fwrite($this->file, $text);
 	}

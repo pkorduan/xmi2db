@@ -46,10 +46,10 @@ while r.read
 	# umzubenennende Features sind erst ab Tiefe 4
 	if r.depth > 3
 		if r.depth > last_depth
-			elements.push r.name 
+			elements.push r.local_name
 		elsif r.depth == last_depth
 			elements.pop
-			elements.push r.name
+			elements.push r.local_name
 		else
 			elements.pop
 		end

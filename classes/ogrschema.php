@@ -67,11 +67,12 @@ class OgrSchema extends Schema {
 	}
 
 	function createFeatureTypeTables($stereotype, $parent, $class, $attributPath = array(), $createUserInfoColumns = false) {
+		global $indent;
 		if ($this->is_table_filtered($class['name'])) {
 			$this->logger->log("<br>Ignoriere FeatureType: {$class['name']} komplett");
 		}
 		else {
-			$this->logger->log('<br><b>Create ' . $stereotype . ': ' . $class['name'] .' </b>');
+			$this->logger->log('<br><b>Create ' . $stereotype . ': ' . $class['name'] . ' von ' . $parent->name . '</b> (' . $parent->alias . ')');
 
 			# Erzeuge FeatueType
 			$featureType = new FeatureType($class['name'], $parent, $this->logger, $this->umlSchema, $this->enumerations);
@@ -83,7 +84,7 @@ class OgrSchema extends Schema {
 			$featureType->primaryKeyNullable = false;
 
 			if ($parent != null)
-				$this->logger->log(' abgeleitet von: <b>' . $parent->alias . '</b>');
+				$this->logger->log(' abgeleitet von: <b>' . $parent->name . '</b>');
 
 			$featureType->attribute_filter = $this->filter[$class['name']]['attribute'];
 			if (!is_array($attribute_filter))
@@ -114,10 +115,14 @@ class OgrSchema extends Schema {
 					$featureType->outputFlattendedAttributTable();
 				$sql .= $featureType->asFlattenedSql();
 			}
-
-			foreach($subClasses as $subClass) {
-				# übergibt den featureType als parent an die Sub-Klassen
-				$sql .= $this->createFeatureTypeTables($stereotype, $featureType, $subClass);
+			else {
+				$indent++;
+				foreach($subClasses as $subClass) {
+					# übergibt den featureType als parent an die Sub-Klassen
+					$this->logger->log('<br><b>Create Subclass: ' . $subClass['name'] . ' von Class ' . $featureType->name . '</b>');
+					$sql .= $this->createFeatureTypeTables($stereotype, $featureType, $subClass);
+				}
+				$indent--;
 			}
 		}
 

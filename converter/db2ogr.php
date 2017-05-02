@@ -23,6 +23,7 @@
 	$tabNameAssoc = array();
 	$log_sql = '';
 	$logger = new Logger(LOGLEVEL);
+	$indent = 0;
 	if (file_exists(FILTER_FILE)) {
 		$filter = json_decode(file_get_contents(FILTER_FILE), true);
 	}

@@ -378,7 +378,13 @@ class FeatureType {
           }
         }
         if ($attribute->short_name != end($attribute->parts)->name) {
-          $output[$attribute->path_name] = $attribute->short_name;
+          if ($attribute->overwrite['type'] != '') {
+            $key = $attribute->overwrite['path_name'];
+          }
+          else {
+            $key = $attribute->path_name;
+          }
+          $output[$key] = $attribute->short_name;
         }
       }
     }

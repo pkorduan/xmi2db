@@ -26,6 +26,10 @@ class Attribute {
     $this->attributes_name = '';
     $this->path_name = '';
     $this->frequency = 0;
+		$this->overwrite = array(
+			'type' => '',
+			'original' => ''
+		);
   }
 
   public static function getName($name) {
@@ -54,6 +58,27 @@ class Attribute {
     );
 
     $this->short_name = end($this->parts)->name;
+
+    if ($this->overwrite['type'] != '') {
+      $this->overwrite['path_name'] = implode(
+        '_',
+        array_map(
+          function($part) {
+            if ($part->overwrite['type'] != '') {
+              $str = $part->parent->alias . '_' . $part->overwrite['alias'] . '_' . $part->overwrite['type'];
+            } else {
+              $str = $part->parent->alias . '_' . $part->alias;
+            }
+          	return $str;
+          },
+          $this->parts
+        )
+      );
+    }
+#    echo '<br>path: ' . $this->path_name;
+#    echo '<br>attributes: ' . $this->attributes_name;
+#    echo '<br>overwritten path: ' . $this->overwrite['path_name'];
+#    echo '<br>short_name: ' . $this->short_name;
   }
 
   function getComment($table_name) {
@@ -131,6 +156,9 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 		$msg = '';
 		if (array_key_exists($this->datatype_alias, $overwriteTypes) and $overwriteTypes[$this->datatype_alias] == $this->stereotype) {
 			$msg .= '<br>Overwrite ' . $this->name . ' with: ' . $this->datatype;
+			$this->overwrite['name'] = $this->name;
+			$this->overwrite['alias'] = $this->alias;
+			$this->overwrite['type'] = $this->datatype_alias;
 			$this->name = $this->datatype;
 			$this->alias = $this->datatype_alias;
 		}
@@ -142,31 +170,35 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 #			}
 			switch (true) {
 				case ($this->has_parent($parts, 'AX_DQOhneDatenerhebung') AND $this->parent->alias == 'LI_ProcessStep') :
-					$new_name = 'AX_LI_ProcessStep_OhneDatenerhebung_Description';
+					$new_type = 'AX_LI_ProcessStep_OhneDatenerhebung_Description';
 					break;
 				case ($this->has_parent($parts, 'AX_DQOhneDatenerhebung') AND $this->parent->alias == 'LI_Source') :
-					$new_name = 'AX_Datenerhebung';
+					$new_type = 'AX_Datenerhebung';
 					break;
 				case ($this->has_parent($parts, 'AX_DQMitDatenerhebung') AND $this->parent->alias == 'LI_ProcessStep') :
-					$new_name = 'AX_LI_ProcessStep_MitDatenerhebung_Description';
+					$new_type = 'AX_LI_ProcessStep_MitDatenerhebung_Description';
 					break;
 				case ($this->has_parent($parts, 'AX_DQMitDatenerhebung') AND $this->parent->alias == 'LI_Source') :
-					$new_name = 'AX_Datenerhebung';
+					$new_type = 'AX_Datenerhebung';
 					break;
 				case ($this->has_parent($parts, 'AX_DQPunktort') AND $this->parent->alias == 'LI_ProcessStep') :
-					$new_name = 'AX_LI_ProcessStep_Punktort_Description';
+					$new_type = 'AX_LI_ProcessStep_Punktort_Description';
 					break;
 				case ($this->has_parent($parts, 'AX_DQMitDatenerhebung') AND $this->parent->alias == 'LI_Source') :
-					$new_name = 'AX_Datenerhebung_Punktort';
+					$new_type = 'AX_Datenerhebung_Punktort';
 					break;
 				default :
-					$new_name = '';
+					$new_type = '';
 			}
 
-			if ($new_name != '') {
-				$msg .= '<br>Overwrite ' . $this->name . ' with: ' . $new_name;
-				$this->name = strtolower($new_name);
-				$this->alias = $new_name;
+			if ($new_type != '') {
+				$msg .= '<br>Overwrite ' . $this->parent->alias . '|' . $this->name . ' with: ' . $new_type;
+				$this->overwrite['name'] = $this->name;
+				$this->overwrite['alias'] = $this->alias;
+				$this->overwrite['type'] = $new_type;
+				$this->name = strtolower($new_type);
+				$this->alias = $new_type;
+				$this->overwrite_type = $new_type;
 			}
 		}
 
@@ -520,6 +552,9 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 			if($elements[0] == 'zeigtAufExternes')$elements[0] = 'zeigtAufExternes_';
 			array_pop($elements);
 			$elements[] = $this->short_name;
+      if ($this->short_name == 'herkunft_source_ax_datenerhebung') {
+        array_splice($elements, -1, 0, $this->overwrite['name']);
+      }
 			$gfs = "
       <PropertyDefn>
         <Name>".$this->short_name."</Name>
