@@ -10,7 +10,8 @@
 <html lang="de">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<script src="https://gdi-service.de/3rdparty/jQuery-1.12.0/jquery-1.12.0.min.js"></script>
+	<!--<script src="https://gdi-service.de/3rdparty/jQuery-1.12.0/jquery-1.12.0.min.js"></script>-->
+	<script src="http://code.jquery.com/jquery-1.12.0.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
 	<script src="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.7.0/bootstrap-table.min.js"></script>
 	
@@ -269,10 +270,10 @@
 		<i>Das Schema in dem vorher die UML-Elemente mit xmi2db eingelesen wurden.</i><br>
 		<select class="form-control" id="db2ogr_umlSchema">
 		<?php
-			$schemas = str_replace("'", "", SCHEMAS);
+			$schemas = str_replace("'", "", UML_SCHEMA);
 			$schemas = explode(";", $schemas);
 			foreach ($schemas as $schema) {
-				echo '<option value="'.$schema.'_uml">'.$schema.'_uml</option>';
+				echo '<option value="'.$schema.'">'.$schema.'</option>';
 			}
 		?>
 		</select>
@@ -288,10 +289,10 @@
 		<i>Das Schema in dem die GML-Tabellen und Datentypen angelegt werden sollen.</i><br>
 		<select class="form-control" id="db2ogr_ogrSchema">
 		<?php
-			$schemas = str_replace("'", "", SCHEMAS);
+			$schemas = str_replace("'", "", OGR_SCHEMA);
 			$schemas = explode(";", $schemas);
 			foreach ($schemas as $schema) {
-				echo '<option value="'.$schema.'_ogr">'.$schema.'_ogr</option>';
+				echo '<option value="'.$schema.'">'.$schema.'</option>';
 			}
 		?>
 		</select>
