@@ -305,7 +305,8 @@ SELECT
 	a.multiplicity_range_lower::integer,
 	a.multiplicity_range_upper,
 	a.initialvalue_body" .
-	$tagged_values_select . "
+	#$tagged_values_select . "
+	"
 FROM
 	" . $this->schemaName . ".uml_classes c JOIN 
 	" . $this->schemaName . ".uml_attributes a ON c.id = a.uml_class_id LEFT JOIN
@@ -315,7 +316,8 @@ FROM
 	" . $this->schemaName . ".uml_classes cc ON a.classifier = cc.xmi_id LEFT JOIN
 	" . $this->schemaName . ".datatypes cd ON a.classifier = cd.xmi_id LEFT JOIN
 	" . $this->schemaName . ".stereotypes cs ON cc.stereotype_id = cs.xmi_id"
-	. $tagged_values_from . "
+	#. $tagged_values_from . "
+	."
 WHERE
 	" . $tagged_value_where . "
 	uml_class_id = " . $class_id .
