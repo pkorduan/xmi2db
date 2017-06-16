@@ -30,10 +30,10 @@ class OgrSchema extends Schema {
 		$table->values = $enumType->getValues($enumeration);
 
 		# definiere Attribute
-		$wert_type = (empty($enumType)) ? 'chacacter varying' : $enumType->getWertType();
+		$wert_type = (empty($enumType)) ? PG_CHARACTER_VARYING : $enumType->getWertType();
 		$attribute = new Attribute('wert', $wert_type);
 		$table->addAttribute($attribute);
-		$attribute = new Attribute('beschreibung', 'character varying');
+		$attribute = new Attribute('beschreibung', PG_CHARACTER_VARYING);
 		$table->addAttribute($attribute);
 
 		# definiere Primärschlüssel

@@ -17,7 +17,7 @@ include('../conf/database_conf.php');
 
 $xmi2db = new xmi2db(UML_SCHEMA);
 
-$xmi2db->openConnection(PG_HOST, PG_DBNAME, PG_USER, PG_PASSWORD);
+$xmi2db->openConnection(PG_HOST, PG_DBNAME, PG_USER, PG_PASSWORD, PG_PORT);
 
 $xmi2db->start();
 

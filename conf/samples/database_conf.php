@@ -18,7 +18,14 @@
 	define('PG_DBNAME', 'postgres');
 	define('PG_USER', 'postgres');
 	define('PG_PASSWORD', 'postgres');
+	define('PG_PORT', '5432');
 	define('PG_MAX_NAME_LENGTH', 58); // Maximale Länge von Tabellen, Type und Attributnamen
+	define('PG_CHARACTER_VARYING', 'character varying');
+	define('PG_BOOLEAN', 'character varying');
+	define('PG_DATETIME', 'timestamp without time zone');
+	define('PG_WITH_OIDS', true);
+	define('PG_WITH_IDENTIFIER', true);
+	define('PG_CREATE_TABLE', 'CREATE TABLE IF EXISTS');
 
 	$umlSchemaVar = ($_REQUEST['umlSchema'] != '') ? $_REQUEST['umlSchema'] : 'aaa_uml';
 	define('UML_SCHEMA', $umlSchemaVar);

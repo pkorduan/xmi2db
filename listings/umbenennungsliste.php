@@ -37,7 +37,7 @@
 
 	# Initialize the umlSchema object
 	$umlSchema = new Schema(UML_SCHEMA, $logger);
-	$umlSchema->openConnection(PG_HOST, PG_DBNAME, PG_USER, PG_PASSWORD);
+	$umlSchema->openConnection(PG_HOST, PG_DBNAME, PG_USER, PG_PASSWORD, PG_PORT);
 
 	# Initialize the gmlSchema object
 	$ogrSchema = new OgrSchema(OGR_SCHEMA, $logger);

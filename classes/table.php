@@ -10,7 +10,7 @@ class Table {
 		$this->attributes = array();
 		$this->primaryKey = '';
 		$this->inherits = '';
-		$this->withOids = true;
+		$this->withOids = PG_WITH_OIDS;
 		$this->values = new Data();
 	}
 
@@ -33,8 +33,7 @@ class Table {
 
 	function asSql() {
 		$sql = "
-
-CREATE TABLE IF NOT EXISTS " . $this->name . " (
+" . PG_CREATE_TABLE . " " . $this->name . " (
 ";
 
 		# Ausgabe Attribute

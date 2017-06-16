@@ -31,7 +31,7 @@ class EnumType {
 	}
 
 	function getWertType() {
-		return ctype_digit($this->values->rows[0][0]) ? 'integer' : 'character varying';
+		return ctype_digit($this->values->rows[0][0]) ? 'integer' : PG_CHARACTER_VARYING;
 	}
 
 	function getValues() {

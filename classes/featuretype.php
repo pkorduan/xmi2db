@@ -13,7 +13,7 @@ class FeatureType {
     $this->primaryKey = '';
     $this->primaryKeyType = 'text';
     $this->parent = $parent;
-    $this->withOids = true;
+    $this->withOids = PG_WITH_OIDS;
     $this->values = new Data();
     $this->umlSchema = $umlSchema;
     $this->logger = $logger;
@@ -414,7 +414,7 @@ class FeatureType {
   function asSql() {
     $attribute_parts = array();
     $sql = "
-CREATE TABLE IF NOT EXISTS " . $this->name . " (
+" . PG_CREATE_TABLE . " " . $this->name . " (
 ";
 
     # Ausgabe id
@@ -518,14 +518,15 @@ SELECT UpdateGeometrySRID('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "',
   function asFlattenedSql() {
     $attribute_parts = array();
     $sql = "
-
-CREATE TABLE IF NOT EXISTS " . $this->name . " (
+" . PG_CREATE_TABLE . " " . $this->name . " (
 ";
     # ogc_fid Spalte
     $attribute_parts[] .= "  ogc_fid serial NOT NULL";
 
     # identifier Spalte
-    $attribute_parts[] .= "  identifier character varying";
+    if(PG_WITH_IDENTIFIER) {
+      $attribute_parts[] .= "  identifier " . PG_CHARACTER_VARYING;
+    }
 
     # gml_id Spalte
     $attribute_parts[] .= "  gml_id character varying(16)";
@@ -634,7 +635,8 @@ SELECT UpdateGeometrySRID('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "',
     <GeometryType>".$this->getGeometryType()."</GeometryType>";
 
     # identifier Spalte
-    $attribute_parts[] .= "
+    if(PG_WITH_IDENTIFIER) {
+      $attribute_parts[] .= "
     <PropertyDefn>
       <Name>identifier</Name>
       <ElementPath>identifier</ElementPath>

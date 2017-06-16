@@ -19,10 +19,12 @@ class Schema {
 		$host = 'localhost',
 		$dbname = 'postgres',
 		$user = 'postgres',
-		$password = 'postgres'
+		$password = 'postgres',
+		$port = 5432
 	) {
 		$this->dbConn = pg_connect(
 			 "host=" . $host .
+			" port=" . $port .
 			" dbname=" . $dbname .
 			" user=" . $user .
 			" password=" . $password
@@ -520,7 +522,7 @@ WHERE
 						'enum',
 						'uri'
 					)) :
-					$sql = 'character varying';
+					$sql = PG_CHARACTER_VARYING;
 				break;
 
 				# date
@@ -864,7 +866,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		$wert_type = $enumType->getWertType();
 		$attribute = new Attribute('wert', $wert_type);
 		$table->addAttribute($attribute);
-		$attribute = new Attribute('beschreibung', 'character varying');
+		$attribute = new Attribute('beschreibung', PG_CHARACTER_VARYING);
 		$table->addAttribute($attribute);
 
 		# definiere Primärschlüssel
@@ -892,7 +894,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		# create Attributes
 		$dataTypeAttribute = new Attribute('codeSpace', 'text');
 		$dataType->addAttribute($dataTypeAttribute);
-		$dataTypeAttribute = new Attribute('id', 'character varying');
+		$dataTypeAttribute = new Attribute('id', PG_CHARACTER_VARYING);
 		$dataType->addAttribute($dataTypeAttribute);
 
 		# Erzeuge SQL und registriere DataType in Liste
@@ -911,7 +913,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		# definiere Attribute
 		$attribute = new Attribute('codeSpace', 'text');
 		$table->addAttribute($attribute);
-		$attribute = new Attribute('id', 'character varying');
+		$attribute = new Attribute('id', PG_CHARACTER_VARYING);
 		$table->addAttribute($attribute);
 		$attribute = new Attribute('value', 'text');
 		$table->addAttribute($attribute);
@@ -954,7 +956,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 		$fkey_type = (WITH_UUID_OSSP) ? 'uuid' : 'text';
 
 		$sql = "\n
-CREATE TABLE IF NOT EXISTS {$table} (
+" . PG_CREATE_TABLE . " {$table} (
 	" . strtolower($association['a_class']) . "_{$key1} $fkey_type,
 	" . strtolower($association['b_class']) . "_{$key2} $fkey_type,
 	PRIMARY KEY (" . strtolower($association['a_class']) . "_{$key1}, " . strtolower($association['b_class']) . "_{$key2})
@@ -986,7 +988,7 @@ COMMENT ON COLUMN " . $table . "." . strtolower($association['b_class']) . "_gml
 
 		//Fixed: Table identifier max length is 63
 		if (strlen($table_orig) > PG_MAX_NAME_LENGTH) $sql .= "
-ALTER TABLE " . $table . " ADD COLUMN " . $table . " character varying(255);
+ALTER TABLE " . $table . " ADD COLUMN " . $table . " " . PG_CHARACTER_VARYING . "(255);
 COMMENT ON COLUMN " . $table .".". $table ."
 IS '" . $table_orig . 
 "';

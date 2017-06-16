@@ -233,7 +233,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
             'md_identifier',
             'ci_citation'
           )) :
-          $database_type = 'text';
+          $database_type = PG_CHARACTER_VARYING;
         break;
 
         # character varying
@@ -242,9 +242,9 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
             '<undefined>',
             'uri'
           )) :
-          $database_type = 'character varying';
+          $database_type = PG_CHARACTER_VARYING;
         break;
-        
+
         # external datatypes
         case in_array($this->datatype, array(
             'sc_crs',
@@ -252,7 +252,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
             'measure',
             'dq_evaluationmethodtypecode'
           )) :
-          $database_type = 'character varying';
+          $database_type = PG_CHARACTER_VARYING;
         break;
 
         # enumerations from stereotype
@@ -267,7 +267,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
           else {
             if (!empty($this->parent->ogrSchema->schemaName)) {
               $enumType = $this->parent->ogrSchema->enumerations[$this->datatype];
-              $database_type = (empty($enumType)) ? 'character varying' : $enumType->getWertType();
+              $database_type = (empty($enumType)) ? PG_CHARACTER_VARYING : $enumType->getWertType();
             }
           }
         break;
@@ -277,7 +277,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
             'enumeration',
             'enum'
           )) :
-          $database_type = 'character varying';
+          $database_type = PG_CHARACTER_VARYING;
         break;
 
         # code list from stereotype
@@ -286,7 +286,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
             $database_type = $this->datatype;
           }
           else {
-            $database_type = 'text';
+            $database_type = PG_CHARACTER_VARYING;
           }
         break;
 
@@ -302,7 +302,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
         case in_array($this->datatype, array(
             'datetime'
           )) :
-          $database_type = 'timestamp without time zone';
+          $database_type = PG_DATETIME;
         break;
 
         # integer
@@ -316,7 +316,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 
         # boolean
         case ($this->datatype == 'boolean'):
-          $database_type = 'character varying';
+          $database_type = PG_BOOLEAN;
         break;
 
         # double precision
@@ -397,7 +397,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
     }
 
     if ($database_type == '')
-      $database_type = 'text';
+      $database_type = PG_CHARACTER_VARYING;
 
     $this->database_type = $database_type;
     return $database_type;
@@ -407,10 +407,11 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
     if($brackets == '[]')$list = 'List';
     switch (true){
       case in_array($database_type, array(
+          PG_CHARACTER_VARYING,
           'character varying',
           'text',
           'date',
-          'timestamp without time zone'
+          'character', # 'timestamp without time zone'
         )):
         $gfs_type = 'String';
       break;

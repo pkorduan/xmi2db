@@ -147,17 +147,18 @@ class xmi2db {
     $this->schema = $schema;
   }
 
-	function openConnection($host = 'localhost', $dbname = 'postgres', $user = 'postgres', $password = 'postgres') {
-		$this->conn = pg_connect(
-			 "host=" . $host .
-			" dbname=" . $dbname .
-			" user=" . $user .
-			" password=" . $password
-		) or exit (
-			"Es konnte keine Verbindung zum Datenbankserver hergestellt werden."
-		);
-		return $this->conn;
-	}
+  function openConnection($host = 'localhost', $dbname = 'postgres', $user = 'postgres', $password = 'postgres', $port = 5432) {
+    $this->conn = pg_connect(
+	"host=" . $host .
+	" port=" . $port .
+	" dbname=" . $dbname .
+	" user=" . $user .
+	" password=" . $password
+	) or exit (
+	  "Es konnte keine Verbindung zum Datenbankserver hergestellt werden."
+	  );
+    return $this->conn;
+  }
 
   function getQueriesForPackages($package) {
     return $package->attributes()->name;
