@@ -26,10 +26,11 @@ class Attribute {
     $this->attributes_name = '';
     $this->path_name = '';
     $this->frequency = 0;
-		$this->overwrite = array(
-			'type' => '',
-			'original' => ''
-		);
+
+    $this->overwrite = array(
+      'type' => '',
+      'original' => ''
+    );
   }
 
   public static function getName($name) {
@@ -66,19 +67,20 @@ class Attribute {
           function($part) {
             if ($part->overwrite['type'] != '') {
               $str = $part->parent->alias . '_' . $part->overwrite['alias'] . '_' . $part->overwrite['type'];
-            } else {
+            }
+            else {
               $str = $part->parent->alias . '_' . $part->alias;
             }
-          	return $str;
+            return $str;
           },
           $this->parts
         )
       );
     }
-#    echo '<br>path: ' . $this->path_name;
-#    echo '<br>attributes: ' . $this->attributes_name;
-#    echo '<br>overwritten path: ' . $this->overwrite['path_name'];
-#    echo '<br>short_name: ' . $this->short_name;
+    # echo '<br>path: ' . $this->path_name;
+    # echo '<br>attributes: ' . $this->attributes_name;
+    # echo '<br>overwritten path: ' . $this->overwrite['path_name'];
+    # echo '<br>short_name: ' . $this->short_name;
   }
 
   function getComment($table_name) {
@@ -91,9 +93,9 @@ COMMENT ON COLUMN " . $table_name . "." . $this->name . " IS '";
   }
 
   function getAttributePath($parts = array()) {
-		if (empty($parts)) {
-    	$parts = $this->parts;
-		}
+    if (empty($parts)) {
+      $parts = $this->parts;
+    }
     $attribute_path = $parts[0]->alias;
     array_shift($parts);
     if (!empty($parts)) {
@@ -110,18 +112,18 @@ COMMENT ON COLUMN " . $table_name . "." . $this->name . " IS '";
     return $attribute_path;
   }
 
-	function has_parent($parts = array(), $parent_name) {
-		$has_parent = false;
-		if (empty($parts)) {
-			$parts = $this->parts;
-		}
-		foreach($parts AS $part) {
-			if ($part->parent->name == strtolower($parent_name)) {
-				$has_parent = true;
-			}
-		}
-		return $has_parent;
-	}
+  function has_parent($parts = array(), $parent_name) {
+    $has_parent = false;
+    if (empty($parts)) {
+      $parts = $this->parts;
+    }
+    foreach($parts AS $part) {
+      if ($part->parent->name == strtolower($parent_name)) {
+        $has_parent = true;
+      }
+    }
+    return $has_parent;
+  }
 
   function getFlattenedComment($table_name) {
     $attribute_path = $this->getAttributePath();
@@ -152,58 +154,58 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
   }
 
   function overwriteIso19139Type($overwriteTypes, $parts) {
-#		echo 'overwriteIso19139Type: ' . $this->name;
-		$msg = '';
-		if (array_key_exists($this->datatype_alias, $overwriteTypes) and $overwriteTypes[$this->datatype_alias] == $this->stereotype) {
-			$msg .= '<br>Overwrite ' . $this->name . ' with: ' . $this->datatype;
-			$this->overwrite['name'] = $this->name;
-			$this->overwrite['alias'] = $this->alias;
-			$this->overwrite['type'] = $this->datatype_alias;
-			$this->name = $this->datatype;
-			$this->alias = $this->datatype_alias;
-		}
+    # echo 'overwriteIso19139Type: ' . $this->name;
+    $msg = '';
+    if (array_key_exists($this->datatype_alias, $overwriteTypes) and $overwriteTypes[$this->datatype_alias] == $this->stereotype) {
+      $msg .= '<br>Overwrite ' . $this->name . ' with: ' . $this->datatype;
+      $this->overwrite['name'] = $this->name;
+      $this->overwrite['alias'] = $this->alias;
+      $this->overwrite['type'] = $this->datatype_alias;
+      $this->name = $this->datatype;
+      $this->alias = $this->datatype_alias;
+    }
 
-		if ($this->name == 'description') {
-#			echo '<br>' . $this->parent->alias . ' - ' . $this->name;
-#			if (is_array($parts)) {
-#				echo '<br>' . $this->getAttributePath($parts);
-#			}
-			switch (true) {
-				case ($this->has_parent($parts, 'AX_DQOhneDatenerhebung') AND $this->parent->alias == 'LI_ProcessStep') :
-					$new_type = 'AX_LI_ProcessStep_OhneDatenerhebung_Description';
-					break;
-				case ($this->has_parent($parts, 'AX_DQOhneDatenerhebung') AND $this->parent->alias == 'LI_Source') :
-					$new_type = 'AX_Datenerhebung';
-					break;
-				case ($this->has_parent($parts, 'AX_DQMitDatenerhebung') AND $this->parent->alias == 'LI_ProcessStep') :
-					$new_type = 'AX_LI_ProcessStep_MitDatenerhebung_Description';
-					break;
-				case ($this->has_parent($parts, 'AX_DQMitDatenerhebung') AND $this->parent->alias == 'LI_Source') :
-					$new_type = 'AX_Datenerhebung';
-					break;
-				case ($this->has_parent($parts, 'AX_DQPunktort') AND $this->parent->alias == 'LI_ProcessStep') :
-					$new_type = 'AX_LI_ProcessStep_Punktort_Description';
-					break;
-				case ($this->has_parent($parts, 'AX_DQMitDatenerhebung') AND $this->parent->alias == 'LI_Source') :
-					$new_type = 'AX_Datenerhebung_Punktort';
-					break;
-				default :
-					$new_type = '';
-			}
+    if ($this->name == 'description') {
+      # echo '<br>' . $this->parent->alias . ' - ' . $this->name;
+      # if (is_array($parts)) {
+      #   echo '<br>' . $this->getAttributePath($parts);
+      # }
+      switch (true) {
+        case ($this->has_parent($parts, 'AX_DQOhneDatenerhebung') AND $this->parent->alias == 'LI_ProcessStep') :
+          $new_type = 'AX_LI_ProcessStep_OhneDatenerhebung_Description';
+          break;
+        case ($this->has_parent($parts, 'AX_DQOhneDatenerhebung') AND $this->parent->alias == 'LI_Source') :
+          $new_type = 'AX_Datenerhebung';
+          break;
+        case ($this->has_parent($parts, 'AX_DQMitDatenerhebung') AND $this->parent->alias == 'LI_ProcessStep') :
+          $new_type = 'AX_LI_ProcessStep_MitDatenerhebung_Description';
+          break;
+        case ($this->has_parent($parts, 'AX_DQMitDatenerhebung') AND $this->parent->alias == 'LI_Source') :
+          $new_type = 'AX_Datenerhebung';
+          break;
+        case ($this->has_parent($parts, 'AX_DQPunktort') AND $this->parent->alias == 'LI_ProcessStep') :
+          $new_type = 'AX_LI_ProcessStep_Punktort_Description';
+          break;
+        case ($this->has_parent($parts, 'AX_DQMitDatenerhebung') AND $this->parent->alias == 'LI_Source') :
+          $new_type = 'AX_Datenerhebung_Punktort';
+          break;
+        default :
+          $new_type = '';
+      }
 
-			if ($new_type != '') {
-				$msg .= '<br>Overwrite ' . $this->parent->alias . '|' . $this->name . ' with: ' . $new_type;
-				$this->overwrite['name'] = $this->name;
-				$this->overwrite['alias'] = $this->alias;
-				$this->overwrite['type'] = $new_type;
-				$this->name = strtolower($new_type);
-				$this->alias = $new_type;
-				$this->overwrite_type = $new_type;
-			}
-		}
+      if ($new_type != '') {
+        $msg .= '<br>Overwrite ' . $this->parent->alias . '|' . $this->name . ' with: ' . $new_type;
+        $this->overwrite['name'] = $this->name;
+        $this->overwrite['alias'] = $this->alias;
+        $this->overwrite['type'] = $new_type;
+        $this->name = strtolower($new_type);
+        $this->alias = $new_type;
+        $this->overwrite_type = $new_type;
+      }
+    }
 
-		return $msg;
-	}
+    return $msg;
+  }
 
   function get_database_type($with_enum_type = true, $with_codelist_type = true) {
     $database_type = $this->datatype;
@@ -317,7 +319,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
         # boolean
         case ($this->datatype == 'boolean'):
           $database_type = PG_BOOLEAN;
-        break;
+          break;
 
         # double precision
         case in_array($this->datatype, array(
@@ -402,10 +404,10 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
     $this->database_type = $database_type;
     return $database_type;
   }
-  
-  function get_gfs_type($database_type, $brackets){
+
+  function get_gfs_type($database_type, $brackets) {
     if($brackets == '[]')$list = 'List';
-    switch (true){
+    switch (true) {
       case in_array($database_type, array(
           PG_CHARACTER_VARYING,
           'character varying',
@@ -414,51 +416,51 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
           'character', # 'timestamp without time zone'
         )):
         $gfs_type = 'String';
-      break;
-      
+        break;
+
       case in_array($database_type, array(
           'integer'
         )):
         $gfs_type = 'Integer';
-      break;
-      
+        break;
+
       case in_array($database_type, array(
           'double precision'
         )):
         $gfs_type = 'Real';
-      break;
-			
-			case ($database_type ==	'geometry'):
-				$gfs_type = '0';
-			break;
+        break;
 
-			case ($database_type ==	'geometry(POINT)'):
-				$gfs_type = '1';
-			break;
-			
-			case ($database_type == 'geometry(LINESTRING)'):
-				$gfs_type = '2';
-			break;			
-			
-			case ($database_type == 'geometry(POLYGON)'):
-				$gfs_type = '3';
-			break;			
+      case ($database_type == 'geometry'):
+        $gfs_type = '0';
+        break;
 
-			case ($database_type == 'geometry(MULTIPOINT)'):
-				$gfs_type = '4';
-			break;
+      case ($database_type == 'geometry(POINT)'):
+        $gfs_type = '1';
+        break;
 
-			case ($database_type == 'geometry(MULTILINESTRING)'):
-				$gfs_type = '5';
-			break;
+      case ($database_type == 'geometry(LINESTRING)'):
+        $gfs_type = '2';
+        break;
 
-			case ($database_type == 'geometry(MULTIPOLYGON)'):
-				$gfs_type = '6';
-			break;
+      case ($database_type == 'geometry(POLYGON)'):
+        $gfs_type = '3';
+        break;
+
+      case ($database_type == 'geometry(MULTIPOINT)'):
+        $gfs_type = '4';
+        break;
+
+      case ($database_type == 'geometry(MULTILINESTRING)'):
+        $gfs_type = '5';
+        break;
+
+      case ($database_type == 'geometry(MULTIPOLYGON)'):
+        $gfs_type = '6';
+        break;
     }
     return $gfs_type.$list;
   }
-  
+
   function getBrackets() {
     $brackets = false;
     if (is_array($this->parts) and !empty($this->parts)) {
@@ -479,8 +481,8 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
   }
 
   /*
-  * Ausgabe NOT NULL
-  */
+   * Ausgabe NOT NULL
+   */
   function getNotNull() {
     if ($this->not_null) {
       # Wenn NOT NULL explizit beim Anlegen des Attributes gesetzt wurde
@@ -488,16 +490,16 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
     }
     else {
       if (is_array($this->parts) and !empty($this->parts)) {
-        # Ermittle NOT NULL aus Multipliziät des Attributes und seiner Vorgänger
-        # Nur wenn alle Attribute im Pfad die Kardinaltität > 0 haben,
+        # Ermittle NOT NULL aus Multiplizität des Attributes und seiner Vorgänger
+        # Nur wenn alle Attribute im Pfad die Kardinalität > 0 haben,
         # darf das Blattelement auf NOT NULL gesetzt werden.
-#        $not_null = true;
-#        foreach($this->parts AS $attribute) {
-#          if (intval($attribute->multiplicity_lower) == 0) {
-#            $not_null = false; # Attribut darf NULL sein.
-#          }
-#        }
-    
+        # $not_null = true;
+        # foreach($this->parts AS $attribute) {
+        #   if (intval($attribute->multiplicity_lower) == 0) {
+        #     $not_null = false; # Attribut darf NULL sein.
+        #   }
+        # }
+
         $not_null = !in_array(
           false,
           array_map(
@@ -531,14 +533,14 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
   }
 
   function asFlattenedSql() {
-    #if (substr($this->get_database_type(), 0, 8) == 'geometry' and $this->name <> 'wkb_geometry') echo '<br>Klasse: ' . $this->parent->name . ' Geometriespalte: ' . $this->name . ' type: ' . $this->get_database_type();
+    # if (substr($this->get_database_type(), 0, 8) == 'geometry' and $this->name <> 'wkb_geometry') echo '<br>Klasse: ' . $this->parent->name . ' Geometriespalte: ' . $this->name . ' type: ' . $this->get_database_type();
 
     $sql = "  " .
       $this->short_name . " " . $this->get_database_type(false, false) . $this->getBrackets() . $this->getNotNull();
 
-		if ($this->stereotype == 'enumeration' and $this->short_name != $this->datatype) {
-		#	 $sql .= ' -- datatype: ' . $this->datatype . ' stereotype: ' . $this->stereotype;
-		}
+    if ($this->stereotype == 'enumeration' and $this->short_name != $this->datatype) {
+      # $sql .= ' -- datatype: ' . $this->datatype . ' stereotype: ' . $this->stereotype;
+    }
 
     # Ausgabe DEFAULT
     if ($this->default != '')
@@ -548,22 +550,22 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
   }
 
   function asGfs() {
-		if($this->short_name != 'wkb_geometry'){
-			$elements = explode('|', $this->getAttributePath());
-			if($elements[0] == 'zeigtAufExternes')$elements[0] = 'zeigtAufExternes_';
-			array_pop($elements);
-			$elements[] = $this->short_name;
+    if($this->short_name != 'wkb_geometry') {
+      $elements = explode('|', $this->getAttributePath());
+      if($elements[0] == 'zeigtAufExternes')$elements[0] = 'zeigtAufExternes_';
+      array_pop($elements);
+      $elements[] = $this->short_name;
       if ($this->short_name == 'herkunft_source_ax_datenerhebung') {
         array_splice($elements, -1, 0, $this->overwrite['name']);
       }
-			$gfs = "
-      <PropertyDefn>
+      $gfs = "
+        <PropertyDefn>
         <Name>".$this->short_name."</Name>
         <ElementPath>".implode('|', $elements)."</ElementPath>
         <Type>".$this->get_gfs_type($this->get_database_type(false, false), $this->getBrackets())."</Type>
-      </PropertyDefn>";
-			return $gfs;
-		}
+        </PropertyDefn>";
+      return $gfs;
+    }
   }
 }
 ?>

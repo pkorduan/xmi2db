@@ -2,7 +2,7 @@
   include( dirname(__FILE__) . "/../conf/database_conf.php");
 
   $schema = $_REQUEST['schema'];
-  
+
   $full_model = "
     SELECT
       *
@@ -15,7 +15,7 @@
   $current_class = '';
   $current_attribute = '';
 
-  while ($row = pg_fetch_assoc($result)){
+  while ($row = pg_fetch_assoc($result)) {
     $par_package = $row['parent_package_name'];
     $package = $row['package_name'];
     $class = $row['class_name'];

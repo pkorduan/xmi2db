@@ -114,7 +114,7 @@ class FeatureType {
           # für einen Union Typ sinnlos, weil er ja dafür da ist, dass man ein
           # Attribut aus verschiedenen auswählt.
           #if ($type == 'AX_Lagebezeichnung') echo '<br>typ: ' . $type . ' attribute: ' . $attributeObj->name . ' stereotype: ' . $stereotype;
-          
+
           $attributeObj->setMultiplicity(
             (($attribute['attribute_name'] == 'position' or $stereotype == 'union') ? 0 : $attribute['multiplicity_range_lower']),
             $attribute['multiplicity_range_upper']
@@ -249,7 +249,7 @@ class FeatureType {
           $this->logger->log(' umbenannt nach: ' . $a->short_name);
         }
       }
-      
+
       $this->unifyShortNames($level++);
     }
   }
@@ -330,7 +330,7 @@ class FeatureType {
       $html .= '<br>keine Attribute';
     else {
       $html .= '<table>
-        <th>Pfad</th><th>Name</th><th>Kurzname</th><th>Stereotype</th><th>UML-Datatype</th><th>Databasetype</th><th>Multipliziät</th>';
+        <th>Pfad</th><th>Name</th><th>Kurzname</th><th>Stereotype</th><th>UML-Datatype</th><th>Databasetype</th><th>Multiplizität</th>';
         $num_attributes = 0;
         foreach ($this->attributes AS $attribute) {
           $html .= '<tr>';
@@ -400,16 +400,16 @@ class FeatureType {
     }
     return $hasGeometryColumn;
   }
-	
+
   function getGeometryType() {
-		$geometry_type = 100;
+    $geometry_type = 100;
     foreach($this->attributes AS $attribute) {
-      if($attribute->name == GEOMETRY_COLUMN_NAME){
+      if($attribute->name == GEOMETRY_COLUMN_NAME) {
         $geometry_type = $attribute->get_gfs_type($attribute->get_database_type(false, false), NULL);
       }
     }
     return $geometry_type;
-  }	
+  }
 
   function asSql() {
     $attribute_parts = array();
@@ -479,20 +479,22 @@ SELECT UpdateGeometrySRID('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "',
       ";
     }
 
-    # Ausgabe Tabellenkommentare
-    if (!empty($this->comments)) {
-      $sql .= "\nCOMMENT ON TABLE " . $this->name . " IS '" .
-        implode(', ', $this->comments) . "';";
-    }
+    if(COMMENTS) {
+      # Ausgabe Tabellenkommentare
+      if (!empty($this->comments)) {
+        $sql .= "\nCOMMENT ON TABLE " . $this->name . " IS '" .
+          implode(', ', $this->comments) . "';";
+      }
 
-    # Ausgabe Attributkommentare
-    foreach($this->attributes AS $attribute) {
-      $sql .= $attribute->getComment($this->name);
-    }
+      # Ausgabe Attributkommentare
+      foreach($this->attributes AS $attribute) {
+        $sql .= $attribute->getComment($this->name);
+      }
 
-    # Ausgabe Assoziationskommentare
-    foreach($this->associationEnds AS $associationEnd) {
-      $sql .= $associationEnd->getComment($this->name);
+      # Ausgabe Assoziationskommentare
+      foreach($this->associationEnds AS $associationEnd) {
+        $sql .= $associationEnd->getComment($this->name);
+      }
     }
 
     # Ausgabe Tabellen Values
@@ -590,20 +592,22 @@ SELECT UpdateGeometrySRID('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "',
       ";
     }
 
-    # Ausgabe Tabellenkommentare
-    if (!empty($this->comments)) {
-      $sql .= "\nCOMMENT ON TABLE " . $this->name . " IS '" .
-        implode(', ', $this->comments) . "';";
-    }
+    if(COMMENTS) {
+      # Ausgabe Tabellenkommentare
+      if (!empty($this->comments)) {
+        $sql .= "\nCOMMENT ON TABLE " . $this->name . " IS '" .
+          implode(', ', $this->comments) . "';";
+      }
 
-    # Ausgabe Attributkommentare
-    foreach($this->attributes AS $attribute) {
-      $sql .= $attribute->getFlattenedComment($this->name);
-    }
+      # Ausgabe Attributkommentare
+      foreach($this->attributes AS $attribute) {
+        $sql .= $attribute->getFlattenedComment($this->name);
+      }
 
-    # Ausgabe Assoziationskommentare
-    foreach($this->associationEnds AS $associationEnd) {
-      $sql .= $associationEnd->getComment($this->name);
+      # Ausgabe Assoziationskommentare
+      foreach($this->associationEnds AS $associationEnd) {
+        $sql .= $associationEnd->getComment($this->name);
+      }
     }
 
     # Ausgabe Tabellen Values
@@ -693,7 +697,7 @@ SELECT UpdateGeometrySRID('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "',
 
     $gfs .= "
   </GMLFeatureClass>";
-    
+
     return $gfs;
   }
 

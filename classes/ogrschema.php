@@ -1,246 +1,247 @@
 <?php
 class OgrSchema extends Schema {
 
-	function create_delete_trigger() {
-		$sql = str_replace('schema_name', $this->schemaName, file_get_contents('../sql/delete_trigger.sql'));
-		if (!empty(GEOMETRY_EPSG_CODE)) {
-			$sql = str_replace('25832', GEOMETRY_EPSG_CODE, $sql);
-		}
-		return $sql;
-	}
+  function create_delete_trigger() {
+    $sql = str_replace('schema_name', $this->schemaName, file_get_contents('../sql/delete_trigger.sql'));
+    if (!empty(GEOMETRY_EPSG_CODE)) {
+      $sql = str_replace('25832', GEOMETRY_EPSG_CODE, $sql);
+    }
+    return $sql;
+  }
 
-	function create_ax_fortfuehrungsauftrag() {
-		$sql = file_get_contents('../sql/ax_fortfuehrungsauftrag.sql');
-		return $sql;
-	}
+  function create_ax_fortfuehrungsauftrag() {
+    $sql = file_get_contents('../sql/ax_fortfuehrungsauftrag.sql');
+    return $sql;
+  }
 
-	function createEnumerationTable($enumeration, $dbSchema) {
-		if ($this->is_table_filtered($enumeration['name'])) {
-			$this->logger->log("<br>Ignoriere Enumeration: {$enumeration['name']}");
-		}
+  function createEnumerationTable($enumeration, $dbSchema) {
+    if ($this->is_table_filtered($enumeration['name'])) {
+      $this->logger->log("<br>Ignoriere Enumeration: {$enumeration['name']}");
+    }
 
-		$this->logger->log('<br><b>Create Enumeration Tables: ' . $enumeration['name'] . '</b> (' . $enumeration['xmi_id'] . ')');
+    $this->logger->log('<br><b>Create Enumeration Tables: ' . $enumeration['name'] . '</b> (' . $enumeration['xmi_id'] . ')');
 
-		$table = new Table($enumeration['name']);
+    $table = new Table($enumeration['name']);
 
-		# read Values
-		$enumType = new EnumType($enumeration['name'], $this->logger);
-		$enumType->setSchemas($this->umlSchema, $dbSchema);
-		$enumType->setId($enumeration['id']);
-		$table->values = $enumType->getValues($enumeration);
+    # read Values
+    $enumType = new EnumType($enumeration['name'], $this->logger);
+    $enumType->setSchemas($this->umlSchema, $dbSchema);
+    $enumType->setId($enumeration['id']);
+    $table->values = $enumType->getValues($enumeration);
 
-		# definiere Attribute
-		$wert_type = (empty($enumType)) ? PG_CHARACTER_VARYING : $enumType->getWertType();
-		$attribute = new Attribute('wert', $wert_type);
-		$table->addAttribute($attribute);
-		$attribute = new Attribute('beschreibung', PG_CHARACTER_VARYING);
-		$table->addAttribute($attribute);
+    # definiere Attribute
+    $wert_type = (empty($enumType)) ? PG_CHARACTER_VARYING : $enumType->getWertType();
+    $attribute = new Attribute('wert', $wert_type);
+    $table->addAttribute($attribute);
+    $attribute = new Attribute('beschreibung', PG_CHARACTER_VARYING);
+    $table->addAttribute($attribute);
 
-		# definiere Primärschlüssel
-		$table->primaryKey = 'wert';
+    # definiere Primärschlüssel
+    $table->primaryKey = 'wert';
 
-		$this->logger->log($table->values->asTable($table->attributes));
+    $this->logger->log($table->values->asTable($table->attributes));
 
-#		if (
-#			$table->values->rows[0][0] != $table->values->rows[0][1] AND
-#			$table->values->rows[0][1] != 'NULL'
-#		)
+#   if (
+#     $table->values->rows[0][0] != $table->values->rows[0][1] AND
+#     $table->values->rows[0][1] != 'NULL'
+#   )
 
-		# definiere Commentare
-		$table->addComment('UML-Typ: Enumeration');
+    # definiere Commentare
+    $table->addComment('UML-Typ: Enumeration');
 
-		$sql .= $table->asSql();
+    $sql .= $table->asSql();
 
-		$this->enumerations[$enumType->name] = $enumType;
+    $this->enumerations[$enumType->name] = $enumType;
 
-		$this->logger->log('<pre>' . $tableSql . '</pre>');
+    $this->logger->log('<pre>' . $tableSql . '</pre>');
 
-		return $sql;
-	}
+    return $sql;
+  }
 
-	function is_table_filtered($class_name) {
-		$this->logger->log("<br>Prüfe ob {$class_name} komplett ignoriert wird.");
-		return (
-			array_key_exists($class_name, $GLOBALS['filter']) and
-			!is_array($GLOBALS['filter'][$class_name])
-		);
-	}
+  function is_table_filtered($class_name) {
+    $this->logger->log("<br>Prüfe ob {$class_name} komplett ignoriert wird.");
+    return (
+      array_key_exists($class_name, $GLOBALS['filter']) and
+      !is_array($GLOBALS['filter'][$class_name])
+    );
+  }
 
-	function createFeatureTypeTables($stereotype, $parent, $class, $attributPath = array(), $createUserInfoColumns = false) {
-		global $indent;
-		if ($this->is_table_filtered($class['name'])) {
-			$this->logger->log("<br>Ignoriere FeatureType: {$class['name']} komplett");
-		}
-		else {
-			$this->logger->log('<br><b>Create ' . $stereotype . ': ' . $class['name'] . ' von ' . $parent->name . '</b> (' . $parent->alias . ')');
+  function createFeatureTypeTables($stereotype, $parent, $class, $attributPath = array(), $createUserInfoColumns = false) {
+    global $indent;
+    if ($this->is_table_filtered($class['name'])) {
+      $this->logger->log("<br>Ignoriere FeatureType: {$class['name']} komplett");
+    }
+    else {
+      $this->logger->log('<br><b>Create ' . $stereotype . ': ' . $class['name'] . ' von ' . $parent->name . '</b> (' . $parent->alias . ')');
 
-			# Erzeuge FeatueType
-			$featureType = new FeatureType($class['name'], $parent, $this->logger, $this->umlSchema, $this->enumerations);
-			$featureType->ogrSchema = $this;
+      # Erzeuge FeatueType
+      $featureType = new FeatureType($class['name'], $parent, $this->logger, $this->umlSchema, $this->enumerations);
+      $featureType->ogrSchema = $this;
 
-			$featureType->setId($class['id']);
-			$featureType->primaryKey = 'ogc_fid';
-			$featureType->primaryKeyType = 'serial NOT NULL';
-			$featureType->primaryKeyNullable = false;
+      $featureType->setId($class['id']);
+      $featureType->primaryKey = 'ogc_fid';
+      $featureType->primaryKeyType = 'serial NOT NULL';
+      $featureType->primaryKeyNullable = false;
 
-			if ($parent != null)
-				$this->logger->log(' abgeleitet von: <b>' . $parent->name . '</b>');
+      if ($parent != null)
+        $this->logger->log(' abgeleitet von: <b>' . $parent->name . '</b>');
 
-			$featureType->attribute_filter = $this->filter[$class['name']]['attribute'];
-			if (!is_array($attribute_filter))
-				$featureType->attribute_filter = array();
+      $featureType->attribute_filter = $this->filter[$class['name']]['attribute'];
+      if (!is_array($attribute_filter))
+        $featureType->attribute_filter = array();
 
-			$this->logger->log('<br><b>Hole Attribute und verfolge dabei Datentypen bis zum Ende.</b>');
-			$featureType->getAttributesUntilLeafs($featureType->alias, $stereotype, array());
+      $this->logger->log('<br><b>Hole Attribute und verfolge dabei Datentypen bis zum Ende.</b>');
+      $featureType->getAttributesUntilLeafs($featureType->alias, $stereotype, array());
 
-			$featureType->flattenAttributes();
+      $featureType->flattenAttributes();
 
-			$featureType->outputFlattenedAttributes();
-			if ($this->logger->level > 0)
-				$featureType->outputFlattendedAttributTable();
+      $featureType->outputFlattenedAttributes();
+      if ($this->logger->level > 0)
+        $featureType->outputFlattendedAttributTable();
 
-			$featureType->setAssociationEnds($class);
+      $featureType->setAssociationEnds($class);
 
-			#echo '<pre>' . $featureType->asFlattenedSql() . '</pre>';
+      #echo '<pre>' . $featureType->asFlattenedSql() . '</pre>';
 
-			# lade abgeleitete Klassen
-			$subClasses = $this->umlSchema->getSubUmlClasses($stereotype, $class);
-			if (empty($subClasses)) {
-				$featureType->unifyShortNames(1);
-				$this->renameList = array_merge(
-					$this->renameList,
-					$featureType->outputFlattenedAttributes()
-				);
-				if ($this->logger->level > 0)
-					$featureType->outputFlattendedAttributTable();
-				$sql .= $featureType->asFlattenedSql();
-			}
-			else {
-				$indent++;
-				foreach($subClasses as $subClass) {
-					# übergibt den featureType als parent an die Sub-Klassen
-					$this->logger->log('<br><b>Create Subclass: ' . $subClass['name'] . ' von Class ' . $featureType->name . '</b>');
-					$sql .= $this->createFeatureTypeTables($stereotype, $featureType, $subClass);
-				}
-				$indent--;
-			}
-		}
+      # lade abgeleitete Klassen
+      $subClasses = $this->umlSchema->getSubUmlClasses($stereotype, $class);
+      if (empty($subClasses)) {
+        $featureType->unifyShortNames(1);
+        $this->renameList = array_merge(
+          $this->renameList,
+          $featureType->outputFlattenedAttributes()
+        );
+        if ($this->logger->level > 0)
+          $featureType->outputFlattendedAttributTable();
+        $sql .= $featureType->asFlattenedSql();
+      }
+      else {
+        $indent++;
+        foreach($subClasses as $subClass) {
+          # übergibt den featureType als parent an die Sub-Klassen
+          $this->logger->log('<br><b>Create Subclass: ' . $subClass['name'] . ' von Class ' . $featureType->name . '</b>');
+          $sql .= $this->createFeatureTypeTables($stereotype, $featureType, $subClass);
+        }
+        $indent--;
+      }
+    }
 
-		return $sql;
-	}
-	
-	function createFeatureTypeGfs($stereotype, $parent, $class, $attributPath = array(), $createUserInfoColumns = false) {
-		if ($this->is_table_filtered($class['name'])) {
-			$this->logger->log("<br>Ignoriere FeatureType: {$class['name']} komplett");
-		}
-		else {
-			$this->logger->log('<br><b>Create ' . $stereotype . ': ' . $class['name'] .' </b>');
+    return $sql;
+  }
 
-			# Erzeuge FeatueType
-			$featureType = new FeatureType($class['name'], $parent, $this->logger, $this->umlSchema, $this->enumerations);
-			$featureType->ogrSchema = $this;
+  function createFeatureTypeGfs($stereotype, $parent, $class, $attributPath = array(), $createUserInfoColumns = false) {
+    if ($this->is_table_filtered($class['name'])) {
+      $this->logger->log("<br>Ignoriere FeatureType: {$class['name']} komplett");
+    }
+    else {
+      $this->logger->log('<br><b>Create ' . $stereotype . ': ' . $class['name'] .' </b>');
 
-			$featureType->setId($class['id']);
-			$featureType->primaryKey = 'ogc_fid';
-			$featureType->primaryKeyType = 'serial NOT NULL';
-			$featureType->primaryKeyNullable = false;
+      # Erzeuge FeatueType
+      $featureType = new FeatureType($class['name'], $parent, $this->logger, $this->umlSchema, $this->enumerations);
+      $featureType->ogrSchema = $this;
 
-			if ($parent != null)
-				$this->logger->log(' abgeleitet von: <b>' . $parent->alias . '</b>');
+      $featureType->setId($class['id']);
+      $featureType->primaryKey = 'ogc_fid';
+      $featureType->primaryKeyType = 'serial NOT NULL';
+      $featureType->primaryKeyNullable = false;
 
-			$featureType->attribute_filter = $this->filter[$class['name']]['attribute'];
-			if (!is_array($attribute_filter))
-				$featureType->attribute_filter = array();
+      if ($parent != null)
+        $this->logger->log(' abgeleitet von: <b>' . $parent->alias . '</b>');
 
-			$this->logger->log('<br><b>Hole Attribute und verfolge dabei Datentypen bis zum Ende.</b>');
-			$featureType->getAttributesUntilLeafs($featureType->alias, $stereotype, array());
+      $featureType->attribute_filter = $this->filter[$class['name']]['attribute'];
+      if (!is_array($attribute_filter))
+        $featureType->attribute_filter = array();
 
-			$featureType->flattenAttributes();
+      $this->logger->log('<br><b>Hole Attribute und verfolge dabei Datentypen bis zum Ende.</b>');
+      $featureType->getAttributesUntilLeafs($featureType->alias, $stereotype, array());
 
-			$featureType->outputFlattenedAttributes();
-			if ($this->logger->level > 0)
-				$featureType->outputFlattendedAttributTable();
+      $featureType->flattenAttributes();
 
-			$featureType->setAssociationEnds($class);
+      $featureType->outputFlattenedAttributes();
+      if ($this->logger->level > 0)
+        $featureType->outputFlattendedAttributTable();
 
-			#echo '<pre>' . $featureType->asFlattenedSql() . '</pre>';
+      $featureType->setAssociationEnds($class);
 
-			# lade abgeleitete Klassen
-			$subClasses = $this->umlSchema->getSubUmlClasses($stereotype, $class);
-			if (empty($subClasses)) {
-				$featureType->unifyShortNames(1);
-				$this->renameList = array_merge(
-					$this->renameList,
-					$featureType->outputFlattenedAttributes()
-				);
-				if ($this->logger->level > 0)
-					$featureType->outputFlattendedAttributTable();
-				$this->logger->log('<br>Gebe FeatureTypes Attributes asGfs aus.');
-				$gfs .= $featureType->asGfs();
-			}
+      #echo '<pre>' . $featureType->asFlattenedSql() . '</pre>';
 
-			foreach($subClasses as $subClass) {
-				# übergibt den featureType als parent an die Sub-Klassen
-				$gfs .= $this->createFeatureTypeGfs($stereotype, $featureType, $subClass);
-			}
-		}
-		return $gfs;
-	}	
+      # lade abgeleitete Klassen
+      $subClasses = $this->umlSchema->getSubUmlClasses($stereotype, $class);
+      if (empty($subClasses)) {
+        $featureType->unifyShortNames(1);
+        $this->renameList = array_merge(
+          $this->renameList,
+          $featureType->outputFlattenedAttributes()
+        );
+        if ($this->logger->level > 0)
+          $featureType->outputFlattendedAttributTable();
+        $this->logger->log('<br>Gebe FeatureTypes Attributes asGfs aus.');
+        $gfs .= $featureType->asGfs();
+      }
 
-	function listFeatureTypesAttributes($stereotype, $parent, $class, $with_first_attrib_name = false) {
-		$this->logger->log('<br><b>Klasse: ' . $class['name'] . '</b> (' . $class['xmi_id'] . ')');
+      foreach($subClasses as $subClass) {
+        # übergibt den featureType als parent an die Sub-Klassen
+        $gfs .= $this->createFeatureTypeGfs($stereotype, $featureType, $subClass);
+      }
+    }
+    return $gfs;
+  }
 
-		# Erzeuge FeatueType
-		$featureType = new FeatureType($class['name'], $parent, $this->logger, $this->umlSchema);
-		$featureType->setId($class['id']);
-		$featureType->primaryKey = 'gml_id';
-		if ($parent != null)
-			$this->logger->log(' abgeleitet von: <b>' . $parent->alias . '</b>');
+  function listFeatureTypesAttributes($stereotype, $parent, $class, $with_first_attrib_name = false) {
+    $this->logger->log('<br><b>Klasse: ' . $class['name'] . '</b> (' . $class['xmi_id'] . ')');
 
-		$featureType->getAttributesUntilLeafs($featureType->alias, $stereotype, array());
+    # Erzeuge FeatueType
+    $featureType = new FeatureType($class['name'], $parent, $this->logger, $this->umlSchema);
+    $featureType->setId($class['id']);
+    $featureType->primaryKey = 'gml_id';
+    if ($parent != null)
+      $this->logger->log(' abgeleitet von: <b>' . $parent->alias . '</b>');
 
-		$featureType->flattenAttributes();
+    $featureType->getAttributesUntilLeafs($featureType->alias, $stereotype, array());
 
-		# lade abgeleitete Klassen
-		$subClasses = $this->umlSchema->getSubUmlClasses($stereotype, $class);
-		if (empty($subClasses)) {
-			if ($with_first_attrib_name) {
-				$featureType->unifyShortNamesWithFirst(1);
-			}
-			else {
-				$featureType->unifyShortNames(1);
-			}
-			$this->renameList = array_merge(
-				$this->renameList,
-				$featureType->outputFlattenedAttributes()
-			);
-			if ($this->logger->level > 0)
-				$featureType->outputFlattendedAttributTable();
-		}
+    $featureType->flattenAttributes();
 
-		foreach($subClasses as $subClass) {
-			$this->listFeatureTypesAttributes($stereotype, $featureType, $subClass, $with_first_attrib_name);
-		}
-	}
+    # lade abgeleitete Klassen
+    $subClasses = $this->umlSchema->getSubUmlClasses($stereotype, $class);
+    if (empty($subClasses)) {
+      if ($with_first_attrib_name) {
+        $featureType->unifyShortNamesWithFirst(1);
+      }
+      else {
+        $featureType->unifyShortNames(1);
+      }
+      $this->renameList = array_merge(
+        $this->renameList,
+        $featureType->outputFlattenedAttributes()
+      );
+      if ($this->logger->level > 0)
+        $featureType->outputFlattendedAttributTable();
+    }
 
-	function getAttributesFromComplexType($datatype, $stereotype) {
-		if ($stereotype == 'union')
-			$typeList = $this->umlSchema->unionTypes;
-		if ($stereotype == 'datatype')
-			$typeList = $this->umlSchema->dataTypes;
+    foreach($subClasses as $subClass) {
+      $this->listFeatureTypesAttributes($stereotype, $featureType, $subClass, $with_first_attrib_name);
+    }
+  }
 
-		$attributes = array();
+  function getAttributesFromComplexType($datatype, $stereotype) {
+    if ($stereotype == 'union')
+      $typeList = $this->umlSchema->unionTypes;
+    if ($stereotype == 'datatype')
+      $typeList = $this->umlSchema->dataTypes;
 
-		foreach ($typeList[$datatype]->attributes AS $attribute) {
-			if ($this->umlSchema->stereoTypeAllreadyExists($attribute->datatype, $attribute->stereotype)) {
-				array_merge($attributes, $this->getAttributesFromComplexType($attribute->datatype, $attribute->stereotype));
-			} else {
-				$attributes[] = $attribute;
-			}
-		}
+    $attributes = array();
 
-		return $attributes;
-	}
-	
+    foreach ($typeList[$datatype]->attributes AS $attribute) {
+      if ($this->umlSchema->stereoTypeAlreadyExists($attribute->datatype, $attribute->stereotype)) {
+        array_merge($attributes, $this->getAttributesFromComplexType($attribute->datatype, $attribute->stereotype));
+      }
+      else {
+        $attributes[] = $attribute;
+      }
+    }
+
+    return $attributes;
+  }
+
 }
 ?>
