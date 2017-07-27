@@ -52,7 +52,7 @@
 
   # Für alle oberen Klassen
   foreach($topClasses as $topClass) {
-    $ogrSchema->listFeatureTypesAttributes('FeatureType', null, $topClass, false);
+    $ogrSchema->listFeatureTypesAttributes('FeatureType', null, $topClass);
   }
 
   # Für alle Aufzählungen

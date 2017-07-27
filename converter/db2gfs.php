@@ -31,12 +31,13 @@
     $filter = array();
   }
 
-echo '<!DOCTYPE html>
+  $logger->log('<!DOCTYPE html>
 <html lang="de">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   </head>
-  <body>';
+  <body>');
+
   #*****************************************************************************
   #
   #*****************************************************************************
@@ -44,7 +45,7 @@ echo '<!DOCTYPE html>
   # Initialize the umlSchema object
   $umlSchema = new Schema(UML_SCHEMA, $logger);
   $umlSchema->openConnection(PG_HOST, PG_DBNAME, PG_USER, PG_PASSWORD, PG_PORT);
-  $umlSchema->logger->debug = true;
+  #$umlSchema->logger->debug = true;
 
   # Initialize the gmlSchema object
   $ogrSchema = new OgrSchema(OGR_SCHEMA, $logger);
@@ -72,11 +73,13 @@ echo '<!DOCTYPE html>
     $gfs .= $ogrSchema->createFeatureTypeGfs('FeatureType', null, $topClass);
   }
 
+  $logger->log("<pre>
+");
 
-?><pre>
-<? echo htmlspecialchars("<GMLFeatureClassList>".$gfs."\n</GMLFeatureClassList>"); ?>
-  </pre>
-<?php
-echo '  </body>
-</html>';
+  echo "<GMLFeatureClassList>".$gfs."\n</GMLFeatureClassList>";
+
+  $logger->log("
+</pre>
+</body>
+</html>");
 ?>

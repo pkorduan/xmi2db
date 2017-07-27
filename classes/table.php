@@ -47,7 +47,7 @@ class Table {
 
     # Ausgabe Primary Key
     if ($this->primaryKey != '')
-      $sql .= ",\n  CONSTRAINT " . $this->name . '_pkey PRIMARY KEY (' . $this->primaryKey . ')';
+      $sql .= ",\n  PRIMARY KEY (" . $this->primaryKey . ')';
 
     $sql .= '
 )';
@@ -62,10 +62,12 @@ class Table {
 
     $sql .= ";\n";  # Tabellenende
 
-    # Ausgabe Tabellenkommentare
-    if (!empty($this->comments)) {
-      $sql .= "\nCOMMENT ON TABLE " . $this->name . " IS '" .
-        implode(', ', $this->comments) . "';";
+    if(COMMENTS) {
+      # Ausgabe Tabellenkommentare
+      if (!empty($this->comments)) {
+        $sql .= "\nCOMMENT ON TABLE " . $this->name . " IS '" .
+          implode(', ', $this->comments) . "';";
+      }
     }
 
     # Ausgabe Tabellen Values

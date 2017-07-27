@@ -49,5 +49,43 @@ COMMENT ON COLUMN " . $this->parent_name . "." . $this->name . " IS 'Assoziation
     </PropertyDefn>";
     return $gfs;
   }
+
+  function getIndex($parent_name) {
+    if( $this->getBrackets() == "[]" ) {
+      $using = "USING gin (" . $this->name . ")";
+    } else {
+      $using = "USING btree (" . $this->name . ")";
+    }
+
+    $table = $this->parent_name;
+    if(strlen($table) * 3 / 2 > PG_MAX_NAME_LENGTH) {
+      $table = preg_replace('/[a-z]/', '', ucfirst($this->parent_name_alias));
+    }
+
+    $attribute = $this->name;
+    if(strlen($attribute) * 3 / 2 > PG_MAX_NAME_LENGTH) {
+      $attribute = preg_replace('/[a-z]/', '', ucfirst($this->alias));
+    }
+
+    $identifier = $table . "_" . $attribute;
+
+    if(strlen($identifier) > PG_MAX_NAME_LENGTH) {
+      $attribute = preg_replace('/[a-z]/', '', ucfirst($this->alias));
+      $identifier = $table . "_" . $attribute;
+    }
+
+    if(strlen($identifier) > PG_MAX_NAME_LENGTH) {
+      $attribute = preg_replace('/[a-z]/', '', ucfirst($this->parent_name_alias));
+      $identifier = $table . "_" . $attribute;
+    }
+
+    if(strlen($identifier) > PG_MAX_NAME_LENGTH) {
+      return "\n-- Bezeichner $identifier zu lang [" . $this->parent_name . "." . $this->name . "]";
+    }
+    else {
+      return "
+CREATE INDEX " . strtolower($identifier) . " ON " . $this->parent_name . " $using;";
+    }
+  }
 }
 ?>

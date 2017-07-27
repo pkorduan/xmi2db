@@ -32,12 +32,13 @@
     $filter = array();
   }
 
-echo '<!DOCTYPE html>
+  $logger->log('<!DOCTYPE html>
 <html lang="de">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
   </head>
-  <body>';
+  <body>');
+
   #*****************************************************************************
   #
   #*****************************************************************************
@@ -45,12 +46,14 @@ echo '<!DOCTYPE html>
   # Initialize the umlSchema object
   $umlSchema = new Schema(UML_SCHEMA, $logger);
   $umlSchema->openConnection(PG_HOST, PG_DBNAME, PG_USER, PG_PASSWORD, PG_PORT);
-  $umlSchema->logger->debug = true;
+  $umlSchema->logger->debug = false;
 
   # Initialize the gmlSchema object
   $ogrSchema = new OgrSchema(OGR_SCHEMA, $logger);
   $ogrSchema->umlSchema = $umlSchema;
   $sql = $ogrSchema->asSql();
+
+  $logger->log('<br><hr><br>');
 
   #**************
   # Enumerations
@@ -60,8 +63,6 @@ echo '<!DOCTYPE html>
     $sql .= $ogrSchema->createEnumerationTable($enumeration, $ogrSchema);
   }
 
-  $logger->log('<br><hr><br>');
-
   if (WITH_CODE_LISTS) {
     #***********
     # CodeLists
@@ -70,6 +71,10 @@ echo '<!DOCTYPE html>
     foreach($umlSchema->getCodeLists() AS $code_list) {
       $sql .= $umlSchema->createCodeListTable($code_list);
     }
+
+    # Gebe values für CodeLists aus
+    $sql .= "\n\n" . file_get_contents('../sql/Codelisten/aa_anlassart.sql');
+
     $logger->log('<br><hr><br>');
   }
 
@@ -86,23 +91,25 @@ echo '<!DOCTYPE html>
     $ogrSchema->logger->log('<br><b>TopKlasse: ' . $topClass['name'] . '</b> (' . $topClass['xmi_id'] . ')');
     $sql .= $ogrSchema->createFeatureTypeTables('FeatureType', null, $topClass);
   }
-  $logger->log('<br><hr><br>');
+  # $logger->log('<br><hr><br>');
   $sql .= "\n\n" . $ogrSchema->create_delete_trigger();
 
-  $logger->log('<br><hr><br>');
+  # $logger->log('<br><hr><br>');
   $sql .= "\n\n" . $ogrSchema->create_ax_fortfuehrungsauftrag();
+
+  if (WITH_NRW_KOM) {
+    $sql .= file_get_contents('../sql/nrw-kom.sql');
+  }
 
 # $gmlSchema->execSql($sql);
 
-  if (WITH_CODE_LISTS) {
-    # Gebe values für CodeLists aus
-    $sql .= "\n\n" . file_get_contents('../sql/Codelisten/aa_anlassart.sql');
-  }
+  $logger->log("<pre>
+");
 
-?><pre><?php
-  echo htmlspecialchars($sql);
-?></pre>
-<?php
-echo '  </body>
-</html>';
+  echo $sql;
+
+  $logger->log("
+</pre>
+</body>
+</html>");
 ?>

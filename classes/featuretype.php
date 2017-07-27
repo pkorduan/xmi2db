@@ -79,9 +79,9 @@ class FeatureType {
   function getAttributesUntilLeafs($type, $stereotype, $parts) {
     $return_attributes = array();
     if (in_array(substr($type, 0, 3), array('DQ_', 'LI_', 'CI_'))) {
-      /* Damit die DQ_, LI_ und CI_ Elemente gefunden werden, mussen Sie in classes existieren.
-      * Zum Anlegen kann das SQL-Script sql/external_uml_classes.sql verwendet werden.
-      */
+      /* Damit die DQ_, LI_ und CI_ Elemente gefunden werden, müssen sie in classes existieren.
+       * Zum Anlegen kann das SQL-Script sql/external_uml_classes.sql verwendet werden.
+       */
       $attributes = $this->umlSchema->getExternalClassAttributes($type, $stereotype, $parts);
     }
     else {
@@ -147,14 +147,15 @@ class FeatureType {
       foreach($this->parent->attributes AS $parent_attribute) {
         $parent_attribute->parts[0]->parent->alias = $this->alias;
         $parent_attribute->setNameFromParts();
-        $this->attributes[] = $parent_attribute;
+        $this->attributes[] = clone $parent_attribute;
       }
     }
+
     foreach($this->attributes_until_leafs AS $attribute_parts) {
       $attribute = end($attribute_parts);
       $attribute->parts = $attribute_parts;
       $attribute->setNameFromParts();
-      $this->attributes[] = $attribute;
+      $this->attributes[] = clone $attribute;
     }
   }
 
@@ -178,9 +179,9 @@ class FeatureType {
       );
   }
 
-  function unifyShortNames($level) {
-    $this->logger->log('<br><b>unifyShortNames:</b>');
-    $multiple_occured = false;
+  function hasCollisions() {
+    $hasCollisions = false;
+
     foreach($this->attributes AS $a) {
       $frequency = 0;
       foreach($this->attributes AS $b) {
@@ -190,78 +191,65 @@ class FeatureType {
       }
       $a->frequency = $frequency;
       if ($frequency > 1) {
-        $multiple_occured = true;
+        $hasCollisions = true;
       }
     }
-    if ($multiple_occured) {
-      $this->logger->log('<br>gleichlautende Namen gefunden in Runde ' . $level . ' der Umbenennung!');
+
+    return $hasCollisions;
+  }
+
+  function unifyShortNames() {
+    if(RENAME_OPTIONAL_FIRST) {
+      if( !$this->hasCollisions() ) {
+        $this->logger->log("<br>Keine Namenskollisionen!\n");
+        return;
+      }
+
+      # Erst optionale Attribute qualifizieren
       foreach($this->attributes AS $a) {
-        $n = count($a->parts) - $level - 1; # Stufe der Klasse im Pfad
-        if ($a->frequency > 1 AND $n < 0) {
-          $this->logger->log('<br>' . $a->path_name . ' (nicht umbenannt)');
+        if( $a->frequency > 1 && $a->isOptional() && count($a->parts) >= 2 ) {
+          $n = count($a->parts) - 2;
+          $a->short_name = $a->parts[$n]->name . '_' . $a->short_name;
+
+          $this->logger->log('<br>Optionales Attribut ' . end($a->parts)->name . " umbenannt in " . $a->short_name . "\n");
         }
-        if ($a->frequency > 1 AND $n > -1) {
+      }
+    }
+
+    $this->unifyShortNamesLevel();
+  }
+
+  function unifyShortNamesLevel($startlevel = 1) {
+    $this->logger->log('<br><b>unifyShortNames:</b>');
+
+    for($level = $startlevel; $level <= 10; ++$level) {
+      if( !$this->hasCollisions() ) {
+        $this->logger->log("<br>Keine verbleibenden Namenskollisionen!");
+        return;
+      }
+
+      $this->logger->log('<br>gleichlautende Namen gefunden in Runde ' . $level . ' der Umbenennung!');
+
+      foreach($this->attributes AS $a) {
+	if ($a->frequency == 1)
+          continue;
+
+        $this->logger->log('<br>' . $a->path_name . ' (nicht umbenannt; ' . count($a->parts) . ')');
+
+        $n = count($a->parts) - $level - 1; # Stufe der Klasse im Pfad
+        if ($n > -1) {
           $this->logger->log('<br>' . $a->path_name);
           $this->logger->log('<br>' . $a->short_name);
           $a->short_name = $a->parts[$n]->name . '_' . $a->short_name;
-          $this->logger->log(' => ' . $a->short_name . ' (kam ' . $a->frequency . ' mal vor)');
+
+          $this->logger->log(' => ' . $a->short_name . ' (kam ' . $a->frequency . ' mal vor' . ($a->isOptional() ? ' und ist OPTIONAL' : '') . ')');
         }
       }
-      if ($level > 10) {
-        $this->logger->log('<br>Abbruch bei level: ' . $level . ' weil Umbenennung nicht möglich.');
-      }
-      else {
-        $level += 1;
-        $this->unifyShortNames($level);
-      }
     }
-    else {
-      $this->logger->log('<br>keine gleichlautenden Namen gefunden!');
-    }
-  }
 
-  function unifyShortNamesWithFirst($level) {
-    $multiple_occured = false;
-    foreach($this->attributes AS $a) {
-      $frequency = 0;
-      foreach($this->attributes AS $b) {
-        if ($a->short_name == $b->short_name) {
-          $frequency++;
-        }
-      }
-      $a->frequency = $frequency;
-      if ($frequency > 1) {
-        $multiple_occured = true;
-      }
+    if ($level > 10) {
+      $this->logger->log('<br>Abbruch bei level: ' . $level . ' weil Umbenennung nicht möglich.');
     }
-    if ($multiple_occured AND $level < 10) {
-      foreach($this->attributes AS $a) {
-        $n = count($a->parts) - $level - 1;
-        if ($a->frequency > 1 AND $n > -1) {
-          $this->logger->log('<br>Attribut: ' . $a->short_name);
-          $this->logger->log('<br>level: ' . $level . ' path' . $a->path_name);
-          if ($level == 1) {
-            $a->short_name = $a->parts[0]->name . '_' . $a->short_name;
-          }
-          else {
-            $a->short_name = $a->parts[$n]->name . '_' . $a->short_name;
-          }
-          $this->logger->log(' umbenannt nach: ' . $a->short_name);
-        }
-      }
-
-      $this->unifyShortNames($level++);
-    }
-  }
-
-  function getFlattenedName() {
-    $n = count($this->attribute_names);
-    $return_name = $this->attribute_names[0]->name;
-    if ($n > 2) # füge den vorletzen hinzu wenn es mehr als zwei Namesteile sind
-      $return_name .= '_' . $this->attribute_names[$n-2]->name;
-    if ($n > 1) # füge den letzten hinzu wenn es mehr als einer ist
-      $return_name .= '_' . $this->attribute_names[$n-1]->name;
-    return $return_name;
   }
 
   function getKeys() {
@@ -324,7 +312,7 @@ class FeatureType {
     $this->comments[] = $comment;
   }
 
-  function outputFlattendedAttributTable() {
+  function outputFlattenedAttributeTable() {
     $html = '';
     if (empty($this->attributes))
       $html .= '<br>keine Attribute';
@@ -419,7 +407,7 @@ class FeatureType {
 
     # Ausgabe id
     if ($this->parent == null) {
-      $part .= "\t" . $this->primaryKey;
+      $part .= " " . $this->primaryKey;
       if (WITH_UUID_OSSP) {
         $part .= " uuid NOT NULL DEFAULT uuid_generate_v1mc()";
       }
@@ -429,16 +417,16 @@ class FeatureType {
       $attribute_parts[] = $part;
     }
 
+    $hat_objektkoordinaten = false;
     # Ausgabe Attribute
-    $attribute_parts = array_merge(
-      $attribute_parts,
-      array_map(
-        function($attribute) {
-          return $attribute->asSql('table');
-        },
-        $this->attributes
-      )
-    );
+    foreach($this->attributes AS $attribute) {
+      if (!in_array($attribute->name, array(GEOMETRY_COLUMN_NAME, "objektkoordinaten"))) {
+        $attribute_parts[] = $attribute->asSql('table');
+      }
+      if ($attribute->name == "objektkoordinaten") {
+        $hat_objektkoordinaten = true;
+      }
+    }
 
     # Ausgabe Assoziationsenden
     $attribute_parts = array_merge(
@@ -453,7 +441,7 @@ class FeatureType {
 
     # Ausgabe Primary Key
     if ($this->primaryKey != '')
-      $attribute_parts[] = "CONSTRAINT " . $this->name . '_pkey PRIMARY KEY (' . $this->primaryKey . ')';
+      $attribute_parts[] = "  PRIMARY KEY (" . $this->primaryKey . ')';
 
     # Zusammenfügen der Attributteile
     $sql .= implode(",\n", $attribute_parts);
@@ -472,12 +460,30 @@ class FeatureType {
     $sql .= ';
 ';  # Tabellenende
 
+    $sql .= "
+CREATE UNIQUE INDEX " . $this->name . "_gml ON " . $this->name . " USING btree (gml_id,beginnt);
+CREATE INDEX " . $this->name . "_endet ON " . $this->name . " USING btree (endet);";
+
     # Set epsg code
     if (!empty(GEOMETRY_EPSG_CODE) and $this->hasGeometryColumn()) {
       $sql .= "
-SELECT UpdateGeometrySRID('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "', " . GEOMETRY_EPSG_CODE . ");
-      ";
+SELECT AddGeometryColumn('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "', " . GEOMETRY_EPSG_CODE . ", 'GEOMETRY', 2);
+CREATE INDEX " . $this->name . "_" . GEOMETRY_COLUMN_NAME . "_idx ON " . $this->name . " USING gist (" . GEOMETRY_COLUMN_NAME . ");";
     }
+
+    if ($hat_objektkoordinaten) {
+      $sql .= "
+SELECT AddGeometryColumn('" . $this->name . "', 'objektkoordinaten', " . GEOMETRY_EPSG_CODE . ", 'POINT', 2);
+CREATE INDEX " . $this->name . "_objektkoordinaten_idx ON " . $this->name . " USING gist (objektkoordinaten);";
+    }
+
+    # Ausgabe Assoziationsindizes
+    foreach($this->associationEnds AS $associationEnd) {
+      $sql .= $associationEnd->getIndex($this->name);
+    }
+
+    $sql .= '
+';
 
     if(COMMENTS) {
       # Ausgabe Tabellenkommentare
@@ -523,7 +529,7 @@ SELECT UpdateGeometrySRID('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "',
 " . PG_CREATE_TABLE . " " . $this->name . " (
 ";
     # ogc_fid Spalte
-    $attribute_parts[] .= "  ogc_fid serial NOT NULL";
+    $attribute_parts[] .= "  " . $this->primaryKey . " serial NOT NULL";
 
     # identifier Spalte
     if(PG_WITH_IDENTIFIER) {
@@ -531,18 +537,19 @@ SELECT UpdateGeometrySRID('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "',
     }
 
     # gml_id Spalte
-    $attribute_parts[] .= "\tgml_id " . PG_GML_ID . " NOT NULL";
+    $attribute_parts[] .= "  gml_id " . PG_GML_ID . " NOT NULL";
+
+    $hat_objektkoordinaten = false;
 
     # Ausgabe Attribute
-    $attribute_parts = array_merge(
-      $attribute_parts,
-      array_map(
-        function($attribute) {
-          return $attribute->asFlattenedSql();
-        },
-        $this->attributes
-      )
-    );
+    foreach($this->attributes AS $attribute) {
+      if (!in_array($attribute->name, array(GEOMETRY_COLUMN_NAME, "objektkoordinaten"))) {
+        $attribute_parts[] = $attribute->asFlattenedSql();
+      }
+      if ($attribute->name == "objektkoordinaten") {
+        $hat_objektkoordinaten = true;
+      }
+    }
 
     if ($this->parent != null) {
       # Ausgabe vererbter Assoziationsenden
@@ -570,7 +577,7 @@ SELECT UpdateGeometrySRID('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "',
 
     # Ausgabe Primary Key
     if ($this->primaryKey != '')
-      $attribute_parts[] = "CONSTRAINT " . $this->name . '_pkey PRIMARY KEY (' . $this->primaryKey . ')';
+      $attribute_parts[] = "  PRIMARY KEY (" . $this->primaryKey . ')';
 
     # Zusammenfügen der Attributteile
     $sql .= implode(",\n", $attribute_parts);
@@ -585,12 +592,30 @@ SELECT UpdateGeometrySRID('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "',
     $sql .= ';
 ';  # Tabellenende
 
+    $sql .= "
+CREATE UNIQUE INDEX " . $this->name . "_gml ON " . $this->name . " USING btree (gml_id,beginnt);
+CREATE INDEX " . $this->name . "_endet ON " . $this->name . " USING btree (endet);";
+
     # Set epsg code
     if (!empty(GEOMETRY_EPSG_CODE) and $this->hasGeometryColumn()) {
       $sql .= "
-SELECT UpdateGeometrySRID('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "', " . GEOMETRY_EPSG_CODE . ");
-      ";
+SELECT AddGeometryColumn('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "', " . GEOMETRY_EPSG_CODE . ", 'GEOMETRY', 2);
+CREATE INDEX " . $this->name . "_" . GEOMETRY_COLUMN_NAME . "_idx ON " . $this->name . " USING gist (" . GEOMETRY_COLUMN_NAME . ");";
     }
+
+    if ($hat_objektkoordinaten) {
+      $sql .= "
+SELECT AddGeometryColumn('" . $this->name . "', 'objektkoordinaten', " . GEOMETRY_EPSG_CODE . ", 'POINT', 2);
+CREATE INDEX " . $this->name . "_objektkoordinaten_idx ON " . $this->name . " USING gist (objektkoordinaten);";
+    }
+
+    # Ausgabe Assoziationsindizes
+    foreach($this->associationEnds AS $associationEnd) {
+      $sql .= $associationEnd->getIndex($this->name);
+    }
+
+    $sql .= '
+';
 
     if(COMMENTS) {
       # Ausgabe Tabellenkommentare
@@ -634,9 +659,8 @@ SELECT UpdateGeometrySRID('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "',
     $attribute_parts = array();
     $gfs = "
   <GMLFeatureClass>
-    <Name>".$this->alias."</Name>
-    <ElementPath>".$this->alias."</ElementPath>
-    <GeometryType>".$this->getGeometryType()."</GeometryType>";
+    <Name>" . $this->name . "</Name>
+    <ElementPath>" . $this->alias . "</ElementPath>";
 
     # identifier Spalte
     if(PG_WITH_IDENTIFIER) {
@@ -647,6 +671,31 @@ SELECT UpdateGeometrySRID('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "',
       <Type>String</Type>
       <Width>28</Width>
     </PropertyDefn>";
+    }
+
+    $attribute_parts[] .= "
+    <GeomPropertyDefn>
+      <Name>wkb_geometry</Name>
+      <GeometryElementPath>position</GeometryElementPath>
+      <GeometryType>" . $this->getGeometryType() . "</GeometryType>
+    </GeomPropertyDefn>";
+
+    $hat_objektkoordinaten = false;
+    # Ausgabe Attribute
+    foreach($this->attributes AS $attribute) {
+      if ($attribute->name == "objektkoordinaten") {
+        $hat_objektkoordinaten = true;
+      }
+    }
+
+    if($hat_objektkoordinaten) {
+      $attribute_parts[] .= "
+    <GeomPropertyDefn>
+      <Name>objektkoordinaten</Name>
+      <GeometryElementPath>objektkoordinaten</GeometryElementPath>
+      <GeometryType>100</GeometryType>
+    </GeomPropertyDefn>";
+    }
 
     # gml_id Spalte
     $attribute_parts[] .= "

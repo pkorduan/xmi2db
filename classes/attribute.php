@@ -39,17 +39,17 @@ class Attribute {
 
   function setNameFromParts() {
     $this->path_name = implode(
-      '_',
+      '|',
       array_map(
         function($part) {
-          return $part->parent->alias . '_' . $part->alias;
+          return $part->parent->alias . '#' . $part->alias;
         },
         $this->parts
       )
     );
 
     $this->attributes_name = implode(
-      '_',
+      '|',
       array_map(
         function($part) {
           return $part->name;
@@ -538,9 +538,28 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
     $sql = "  " .
       $this->short_name . " " . $this->get_database_type(false, false) . $this->getBrackets() . $this->getNotNull();
 
-    if ($this->stereotype == 'enumeration' and $this->short_name != $this->datatype) {
-      # $sql .= ' -- datatype: ' . $this->datatype . ' stereotype: ' . $this->stereotype;
+if(0) {
+    $sql .= " /*";
+
+    if ($this->short_name != end($this->parts)->name) {
+        $sql .= " RENAMED " . $this->path_name . " to " . $this->short_name;
+#        if(!$this->isOptional()) {
+#           $sql .= "\n\t\tNOT OPTIONAL:\n";
+#           foreach($this->parts AS $part) {
+#             $sql .= "\t\t\t" . $part->name . ": " . $part->multiplicity_lower . " => " . (intval($part->multiplicity_lower) == 0)  . "\n";
+#          }
+#          $sql .= "\t\t";
+#        }
+#    } else {
+	$sql .= " PATH " . $this->path_name;
     }
+
+    if ($this->stereotype == 'enumeration' and $this->short_name != $this->datatype) {
+      $sql .= ' datatype: ' . $this->datatype . ' stereotype: ' . $this->stereotype;
+    }
+
+    $sql .= " */";
+}
 
     # Ausgabe DEFAULT
     if ($this->default != '')
@@ -550,22 +569,35 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
   }
 
   function asGfs() {
-    if($this->short_name != 'wkb_geometry') {
+    if($this->short_name != "wkb_geometry" && $this->short_name != "objektkoordinaten") {
       $elements = explode('|', $this->getAttributePath());
-      if($elements[0] == 'zeigtAufExternes')$elements[0] = 'zeigtAufExternes_';
-      array_pop($elements);
-      $elements[] = $this->short_name;
+      if(RENAME_ZEIGT_AUF_EXTERNES && $elements[0] == 'zeigtAufExternes') {
+        $elements[0] = 'zeigtAufExternes_';
+      }
       if ($this->short_name == 'herkunft_source_ax_datenerhebung') {
         array_splice($elements, -1, 0, $this->overwrite['name']);
       }
       $gfs = "
-        <PropertyDefn>
-        <Name>".$this->short_name."</Name>
-        <ElementPath>".implode('|', $elements)."</ElementPath>
-        <Type>".$this->get_gfs_type($this->get_database_type(false, false), $this->getBrackets())."</Type>
-        </PropertyDefn>";
+    <PropertyDefn>
+      <Name>".$this->short_name."</Name>
+      <ElementPath>".implode('|', $elements)."</ElementPath>
+      <Type>".$this->get_gfs_type($this->get_database_type(false, false), $this->getBrackets())."</Type>
+    </PropertyDefn>";
       return $gfs;
     }
+  }
+
+  function isOptional() {
+    if (!is_array($this->parts) or empty($this->parts)) {
+      return false;
+    }
+
+    foreach($this->parts AS $part) {
+      if ( intval($part->multiplicity_lower) == 0 )
+        return true;
+    }
+
+    return false;
   }
 }
 ?>

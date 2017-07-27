@@ -62,8 +62,8 @@ class Schema {
   }
 
   /**
-  * Lade alle Generalisierungen, die selber nicht von anderen abgeleitet sind
-  **/
+   * Lade alle Generalisierungen, die selber nicht von anderen abgeleitet sind
+   **/
   function getTopUmlClasses($stereotype) {
     if (defined('PACKAGES')) $packSql = "AND p.name IN (" . str_replace(';', ',', PACKAGES) . ")";
     else $packSql = "";
@@ -1013,9 +1013,9 @@ IS '" . $table_orig .
   }
 
   /*
-  * Abfrage von Enumerations, die den Typ gco:CharacterString von ISO Attributen überschreiben.
-  *
-  Die Abfrage liefert im AAA Model:
+   * Abfrage von Enumerations, die den Typ gco:CharacterString von ISO Attributen überschreiben.
+   *
+    Die Abfrage liefert im AAA Model:
     "AX_Datenerhebung"
     "AX_Datenerhebung_Punktort"
     "AX_DQErfassungsmethode"

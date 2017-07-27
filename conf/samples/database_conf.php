@@ -1,5 +1,5 @@
 <?php
-  $rel_path = (basename($_SERVER['SCRIPT_NAME']) != 'index.php' ? '../' : '');
+  $rel_path = (!array_key_exists('SCRIPT_NAME', $_SERVER) || basename($_SERVER['SCRIPT_NAME']) != 'index.php' ? '../' : '');
 
   define(
     'VERSION',
@@ -50,7 +50,10 @@
   define('FILTER_FILE', $rel_path . 'conf/filter_conf.json');
   define('FILTER_INFO', 'Ohne Attribute objektkoordinaten.');
 
+  define('RENAME_OPTIONAL_FIRST', false);
   define('RENAME_ZEIGT_AUF_EXTERNES', true);
+  define('COMMENTS', true);
+  define('WITH_NRW_KOM', false);
 
   # Definition of the model conf file
   define('SCHEMA_CONF_FILE', $rel_path . 'conf/model_aaa_conf.php');

@@ -20,12 +20,7 @@
   $tabNameAssoc = array();
   $log_sql = '';
   $logger = new Logger(LOGLEVEL);
-echo '<!DOCTYPE html>
-<html lang="de">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  </head>
-  <body>';
+
   #*****************************************************************************
   #
   #*****************************************************************************
@@ -131,10 +126,5 @@ echo '<!DOCTYPE html>
 
 # $gmlSchema->execSql($sql);
 
-?><pre><?php
   echo $sql;
-?></pre>
-<?php
-echo '  </body>
-</html>';
 ?>
