@@ -531,7 +531,7 @@ SELECT UpdateGeometrySRID('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "',
     }
 
     # gml_id Spalte
-    $attribute_parts[] .= "  gml_id character varying(16)";
+    $attribute_parts[] .= "\tgml_id " . PG_GML_ID . " NOT NULL";
 
     # Ausgabe Attribute
     $attribute_parts = array_merge(

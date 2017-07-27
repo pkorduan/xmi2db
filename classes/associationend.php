@@ -32,7 +32,12 @@ COMMENT ON COLUMN " . $this->parent_name . "." . $this->name . " IS 'Assoziation
   }
 
   function get_database_type($with_enum_type = true, $with_codelist_type = true) {
-    return PG_CHARACTER_VARYING;
+    if( $this->stereotype == "FeatureType" ) {
+      return PG_GML_ID;
+    }
+    else {
+      return PG_CHARACTER_VARYING;
+    }
   }
 
   function asGfs() {

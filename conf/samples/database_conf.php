@@ -20,6 +20,7 @@
   define('PG_PASSWORD', 'postgres');
   define('PG_PORT', '5432');
   define('PG_MAX_NAME_LENGTH', 58); // Maximale Länge von Tabellen, Type und Attributnamen
+  define('PG_GML_ID', 'character(16)');
   define('PG_CHARACTER_VARYING', 'character varying');
   define('PG_BOOLEAN', 'character varying');
   define('PG_DATETIME', 'timestamp without time zone');
