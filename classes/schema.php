@@ -1,7 +1,7 @@
 <?php
 class Schema {
 
-  function Schema($name, $logger) {
+  function __construct($name, $logger) {
     $this->schemaName = $name;
     $this->logger = $logger;
     $this->unionTypes = array();

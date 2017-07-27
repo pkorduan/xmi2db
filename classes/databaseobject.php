@@ -1,6 +1,6 @@
 <?php
 class DatabaseObject {
-  function DatabaseObject($name, $logger) {
+  function __construct($name, $logger) {
     $this->name = $name;
     $this->logger = $logger;
   }

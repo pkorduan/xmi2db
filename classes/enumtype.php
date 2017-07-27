@@ -1,7 +1,7 @@
 <?php
 class EnumType {
 
-  function EnumType($name, $logger) {
+  function __construct($name, $logger) {
     $this->alias = $name;
     $this->name = strtolower(substr($name, 0, 58));
     if ($this->name != $this->alias)

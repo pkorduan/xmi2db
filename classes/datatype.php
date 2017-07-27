@@ -1,7 +1,7 @@
 <?php
 class DataType {
 
-  function DataType($name, $stereotype = 'datatype', $logger, $enumerations = NULL) {
+  function __construct($name, $stereotype = 'datatype', $logger, $enumerations = NULL) {
     $this->name = strtolower(substr($name, 0, PG_MAX_NAME_LENGTH));
     $this->alias = $name;
     $this->stereotype = strtolower(substr($stereotype, 0, PG_MAX_NAME_LENGTH));

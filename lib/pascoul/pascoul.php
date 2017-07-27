@@ -35,7 +35,7 @@ class Pascoul {
     echo 'retry: '.($this->client_reconnect*1000)."\n"; //set the retry interval for the client
   }
 
-  public function send_message($id, $message, $progress) {
+  public function send_message($id, $message, $progress = 0) {
     $d = array('message' => $message , 'progress' => $progress);
 
     echo "id: $id" . PHP_EOL;

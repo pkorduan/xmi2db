@@ -1,7 +1,7 @@
 <?php
 class Table {
 
-  function Table($name) {
+  function __construct($name) {
     $this->alias = $name;
     $this->name = strtolower(substr($name, 0, PG_MAX_NAME_LENGTH));
     $this->comments = array();
