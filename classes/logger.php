@@ -4,7 +4,7 @@ class Logger {
     $this->level = $level;
     $this->debug = false;
     $this->text = '';
-    if ($level == 2) {
+    if ($level & 2) {
       $this->file = fopen($filename, 'w');
     }
   }
@@ -19,14 +19,15 @@ class Logger {
       if ($indent > 0) {
         $text = str_replace('<br>', '<br>' . $space . '|--', $text);
       }
-      echo $text;
     }
-    if ($this->level > 1)
+    if($this->level & 1)
+      echo $text;
+    if ($this->level & 2)
       fwrite($this->file, $text);
   }
 
   function close() {
-    if ($this->level == 2)
+    if ($this->level & 2)
       $this->file->close();
   }
 }
