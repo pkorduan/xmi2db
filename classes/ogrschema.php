@@ -153,10 +153,13 @@ class OgrSchema extends Schema {
         }
       }
 
-      // Nicht umbenannte Attribute auf den gleichen Pfaden umbenennen
+      // Auch nicht umbenannte Attribute auf Pfaden mit Umbenennung umbenennen
+      // Führt z.B. zu:
+      //   zeigtaufexternes_uri statt fachdatenobjekt_uri
+      //   processstep_sourcereferencesystem statt processstep_source_source_sourcereferencesystem
       foreach($featureTypes as $featureType) {
         foreach($featureType->attributes as $a) {
-          if($a->isOptional() && $a->short_name == end($a->parts)->name ) {
+          if( $a->isOptional() ) {
             for( $i = 1; $i < count($a->parts); $i++ ) {
               $path =
                 implode('_',
@@ -169,19 +172,27 @@ class OgrSchema extends Schema {
                 );
 
               if(array_key_exists($path, $renamed_paths)) {
+                $a->short_name_orig = $a->short_name;
                 $a->short_name = $renamed_paths[$path] . end($a->parts)->name;
                 # echo "-- renamed " . end($a->parts)->name . " in " . $a->short_name . " in " . $featureType->alias . " \n";
-                $this->logger->log("<br>Umbenennung von " . end($a->parts)->name . " in " . $a->short_name . " in " . $featureType->alias . ".");
+                $this->logger->log("<br>\nUmbenennung von " . end($a->parts)->name . " in " . $a->short_name . " in " . $featureType->alias . ".");
                 break;
               }
             }
           }
         }
-      }
 
-      if($featureType->hasCollisions()) {
-        $this->logger->log("<br>Umbenennung auf gleichen Pfaden führte zu Doppeldeutigkeiten in " . $featureType->alias . "!");
-        return array();
+        if($featureType->hasCollisions()) {
+	  // Kommt vor bei uris in AX_Fortfuehrungsfall
+          $this->logger->log("<br>\nUmbenennung auf gleichen Pfaden führte zu Doppeldeutigkeiten in " . $featureType->alias . "!");
+          foreach($featureType->attributes as $a) {
+            if(property_exists($a, "short_name_orig") && $a->frequency > 1)
+            {
+              $this->logger->log("<br>\n" . $featureType->alias . "." . $a->short_name . " => " . $a->short_name_orig);
+              $a->short_name = $a->short_name_orig;
+            }
+          }
+        }
       }
     }
 
@@ -197,12 +208,12 @@ class OgrSchema extends Schema {
       $sql .= $featureType->asFlattenedSql();
 
       foreach($featureType->attributes as $a) {
-	if(in_array($a->datatype, array("", "ci_rolecode")))
-	  continue;
+        if(in_array($a->datatype, array("", "ci_rolecode")))
+          continue;
 
         if( $a->stereotype == "enumeration" ) {
           $wv[] = "SELECT wert::text AS k, beschreibung::text AS v,'' AS d,'" . $a->short_name . "' AS bezeichnung,'" . $featureType->name . "' AS element FROM " . $a->datatype;
-	}
+        }
         else if( $a->stereotype == "codelist" ) {
           if($a->datatype == "aa_anlassart" && !WITH_CODE_LISTS)
             continue;
