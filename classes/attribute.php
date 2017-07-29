@@ -297,7 +297,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
             'date',
             'tm_duration'
           )) :
-          $database_type = 'date';
+          $database_type = PG_DATE;
         break;
 
         # datetime

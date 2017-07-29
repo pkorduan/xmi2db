@@ -23,11 +23,11 @@
   define('PG_GML_ID', 'character(16)');
   define('PG_CHARACTER_VARYING', 'character varying');
   define('PG_BOOLEAN', 'character varying');
-  define('PG_DATETIME', 'timestamp without time zone');
+  define('PG_DATETIME', 'character(20)');
   define('PG_DATE', 'date');
-  define('PG_WITH_OIDS', true);
-  define('PG_WITH_IDENTIFIER', true);
-  define('PG_CREATE_TABLE', 'CREATE TABLE IF EXISTS');
+  define('PG_WITH_OIDS', false);
+  define('PG_WITH_IDENTIFIER', false);
+  define('PG_CREATE_TABLE', 'CREATE TABLE');
 
   $umlSchemaVar = ($_REQUEST['umlSchema'] != '') ? $_REQUEST['umlSchema'] : 'aaa_uml';
   define('UML_SCHEMA', $umlSchemaVar);
@@ -48,13 +48,10 @@
 
   define('WITH_UUID_OSSP', false);
 
-  define('FILTER_FILE', $rel_path . 'conf/filter_conf.json');
-  define('FILTER_INFO', 'Ohne Attribute objektkoordinaten.');
-
-  define('RENAME_OPTIONAL_FIRST', false);
-  define('RENAME_ZEIGT_AUF_EXTERNES', true);
+  define('RENAME_OPTIONAL_FIRST', true);
+  define('RENAME_ZEIGT_AUF_EXTERNES', false);
   define('COMMENTS', true);
-  define('WITH_NRW_KOM', false);
+  define('WITH_NRW_KOM', true);
 
   # Definition of the model conf file
   define('SCHEMA_CONF_FILE', $rel_path . 'conf/model_aaa_conf.php');
