@@ -406,10 +406,13 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
   }
 
   function get_gfs_type($database_type, $brackets) {
-    if($brackets == '[]')$list = 'List';
+
     switch (true) {
       case in_array($database_type, array(
           PG_CHARACTER_VARYING,
+          PG_DATETIME,
+          PG_DATE,
+          PG_GML_ID,
           'character varying',
           'text',
           'date',
@@ -458,7 +461,8 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
         $gfs_type = '6';
         break;
     }
-    return $gfs_type.$list;
+
+    return $gfs_type . ($brackets == '[]' ? 'List' : '');
   }
 
   function getBrackets() {

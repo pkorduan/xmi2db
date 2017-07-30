@@ -49,12 +49,17 @@ class Schema {
     $sql = '-- ' . VERSION . "\n";
     $sql .= '-- gewählte Pakete: ' . $packages . "\n";
     $sql .= '-- gewählte Filter: ' . FILTER_INFO . "\n";
-    $sql  .= 'DROP SCHEMA IF EXISTS ' . $this->schemaName . " CASCADE;\n";
-    $sql .= 'CREATE SCHEMA ' . $this->schemaName . ";\n";
-    if(COMMENTS) {
-      $sql .= 'COMMENT ON SCHEMA ' . $this->schemaName . " IS '" . VERSION . "';\n";
+
+    IF(CREATE_SCHEMA) {
+      $sql .= 'DROP SCHEMA IF EXISTS ' . $this->schemaName . " CASCADE;\n";
+      $sql .= 'CREATE SCHEMA ' . $this->schemaName . ";\n";
+      if(COMMENTS) {
+        $sql .= 'COMMENT ON SCHEMA ' . $this->schemaName . " IS '" . VERSION . "';\n";
+      }
     }
+
     $sql .= 'SET search_path = ' . $this->schemaName . ", public;\n";
+
     if (WITH_UUID_OSSP) {
       $sql .= 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp"' . ";\n";
     }

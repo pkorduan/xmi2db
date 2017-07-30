@@ -468,18 +468,25 @@ CREATE INDEX " . $this->name . "_endet ON " . $this->name . " USING btree (endet
     if (!empty(GEOMETRY_EPSG_CODE) and $this->hasGeometryColumn()) {
       $sql .= "
 SELECT AddGeometryColumn('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "', " . GEOMETRY_EPSG_CODE . ", 'GEOMETRY', 2);
-CREATE INDEX " . $this->name . "_" . GEOMETRY_COLUMN_NAME . "_idx ON " . $this->name . " USING gist (" . GEOMETRY_COLUMN_NAME . ");";
+CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_" . GEOMETRY_COLUMN_NAME . "_idx" ) . " ON " . $this->name . " USING gist (" . GEOMETRY_COLUMN_NAME . ");";
     }
 
     if ($hat_objektkoordinaten) {
       $sql .= "
 SELECT AddGeometryColumn('" . $this->name . "', 'objektkoordinaten', " . GEOMETRY_EPSG_CODE . ", 'POINT', 2);
-CREATE INDEX " . $this->name . "_objektkoordinaten_idx ON " . $this->name . " USING gist (objektkoordinaten);";
+CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_objektkoordinaten_idx" ) . " ON " . $this->name . " USING gist (objektkoordinaten);";
     }
 
     # Ausgabe Assoziationsindizes
     foreach($this->associationEnds AS $associationEnd) {
-      $sql .= $associationEnd->getIndex($this->name);
+      $sql .= $associationEnd->getIndex($this->alias);
+    }
+
+    if ($this->parent != null) {
+      # Ausgabe vererbter Assoziationsenden
+      foreach($this->getParentsAssociationEnds() AS $associationEnd) {
+        $sql .= $associationEnd->getIndex($this->alias);
+      }
     }
 
     $sql .= '
@@ -515,7 +522,7 @@ CREATE INDEX " . $this->name . "_objektkoordinaten_idx ON " . $this->name . " US
             $this->attributes
           )
         ) .
-      ") VALUES \n";
+      ") VALUES\n";
       $sql .= $this->values->asSql();
       $sql .= ';';
     }
@@ -600,18 +607,25 @@ CREATE INDEX " . $this->name . "_endet ON " . $this->name . " USING btree (endet
     if (!empty(GEOMETRY_EPSG_CODE) and $this->hasGeometryColumn()) {
       $sql .= "
 SELECT AddGeometryColumn('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "', " . GEOMETRY_EPSG_CODE . ", 'GEOMETRY', 2);
-CREATE INDEX " . $this->name . "_" . GEOMETRY_COLUMN_NAME . "_idx ON " . $this->name . " USING gist (" . GEOMETRY_COLUMN_NAME . ");";
+CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_" . GEOMETRY_COLUMN_NAME . "_idx" ) . " ON " . $this->name . " USING gist (" . GEOMETRY_COLUMN_NAME . ");";
     }
 
     if ($hat_objektkoordinaten) {
       $sql .= "
 SELECT AddGeometryColumn('" . $this->name . "', 'objektkoordinaten', " . GEOMETRY_EPSG_CODE . ", 'POINT', 2);
-CREATE INDEX " . $this->name . "_objektkoordinaten_idx ON " . $this->name . " USING gist (objektkoordinaten);";
+CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_objektkoordinaten_idx" ) . " ON " . $this->name . " USING gist (objektkoordinaten);";
     }
 
     # Ausgabe Assoziationsindizes
     foreach($this->associationEnds AS $associationEnd) {
-      $sql .= $associationEnd->getIndex($this->name);
+      $sql .= $associationEnd->getIndex($this->alias);
+    }
+
+    if ($this->parent != null) {
+      # Ausgabe vererbter Assoziationsenden
+      foreach($this->getParentsAssociationEnds() AS $associationEnd) {
+        $sql .= $associationEnd->getIndex($this->alias);
+      }
     }
 
     $sql .= '
@@ -647,7 +661,7 @@ CREATE INDEX " . $this->name . "_objektkoordinaten_idx ON " . $this->name . " US
             $this->attributes
           )
         ) .
-      ") VALUES \n";
+      ") VALUES\n";
       $sql .= $this->values->asSql();
       $sql .= ';';
     }
@@ -659,7 +673,7 @@ CREATE INDEX " . $this->name . "_objektkoordinaten_idx ON " . $this->name . " US
     $attribute_parts = array();
     $gfs = "
   <GMLFeatureClass>
-    <Name>" . $this->name . "</Name>
+    <Name>" . $this->alias . "</Name>
     <ElementPath>" . $this->alias . "</ElementPath>";
 
     # identifier Spalte

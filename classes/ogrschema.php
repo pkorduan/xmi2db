@@ -11,6 +11,10 @@ class OgrSchema extends Schema {
 
   function create_ax_fortfuehrungsauftrag() {
     $sql = file_get_contents('../sql/ax_fortfuehrungsauftrag.sql');
+    if(PG_WITH_OIDS) {
+      $sql .= "
+ALTER TABLE ax_fortfuehrungsauftrag SET WITH OIDS;";
+    }
     return $sql;
   }
 
@@ -158,6 +162,7 @@ class OgrSchema extends Schema {
       //   zeigtaufexternes_uri statt fachdatenobjekt_uri
       //   processstep_sourcereferencesystem statt processstep_source_source_sourcereferencesystem
       foreach($featureTypes as $featureType) {
+        $namelen_exceeded = false;
         foreach($featureType->attributes as $a) {
           if( $a->isOptional() ) {
             for( $i = 1; $i < count($a->parts); $i++ ) {
@@ -175,6 +180,9 @@ class OgrSchema extends Schema {
                 $a->short_name_orig = $a->short_name;
                 $a->short_name = $renamed_paths[$path] . end($a->parts)->name;
                 # echo "-- renamed " . end($a->parts)->name . " in " . $a->short_name . " in " . $featureType->alias . " \n";
+                if( strlen($a->short_name) > PG_MAX_NAME_LENGTH ) {
+                  $namelen_exceeded = true;
+                }
                 $this->logger->log("<br>\nUmbenennung von " . end($a->parts)->name . " in " . $a->short_name . " in " . $featureType->alias . ".");
                 break;
               }
@@ -182,11 +190,15 @@ class OgrSchema extends Schema {
           }
         }
 
-        if($featureType->hasCollisions()) {
-	  // Kommt vor bei uris in AX_Fortfuehrungsfall
-          $this->logger->log("<br>\nUmbenennung auf gleichen Pfaden führte zu Doppeldeutigkeiten in " . $featureType->alias . "!");
+        if($featureType->hasCollisions() || $namelen_exceeded ) {
+          // Kommt vor bei:
+          // AX_Fortfuehrungsfall.verweistauf_uri => dienststellenlogo_uri
+          // AX_Fortfuehrungsfall.verweistauf_uri => enthaeltewp_uri
+          // AX_Fortfuehrungsfall.verweistauf_uri => verweistauf_uri
+          // AX_BesondererHoehenpunkt.erfassungbesondererhoehenpunkt_ax_dqerfassungsmethodebesondererhoehenpunkt => ax_dqerfassungsmethodebesondererhoehenpunkt
+          $this->logger->log("<br>\nUmbenennung auf gleichen Pfaden führte zu Doppeldeutigkeiten oder Überlängen in " . $featureType->alias . "!");
           foreach($featureType->attributes as $a) {
-            if(property_exists($a, "short_name_orig") && $a->frequency > 1)
+            if(property_exists($a, "short_name_orig") && ($a->frequency > 1 || strlen($a->short_name) > PG_MAX_NAME_LENGTH) )
             {
               $this->logger->log("<br>\n" . $featureType->alias . "." . $a->short_name . " => " . $a->short_name_orig);
               $a->short_name = $a->short_name_orig;
@@ -263,6 +275,20 @@ CREATE VIEW alkis_wertearten(k,v,d,bezeichnung,element) AS\n  " . implode(" UNIO
     }
 
     return $attributes;
+  }
+
+  function identifier($name)
+  {
+    if( strlen($name) <= PG_MAX_NAME_LENGTH)
+      return $name;
+
+    if( !property_exists($this, "nameidx") ) {
+        $this->nameidx = 0;
+    }
+
+    $id = ++$this->nameidx;
+
+    return substr($name, 0, PG_MAX_NAME_LENGTH - 3) . $id;
   }
 }
 ?>

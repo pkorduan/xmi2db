@@ -22,7 +22,4 @@ CREATE TABLE ax_fortfuehrungsauftrag (
 	created_at timestamp without time zone NOT NULL DEFAULT now(),
 	updated_at timestamp without time zone NOT NULL DEFAULT now(),
 	user_name character varying NOT NULL
-)
-WITH (
-  OIDS=TRUE
 );

@@ -82,7 +82,7 @@ class Table {
             $this->attributes
           )
         ) .
-      ") VALUES \n";
+      ") VALUES\n";
       $sql .= $this->values->asSql();
       $sql .= ';';
     }

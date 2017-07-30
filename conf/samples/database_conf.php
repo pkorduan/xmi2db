@@ -28,6 +28,8 @@
   define('PG_WITH_OIDS', true);
   define('PG_WITH_IDENTIFIER', true);
   define('PG_CREATE_TABLE', 'CREATE TABLE IF EXISTS');
+  define('CREATE_SCHEMA', true);
+  define('WITH_DELETE_TRIGGER', true);
 
   $umlSchemaVar = ($_REQUEST['umlSchema'] != '') ? $_REQUEST['umlSchema'] : 'aaa_uml';
   define('UML_SCHEMA', $umlSchemaVar);

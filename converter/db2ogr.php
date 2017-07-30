@@ -91,8 +91,11 @@
     $ogrSchema->logger->log('<br><b>TopKlasse: ' . $topClass['name'] . '</b> (' . $topClass['xmi_id'] . ')');
     $sql .= $ogrSchema->createFeatureTypeTables('FeatureType', null, $topClass);
   }
-  # $logger->log('<br><hr><br>');
-  $sql .= "\n\n" . $ogrSchema->create_delete_trigger();
+
+  if(WITH_DELETE_TRIGGER) {
+    # $logger->log('<br><hr><br>');
+    $sql .= "\n\n" . $ogrSchema->create_delete_trigger();
+  }
 
   # $logger->log('<br><hr><br>');
   $sql .= "\n\n" . $ogrSchema->create_ax_fortfuehrungsauftrag();
