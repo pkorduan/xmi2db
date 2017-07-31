@@ -30,6 +30,7 @@
   define('PG_CREATE_TABLE', 'CREATE TABLE');
   define('CREATE_SCHEMA', false);
   define('WITH_DELETE_TRIGGER', false);
+  define('WITH_INDEXES', true);
 
   $umlSchemaVar = ($_REQUEST['umlSchema'] != '') ? $_REQUEST['umlSchema'] : 'aaa_uml';
   define('UML_SCHEMA', $umlSchemaVar);

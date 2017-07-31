@@ -231,7 +231,7 @@ class FeatureType {
       $this->logger->log('<br>gleichlautende Namen gefunden in Runde ' . $level . ' der Umbenennung!');
 
       foreach($this->attributes AS $a) {
-	if ($a->frequency == 1)
+        if ($a->frequency == 1)
           continue;
 
         $this->logger->log('<br>' . $a->path_name . ' (nicht umbenannt; ' . count($a->parts) . ')');
@@ -460,32 +460,42 @@ class FeatureType {
     $sql .= ';
 ';  # Tabellenende
 
-    $sql .= "
+    if(WITH_INDEXES) {
+      $sql .= "
 CREATE UNIQUE INDEX " . $this->name . "_gml ON " . $this->name . " USING btree (gml_id,beginnt);
 CREATE INDEX " . $this->name . "_endet ON " . $this->name . " USING btree (endet);";
+    }
 
     # Set epsg code
     if (!empty(GEOMETRY_EPSG_CODE) and $this->hasGeometryColumn()) {
       $sql .= "
-SELECT AddGeometryColumn('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "', " . GEOMETRY_EPSG_CODE . ", 'GEOMETRY', 2);
+SELECT AddGeometryColumn('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "', " . GEOMETRY_EPSG_CODE . ", 'GEOMETRY', 2);";
+      if(WITH_INDEXES) {
+        $sql .= "
 CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_" . GEOMETRY_COLUMN_NAME . "_idx" ) . " ON " . $this->name . " USING gist (" . GEOMETRY_COLUMN_NAME . ");";
+      }
     }
 
     if ($hat_objektkoordinaten) {
       $sql .= "
-SELECT AddGeometryColumn('" . $this->name . "', 'objektkoordinaten', " . GEOMETRY_EPSG_CODE . ", 'POINT', 2);
+SELECT AddGeometryColumn('" . $this->name . "', 'objektkoordinaten', " . GEOMETRY_EPSG_CODE . ", 'POINT', 2);";
+      if(WITH_INDEXES) {
+        $sql .= "
 CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_objektkoordinaten_idx" ) . " ON " . $this->name . " USING gist (objektkoordinaten);";
+      }
     }
 
-    # Ausgabe Assoziationsindizes
-    foreach($this->associationEnds AS $associationEnd) {
-      $sql .= $associationEnd->getIndex($this->alias);
-    }
-
-    if ($this->parent != null) {
-      # Ausgabe vererbter Assoziationsenden
-      foreach($this->getParentsAssociationEnds() AS $associationEnd) {
+    if(WITH_INDEXES) {
+      # Ausgabe Assoziationsindizes
+      foreach($this->associationEnds AS $associationEnd) {
         $sql .= $associationEnd->getIndex($this->alias);
+      }
+
+      if ($this->parent != null) {
+        # Ausgabe vererbter Assoziationsenden
+        foreach($this->getParentsAssociationEnds() AS $associationEnd) {
+          $sql .= $associationEnd->getIndex($this->alias);
+        }
       }
     }
 
@@ -599,32 +609,42 @@ CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_objektkoordinaten
     $sql .= ';
 ';  # Tabellenende
 
-    $sql .= "
+    if(WITH_INDEXES) {
+      $sql .= "
 CREATE UNIQUE INDEX " . $this->name . "_gml ON " . $this->name . " USING btree (gml_id,beginnt);
 CREATE INDEX " . $this->name . "_endet ON " . $this->name . " USING btree (endet);";
+    }
 
     # Set epsg code
     if (!empty(GEOMETRY_EPSG_CODE) and $this->hasGeometryColumn()) {
       $sql .= "
-SELECT AddGeometryColumn('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "', " . GEOMETRY_EPSG_CODE . ", 'GEOMETRY', 2);
+SELECT AddGeometryColumn('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "', " . GEOMETRY_EPSG_CODE . ", 'GEOMETRY', 2);";
+      if(WITH_INDEXES) {
+        $sql .= "
 CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_" . GEOMETRY_COLUMN_NAME . "_idx" ) . " ON " . $this->name . " USING gist (" . GEOMETRY_COLUMN_NAME . ");";
+      }
     }
 
     if ($hat_objektkoordinaten) {
       $sql .= "
-SELECT AddGeometryColumn('" . $this->name . "', 'objektkoordinaten', " . GEOMETRY_EPSG_CODE . ", 'POINT', 2);
+SELECT AddGeometryColumn('" . $this->name . "', 'objektkoordinaten', " . GEOMETRY_EPSG_CODE . ", 'POINT', 2);";
+      if(WITH_INDEXES) {
+        $sql .= "
 CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_objektkoordinaten_idx" ) . " ON " . $this->name . " USING gist (objektkoordinaten);";
+      }
     }
 
-    # Ausgabe Assoziationsindizes
-    foreach($this->associationEnds AS $associationEnd) {
-      $sql .= $associationEnd->getIndex($this->alias);
-    }
-
-    if ($this->parent != null) {
-      # Ausgabe vererbter Assoziationsenden
-      foreach($this->getParentsAssociationEnds() AS $associationEnd) {
+    if(WITH_INDEXES) {
+      # Ausgabe Assoziationsindizes
+      foreach($this->associationEnds AS $associationEnd) {
         $sql .= $associationEnd->getIndex($this->alias);
+      }
+
+      if ($this->parent != null) {
+        # Ausgabe vererbter Assoziationsenden
+        foreach($this->getParentsAssociationEnds() AS $associationEnd) {
+          $sql .= $associationEnd->getIndex($this->alias);
+        }
       }
     }
 

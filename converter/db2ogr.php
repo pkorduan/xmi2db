@@ -100,6 +100,10 @@
   # $logger->log('<br><hr><br>');
   $sql .= "\n\n" . $ogrSchema->create_ax_fortfuehrungsauftrag();
 
+  if (WITH_INDEXES) {
+    $sql .= file_get_contents('../sql/indizes.sql');
+  }
+
   if (WITH_NRW_KOM) {
     $sql .= file_get_contents('../sql/nrw-kom.sql');
   }
