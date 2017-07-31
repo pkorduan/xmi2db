@@ -61,6 +61,8 @@
     $ogrSchema->createEnumerationTable($enumeration, $ogrSchema);
   }
 
+  $umlSchema->iso19139SubstitutionClasses = $umlSchema->getIso19139SubstitutionClasses();
+
   #**************
   # FeatureTypes
   #**************
