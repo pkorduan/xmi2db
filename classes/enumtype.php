@@ -38,12 +38,17 @@ class EnumType {
     $sql = "
 SELECT
     a.initialvalue_body,
-    a.name
+    a.name,
+    v.datavalue
 FROM
   " . $this->umlSchema->schemaName . ".uml_classes c JOIN
-  " . $this->umlSchema->schemaName . ".uml_attributes a ON c.id = a.uml_class_id
+  " . $this->umlSchema->schemaName . ".uml_attributes a ON c.id = a.uml_class_id LEFT OUTER JOIN (
+  " . $this->umlSchema->schemaName . ".taggedvalues v JOIN
+  " . $this->umlSchema->schemaName . ".tagdefinitions d ON v.type = d.xmi_id AND d.name='documentation'
+) ON a.id = v.attribute_id
 WHERE
   uml_class_id = " . $this->id . "
+ORDER BY a.initialvalue_body
 ";
     $this->logger->log('<br><b>Get Enum Values: </b>');
     $this->logger->log(' <textarea cols="5" rows="1">' . $sql . '</textarea>');
@@ -64,7 +69,8 @@ WHERE
         $row['name'] = 'NULL';
       $this->values->addRow(array(
         $wert,
-        trim($row['name'])
+        trim($row['name']),
+        trim($row['datavalue'])
       ));
     }
     return $this->values;

@@ -39,6 +39,8 @@ ALTER TABLE ax_fortfuehrungsauftrag SET WITH OIDS;";
     $table->addAttribute($attribute);
     $attribute = new Attribute('beschreibung', PG_CHARACTER_VARYING);
     $table->addAttribute($attribute);
+    $attribute = new Attribute('dokumentation', PG_CHARACTER_VARYING);
+    $table->addAttribute($attribute);
 
     # definiere Primärschlüssel
     $table->primaryKey = 'wert';
