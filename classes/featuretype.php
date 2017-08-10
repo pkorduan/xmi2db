@@ -693,7 +693,7 @@ CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_objektkoordinaten
     $attribute_parts = array();
     $gfs = "
   <GMLFeatureClass>
-    <Name>" . $this->alias . "</Name>
+    <Name>" . strtolower($this->alias) . "</Name>
     <ElementPath>" . $this->alias . "</ElementPath>";
 
     # identifier Spalte
