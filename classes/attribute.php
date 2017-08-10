@@ -555,7 +555,7 @@ if(0) {
 #          $sql .= "\t\t";
 #        }
 #    } else {
-	$sql .= " PATH " . $this->path_name;
+        $sql .= " PATH " . $this->path_name;
     }
 
     if ($this->stereotype == 'enumeration' and $this->short_name != $this->datatype) {
@@ -574,13 +574,27 @@ if(0) {
 
   function asGfs() {
     if($this->short_name != "wkb_geometry" && $this->short_name != "objektkoordinaten") {
-      $elements = explode('|', $this->getAttributePath());
+      if( $this->overwrite['type'] != '' ) {
+        $elements = array();
+        foreach ($this->parts as $part) {
+          $elements[] = $part->parent->alias;
+          if ($part->overwrite['type'] != '') {
+            $elements[] = $part->overwrite['alias'];
+            $elements[] = $part->overwrite['type'];
+          }
+          else {
+            $elements[] = $part->alias;
+          }
+        }
+        array_shift($elements);
+      } else {
+        $elements = explode('|', $this->getAttributePath());
+      }
+
       if(RENAME_ZEIGT_AUF_EXTERNES && $elements[0] == 'zeigtAufExternes') {
         $elements[0] = 'zeigtAufExternes_';
       }
-      if ($this->short_name == 'herkunft_source_ax_datenerhebung') {
-        array_splice($elements, -1, 0, $this->overwrite['name']);
-      }
+
       $gfs = "
     <PropertyDefn>
       <Name>".$this->short_name."</Name>
