@@ -710,7 +710,7 @@ CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_objektkoordinaten
     $attribute_parts[] .= "
     <GeomPropertyDefn>
       <Name>wkb_geometry</Name>
-      <GeometryElementPath>position</GeometryElementPath>
+      <ElementPath>position</ElementPath>
       <GeometryType>" . $this->getGeometryType() . "</GeometryType>
     </GeomPropertyDefn>";
 
@@ -726,7 +726,7 @@ CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_objektkoordinaten
       $attribute_parts[] .= "
     <GeomPropertyDefn>
       <Name>objektkoordinaten</Name>
-      <GeometryElementPath>objektkoordinaten</GeometryElementPath>
+      <ElementPath>objektkoordinaten</ElementPath>
       <GeometryType>100</GeometryType>
     </GeomPropertyDefn>";
     }
