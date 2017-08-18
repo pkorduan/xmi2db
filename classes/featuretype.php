@@ -78,7 +78,8 @@ class FeatureType {
 
   function getAttributesUntilLeafs($type, $stereotype, $parts) {
     $return_attributes = array();
-    if (in_array(substr($type, 0, 3), array('DQ_', 'LI_', 'CI_'))) {
+    $isExternal = in_array(substr($type, 0, 3), array('DQ_', 'LI_', 'CI_'));
+    if ($isExternal) {
       /* Damit die DQ_, LI_ und CI_ Elemente gefunden werden, müssen sie in classes existieren.
        * Zum Anlegen kann das SQL-Script sql/external_uml_classes.sql verwendet werden.
        */
@@ -108,6 +109,7 @@ class FeatureType {
             $parts
           );
           $attributeObj->setStereoType($attribute['attribute_stereotype']);
+          $attributeObj->setExternal($isExternal);
           # Union Typen können nicht not null sein, weil immer eines der Attribute
           # des Union Types verwendet wird. Also andere weggelassen werden.
           # Sonderfall, wenn ein Union Typ nur ein Attribut hätte, aber das wäre

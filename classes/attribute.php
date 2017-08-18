@@ -16,6 +16,7 @@ class Attribute {
     $this->multiplicity_lower = '';
     $this->multiplicity_upper = '';
     $this->database_type = '';
+    $this->isExternal = false;
 
     $this->database_type_alias = $database_type; # langer Name
     $this->database_type = strtolower(substr($database_type, 0, 58)); # verkürzter Name
@@ -158,6 +159,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
     $msg = '';
     if (array_key_exists($this->datatype_alias, $overwriteTypes) and $overwriteTypes[$this->datatype_alias] == $this->stereotype) {
       $msg .= '<br>Overwrite ' . $this->name . ' with: ' . $this->datatype;
+
       $this->overwrite['name'] = $this->name;
       $this->overwrite['alias'] = $this->alias;
       $this->overwrite['type'] = $this->datatype_alias;
@@ -574,6 +576,33 @@ if(0) {
 
   function asGfs() {
     if($this->short_name != "wkb_geometry" && $this->short_name != "objektkoordinaten") {
+      if(0) {
+        $gfs = "\n    <!--";
+        foreach ($this as $property => $value) {
+                $gfs .= "\n      $property => " . (is_scalar($value) ? $value : "[" . gettype($value) . "]");
+        }
+
+        $gfs .= "\n\n      overwrite:";
+        foreach ($this->overwrite as $property => $value) {
+                $gfs .= "\n        $property => " . (is_scalar($value) ? $value : "[" . gettype($value) . "]");
+        }
+
+        foreach ($this->parts as $part) {
+                $gfs .= "\n\n      part:";
+                foreach ($part as $property => $value) {
+                        $gfs .= "\n        $property => " . (is_scalar($value) ? $value : "[" . gettype($value) . "]");
+
+                }
+
+                $gfs .= "\n        overwrite:";
+                foreach ($part->overwrite as $property => $value) {
+                        $gfs .= "\n          $property => " . (is_scalar($value) ? $value : "[" . gettype($value) . "]");
+                }
+        }
+        $gfs .= "\n      path:" . $this->getAttributePath();
+        $gfs .= "\n    -->";
+      }
+
       if( $this->overwrite['type'] != '' ) {
         $elements = array();
         foreach ($this->parts as $part) {
@@ -586,19 +615,29 @@ if(0) {
             $elements[] = $part->alias;
           }
         }
+
         array_shift($elements);
+        array_pop($elements);
       } else {
         $elements = explode('|', $this->getAttributePath());
+      }
+
+      if($this->isExternal) {
+        if( isset($this->datatype_alias) ) {
+                $elements[] = $this->datatype_alias;
+        } else {
+                $elements[] = "CharacterString";
+        }
       }
 
       if(RENAME_ZEIGT_AUF_EXTERNES && $elements[0] == 'zeigtAufExternes') {
         $elements[0] = 'zeigtAufExternes_';
       }
 
-      $gfs = "
+      $gfs .= "
     <PropertyDefn>
       <Name>".$this->short_name."</Name>
-      <ElementPath>".implode('|', $elements)."</ElementPath>
+      <ElementPath>" . implode('|', $elements) . "</ElementPath>
       <Type>".$this->get_gfs_type($this->get_database_type(false, false), $this->getBrackets())."</Type>
     </PropertyDefn>";
       return $gfs;
@@ -616,6 +655,10 @@ if(0) {
     }
 
     return false;
+  }
+
+  function setExternal($isExternal) {
+    $this->isExternal = $isExternal;
   }
 }
 ?>

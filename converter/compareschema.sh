@@ -13,7 +13,7 @@ php-cgi -q db2ogr.php \
 	loglevel=2 \
 	>/tmp/alkis-schema.sql
 
-mv /tmp/xmi2db.log /tmp/xmi2db-sql.log
+sed -e "s/<br>/\n/g" /tmp/xmi2db.log >/tmp/xmi2db-sql.log
 
 php-cgi -q db2gfs.php \
 	umlSchema=aaa_uml \
@@ -21,7 +21,7 @@ php-cgi -q db2gfs.php \
 	loglevel=2 \
 	>/tmp/alkis-schema.gfs
 
-mv /tmp/xmi2db.log /tmp/xmi2db-gfs.log
+sed -e "s/<br>/\n/g" /tmp/xmi2db.log >/tmp/xmi2db-gfs.log
 
 popd
 

@@ -1062,7 +1062,7 @@ ORDER BY
   }
 
   function getExternalClassAttributes($type, $stereotype, $parts) {
-    $this->logger->log('<br><b>Get Attributes for external class: ' . $type . ' stereotyp: ' . $stereotype . '</b>');
+    $this->logger->log('<br><b>Get Attributes for external class: ' . $type . ' stereotype: ' . $stereotype . '</b>');
 #   if ($type == 'LI_ProcessStep') {
 #     echo '<br>Parts 0 Name: ' . $parts[0]->name;
 #   }
