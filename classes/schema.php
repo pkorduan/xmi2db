@@ -1040,10 +1040,10 @@ select
   c.name AS name,
   s.name AS stereotype
 from
-  aaa_uml.uml_classes c join
-  aaa_uml.taggedvalues v on c.id = v.class_id JOIN
-  aaa_uml.tagdefinitions d ON v.type = d.xmi_id JOIN
-  aaa_uml.stereotypes s ON c.stereotype_id = s.xmi_id
+  " . $this->schemaName . ".uml_classes c join
+  " . $this->schemaName . ".taggedvalues v on c.id = v.class_id JOIN
+  " . $this->schemaName . ".tagdefinitions d ON v.type = d.xmi_id JOIN
+  " . $this->schemaName . ".stereotypes s ON c.stereotype_id = s.xmi_id
 where
   v.datavalue like 'iso19139%'
 ORDER BY
