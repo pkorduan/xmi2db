@@ -10,13 +10,13 @@
 <html lang="de">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<script src="https://gdi-service.de/3rdparty/jQuery-1.12.0/jquery-1.12.0.min.js"></script>
-	<script src="https://gdi-service.de/3rdparty/bootstrap-3.3.6/js/bootstrap.min.js"></script>
-	<script src="https://gdi-service.de/3rdparty/bootstrap-3.3.6/js/bootstrap-table.js"></script>
+	<script src="<?php echo $SCRIPT_ORIGIN; ?>jQuery-1.12.0/jquery-1.12.0.min.js"></script>
+	<script src="<?php echo $SCRIPT_ORIGIN; ?>bootstrap-3.3.6/js/bootstrap.min.js"></script>
+	<script src="<?php echo $SCRIPT_ORIGIN; ?>bootstrap-3.3.6/js/bootstrap-table.js"></script>
 	<script src="lib/pascoul/pascoul.js"></script>
 
-	<link rel="stylesheet" href="https://gdi-service.de/3rdparty/bootstrap-3.3.6/css/bootstrap.min.css">
-	<link rel="stylesheet" href="https://gdi-service.de/3rdparty/bootstrap-3.3.6/css/bootstrap-table.css">
+	<link rel="stylesheet" href="<?php echo $SCRIPT_ORIGIN; ?>bootstrap-3.3.6/css/bootstrap.min.css">
+	<link rel="stylesheet" href="<?php echo $SCRIPT_ORIGIN; ?>bootstrap-3.3.6/css/bootstrap-table.css">
 	<link rel="stylesheet" href="lib/pascoul/pascoul.css">
 
 	<script language="javascript" type="text/javascript">

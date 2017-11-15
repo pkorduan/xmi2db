@@ -1,6 +1,7 @@
 <?php
+  define('SCRIPT_ORIGIN', 'https://gdi-service.de/3rdparty/');
   $rel_path = (!array_key_exists('SCRIPT_NAME', $_SERVER) || basename($_SERVER['SCRIPT_NAME']) != 'index.php' ? '../' : '');
-
+  echo $rel_path;
   define(
     'VERSION',
     preg_replace(
