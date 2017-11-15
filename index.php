@@ -83,7 +83,6 @@
       window.location = 'converter/db2ogr.php?umlSchema=' + umlSchema + '&ogrSchema=' + ogrSchema + '&epsgCode=' + epsgCode + '&withCodeLists=' + withCodeLists;
     }
 
-<<<<<<< HEAD
     function execDb2Gfs() {
       var umlSchema = document.getElementById("db2ogr_umlSchema").value,
           ogrSchema = document.getElementById("db2ogr_ogrSchema").value,

@@ -709,19 +709,25 @@ CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_objektkoordinaten
     </PropertyDefn>";
     }
 
-    $attribute_parts[] .= "
-    <GeomPropertyDefn>
-      <Name>wkb_geometry</Name>
-      <ElementPath>position</ElementPath>
-      <GeometryType>" . $this->getGeometryType() . "</GeometryType>
-    </GeomPropertyDefn>";
-
+    $hat_position = false;
     $hat_objektkoordinaten = false;
     # Ausgabe Attribute
     foreach($this->attributes AS $attribute) {
+      if ($attribute->name == "wkb_geometry") {
+        $hat_position = true;
+      }
       if ($attribute->name == "objektkoordinaten") {
         $hat_objektkoordinaten = true;
       }
+    }
+
+    if ($hat_position) {
+      $attribute_parts[] .= "
+      <GeomPropertyDefn>
+        <Name>wkb_geometry</Name>
+        <ElementPath>position</ElementPath>
+        <GeometryType>" . $this->getGeometryType() . "</GeometryType>
+      </GeomPropertyDefn>";
     }
 
     if($hat_objektkoordinaten) {
@@ -729,7 +735,7 @@ CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_objektkoordinaten
     <GeomPropertyDefn>
       <Name>objektkoordinaten</Name>
       <ElementPath>objektkoordinaten</ElementPath>
-      <GeometryType>100</GeometryType>
+      <GeometryType>1</GeometryType>
     </GeomPropertyDefn>";
     }
 

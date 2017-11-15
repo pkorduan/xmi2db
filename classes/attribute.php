@@ -623,10 +623,18 @@ if(0) {
       }
 
       if($this->isExternal) {
-        if( isset($this->datatype_alias) ) {
-                $elements[] = $this->datatype_alias;
-        } else {
-                $elements[] = "CharacterString";
+
+        $parts = explode('|', $this->getAttributePath());
+      	if (end($elements) != end($parts)) {
+          $elements[] = end($parts);
+        }
+        else {
+          if( isset($this->datatype_alias) ) {
+            $elements[] = $this->datatype_alias;
+          } 
+          else {
+            $elements[] = "CharacterString";
+          }
         }
       }
 
