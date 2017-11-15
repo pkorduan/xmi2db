@@ -9,23 +9,24 @@
 ?><!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-  <script src="https://gdi-service.de/3rdparty/jQuery-1.12.0/jquery-1.12.0.min.js"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
-  <script src="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.7.0/bootstrap-table.min.js"></script>
-
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
-  <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.7.0/bootstrap-table.min.css">
-  <link rel="stylesheet" href="lib/pascoul/pascoul.css">
-
-  <script src="lib/pascoul/pascoul.js"></script>
-
-  <script language="javascript" type="text/javascript">
-    function execXmi2Db() {
-      var selectedFile = document.getElementById("selectedFile"),
-        file = selectedFile.options[selectedFile.selectedIndex].value,
-        basepkg = document.getElementById("basepkg").value,
-        truncateChkbx = document.getElementById("truncate").checked;
+<<<<<<< HEAD
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<script src="https://gdi-service.de/3rdparty/jQuery-1.12.0/jquery-1.12.0.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.7.0/bootstrap-table.min.js"></script>
+	
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+	<link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.7.0/bootstrap-table.min.css">	
+	<link rel="stylesheet" href="lib/pascoul/pascoul.css">
+	
+	<script src="lib/pascoul/pascoul.js"></script>
+	
+	<script language="javascript" type="text/javascript">
+		function execXmi2Db() {
+			var selectedFile = document.getElementById("selectedFile"),
+				file = selectedFile.options[selectedFile.selectedIndex].value,
+				basepkg = document.getElementById("basepkg").value,
+				truncateChkbx = document.getElementById("truncate").checked;
 
       if (truncateChkbx == true)
         var truncate = "1";
@@ -84,11 +85,53 @@
       window.location = 'converter/db2ogr.php?umlSchema=' + umlSchema + '&ogrSchema=' + ogrSchema + '&epsgCode=' + epsgCode + '&withCodeLists=' + withCodeLists;
     }
 
+<<<<<<< HEAD
     function execDb2Gfs() {
       var umlSchema = document.getElementById("db2ogr_umlSchema").value,
           ogrSchema = document.getElementById("db2ogr_ogrSchema").value,
           epsgCode = document.getElementById("db2ogr_epsgCode").value,
           withCodeLists = $('#db2ogr_withCodeLists').val();
+=======
+		<h3>db2ogr</h4>
+		db2ogr erzeugt aus dem UML-Modell ein flaches GML-Schema welches zum Einlesen von komplexen GML-Dateien mit ogr2ogr geeignet sein sollte. Die Tabellen der FeatureTypen enthalten alle Attribute der abgeleiteten Klassen und der verzweigenden komplexen Datentypen. Das Schema enthält nach dem Ausführen des erzeugten SQL im ausgewählten Schema
+		<ul>
+			<li>je eine mit den Werten befüllte Tabelle pro Enumeration</li>
+			<li>je eine leere Tabelle pro FeatureType</li>
+			<li>je eine mit den Werten befüllte Tabelle pro CodeListe (falls im UML-Modell enthalten)</li>
+		</ul>
+	</div>
+	<div class="container">
+		<h4>UML-Schema</h4>
+		<i>Das Schema in dem vorher die UML-Elemente mit xmi2db eingelesen wurden.</i><br>
+		<select class="form-control" id="db2ogr_umlSchema">
+		<?php
+			$schemas = str_replace("'", "", UML_SCHEMA);
+			$schemas = explode(";", $schemas);
+			foreach ($schemas as $schema) {
+				echo '<option value="'.$schema.'">'.$schema.'</option>';
+			}
+		?>
+		</select>
+		
+		<!--
+		<input type="text" id="db2ogr_umlSchema" name="umlSchema" list="db2ogr_umlSchemaListe" size="50" value="<?php //echo UML_SCHEMA; ?>"/>
+		<datalist id="db2ogr_umlSchemaListe">
+			<option value="<?php //echo UML_SCHEMA; ?>" selected><?php //echo UML_SCHEMA; ?></option>
+		</datalist>
+		-->
+		
+		<h4>OGR-Schema</h4>
+		<i>Das Schema in dem die GML-Tabellen und Datentypen angelegt werden sollen.</i><br>
+		<select class="form-control" id="db2ogr_ogrSchema">
+		<?php
+			$schemas = str_replace("'", "", OGR_SCHEMA);
+			$schemas = explode(";", $schemas);
+			foreach ($schemas as $schema) {
+				echo '<option value="'.$schema.'">'.$schema.'</option>';
+			}
+		?>
+		</select>
+>>>>>>> BugFix-1
 
       window.location = 'converter/db2gfs.php?umlSchema=' + umlSchema + '&ogrSchema=' + ogrSchema + '&epsgCode=' + epsgCode + '&withCodeLists=' + withCodeLists;
     }

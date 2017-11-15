@@ -290,40 +290,42 @@ WHERE
 
     $sql = "
 SELECT
-  a.name AS name,
-  CASE
-    WHEN d.name IS NULL THEN
-      CASE
-        WHEN cc.name IS NULL THEN cd.name
-        ELSE cc.name
-      END
-    ELSE d.name
-  END AS datatype,
-  CASE
-    WHEN d.name IS NULL THEN cs.name
-    ELSE ds.name
-  END AS stereotype,
-  CASE
-    WHEN d.name IS NULL THEN CASE
-      WHEN cs.name IS NULL THEN NULL
-      ELSE 'UML-Classifier'
-    END
-    ELSE 'UML-DataType'
-  END AS attribute_type,
-  a.multiplicity_range_lower::integer,
-  a.multiplicity_range_upper,
-  a.initialvalue_body" .
-  $tagged_values_select . "
+	a.name AS name,
+	CASE
+		WHEN d.name IS NULL THEN
+		  CASE
+		    WHEN cc.name IS NULL THEN cd.name
+		    ELSE cc.name
+		  END
+		ELSE d.name
+	END AS datatype,
+	CASE
+		WHEN d.name IS NULL THEN cs.name
+		ELSE ds.name
+	END AS stereotype,
+	CASE
+		WHEN d.name IS NULL THEN CASE
+			WHEN cs.name IS NULL THEN NULL
+			ELSE 'UML-Classifier'
+		END
+		ELSE 'UML-DataType'
+	END AS attribute_type,
+	a.multiplicity_range_lower::integer,
+	a.multiplicity_range_upper,
+	a.initialvalue_body" .
+	#$tagged_values_select . "
+	"
 FROM
-  " . $this->schemaName . ".uml_classes c JOIN
-  " . $this->schemaName . ".uml_attributes a ON c.id = a.uml_class_id LEFT JOIN
-  " . $this->schemaName . ".datatypes d ON a.datatype = d.xmi_id LEFT JOIN
-  " . $this->schemaName . ".uml_classes dc ON d.name = dc.name LEFT JOIN
-  " . $this->schemaName . ".stereotypes ds ON dc.stereotype_id = ds.xmi_id Left JOIN
-  " . $this->schemaName . ".uml_classes cc ON a.classifier = cc.xmi_id LEFT JOIN
-  " . $this->schemaName . ".datatypes cd ON a.classifier = cd.xmi_id LEFT JOIN
-  " . $this->schemaName . ".stereotypes cs ON cc.stereotype_id = cs.xmi_id"
-  . $tagged_values_from . "
+	" . $this->schemaName . ".uml_classes c JOIN 
+	" . $this->schemaName . ".uml_attributes a ON c.id = a.uml_class_id LEFT JOIN
+	" . $this->schemaName . ".datatypes d ON a.datatype = d.xmi_id LEFT JOIN
+	" . $this->schemaName . ".uml_classes dc ON d.name = dc.name LEFT JOIN
+	" . $this->schemaName . ".stereotypes ds ON dc.stereotype_id = ds.xmi_id Left JOIN
+	" . $this->schemaName . ".uml_classes cc ON a.classifier = cc.xmi_id LEFT JOIN
+	" . $this->schemaName . ".datatypes cd ON a.classifier = cd.xmi_id LEFT JOIN
+	" . $this->schemaName . ".stereotypes cs ON cc.stereotype_id = cs.xmi_id"
+	#. $tagged_values_from . "
+	."
 WHERE
   " . $tagged_value_where . "
   uml_class_id = " . $class_id .
