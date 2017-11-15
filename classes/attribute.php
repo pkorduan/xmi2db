@@ -188,7 +188,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
         case ($this->has_parent($parts, 'AX_DQPunktort') AND $this->parent->alias == 'LI_ProcessStep') :
           $new_type = 'AX_LI_ProcessStep_Punktort_Description';
           break;
-        case ($this->has_parent($parts, 'AX_DQMitDatenerhebung') AND $this->parent->alias == 'LI_Source') :
+        case ($this->has_parent($parts, 'AX_DQPunktort') AND $this->parent->alias == 'LI_Source') :
           $new_type = 'AX_Datenerhebung_Punktort';
           break;
         default :
