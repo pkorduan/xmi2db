@@ -9,7 +9,6 @@
 ?><!DOCTYPE html>
 <html lang="de">
 <head>
-<<<<<<< HEAD
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 	<script src="https://gdi-service.de/3rdparty/jQuery-1.12.0/jquery-1.12.0.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
