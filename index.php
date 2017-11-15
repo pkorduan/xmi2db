@@ -6,17 +6,20 @@
   // | Author: Peter Korduan <peter.korduan@gdi-service.de>                 |
   // | Licence: GPL https://www.gnu.org/licenses/gpl-3.0.de.html            |
   // +----------------------------------------------------------------------+
+  if (file_exists('conf/database_conf.php')) {
+    include('conf/database_conf.php');
+  }
 ?><!DOCTYPE html>
 <html lang="de">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-	<script src="<?php echo $SCRIPT_ORIGIN; ?>jQuery-1.12.0/jquery-1.12.0.min.js"></script>
-	<script src="<?php echo $SCRIPT_ORIGIN; ?>bootstrap-3.3.6/js/bootstrap.min.js"></script>
-	<script src="<?php echo $SCRIPT_ORIGIN; ?>bootstrap-3.3.6/js/bootstrap-table.js"></script>
+	<script src="<?php echo SCRIPT_ORIGIN; ?>jQuery-1.12.0/jquery-1.12.0.min.js"></script>
+	<script src="<?php echo SCRIPT_ORIGIN; ?>bootstrap-3.3.6/js/bootstrap.min.js"></script>
+	<script src="<?php echo SCRIPT_ORIGIN; ?>bootstrap-3.3.6/js/bootstrap-table.js"></script>
 	<script src="lib/pascoul/pascoul.js"></script>
 
-	<link rel="stylesheet" href="<?php echo $SCRIPT_ORIGIN; ?>bootstrap-3.3.6/css/bootstrap.min.css">
-	<link rel="stylesheet" href="<?php echo $SCRIPT_ORIGIN; ?>bootstrap-3.3.6/css/bootstrap-table.css">
+	<link rel="stylesheet" href="<?php echo SCRIPT_ORIGIN; ?>bootstrap-3.3.6/css/bootstrap.min.css">
+	<link rel="stylesheet" href="<?php echo SCRIPT_ORIGIN; ?>bootstrap-3.3.6/css/bootstrap-table.css">
 	<link rel="stylesheet" href="lib/pascoul/pascoul.css">
 
 	<script language="javascript" type="text/javascript">
@@ -114,7 +117,6 @@
     Kopiere die Datei conf/samples/database_conf.php nach conf/database_conf.php und passe die Variablen entsprechend an. <?php
   }
   else {
-    include('conf/database_conf.php');
     echo VERSION; ?>
     <br>
     <?php
