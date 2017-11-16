@@ -93,6 +93,58 @@ COMMENT ON COLUMN " . $table_name . "." . $this->name . " IS '";
     return $sql;
   }
 
+  function getLastAttributeName() {
+    $last_part = end($this->parts);
+    if( $this->overwrite['type'] != '' ) {
+      $last_attribute_name = $last_part->overwrite['type'];
+    }
+    else {
+      $last_attribute_name = $last_part->name;
+    }
+    return $last_attribute_name;
+  }
+
+  function getRenamedAttributePath() {
+    if( $this->overwrite['type'] != '' ) {
+      $elements = array();
+      foreach ($this->parts as $part) {
+        $elements[] = $part->parent->alias;
+        if ($part->overwrite['type'] != '') {
+          $elements[] = $part->overwrite['alias'];
+          $elements[] = $part->overwrite['type'];
+        }
+        else {
+          $elements[] = $part->alias;
+        }
+      }
+
+      array_shift($elements);
+      array_pop($elements);
+    } else {
+      $elements = explode('|', $this->getAttributePath());
+    }
+
+    if($this->isExternal) {
+      $parts = explode('|', $this->getAttributePath());
+    	if (end($elements) != end($parts)) {
+        $elements[] = end($parts);
+      }
+      else {
+        if( isset($this->datatype_alias) ) {
+          $elements[] = $this->datatype_alias;
+        } 
+        else {
+          $elements[] = "CharacterString";
+        }
+      }
+    }
+
+    if(RENAME_ZEIGT_AUF_EXTERNES && $elements[0] == 'zeigtAufExternes') {
+      $elements[0] = 'zeigtAufExternes_';
+    }
+    return implode('|', $elements);
+  }
+
   function getAttributePath($parts = array()) {
     if (empty($parts)) {
       $parts = $this->parts;
@@ -127,10 +179,10 @@ COMMENT ON COLUMN " . $table_name . "." . $this->name . " IS '";
   }
 
   function getFlattenedComment($table_name) {
-    $attribute_path = $this->getAttributePath();
+    $attribute_path = $this->getRenamedAttributePath();
     $sql = "
 COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
-    $sql .= $attribute_path . ' ' . $this->stereotype_alias . ' ' . $this->datatype_alias;
+    $sql .= $this->getLastAttributeName() . ' ' . $attribute_path . ' ' . $this->stereotype_alias . ' ' . $this->datatype_alias;
     $sql .= ' ' . $this->multiplicity;
     $sql .= "';";
     return $sql;
@@ -603,49 +655,10 @@ if(0) {
         $gfs .= "\n    -->";
       }
 
-      if( $this->overwrite['type'] != '' ) {
-        $elements = array();
-        foreach ($this->parts as $part) {
-          $elements[] = $part->parent->alias;
-          if ($part->overwrite['type'] != '') {
-            $elements[] = $part->overwrite['alias'];
-            $elements[] = $part->overwrite['type'];
-          }
-          else {
-            $elements[] = $part->alias;
-          }
-        }
-
-        array_shift($elements);
-        array_pop($elements);
-      } else {
-        $elements = explode('|', $this->getAttributePath());
-      }
-
-      if($this->isExternal) {
-
-        $parts = explode('|', $this->getAttributePath());
-      	if (end($elements) != end($parts)) {
-          $elements[] = end($parts);
-        }
-        else {
-          if( isset($this->datatype_alias) ) {
-            $elements[] = $this->datatype_alias;
-          } 
-          else {
-            $elements[] = "CharacterString";
-          }
-        }
-      }
-
-      if(RENAME_ZEIGT_AUF_EXTERNES && $elements[0] == 'zeigtAufExternes') {
-        $elements[0] = 'zeigtAufExternes_';
-      }
-
       $gfs .= "
     <PropertyDefn>
       <Name>".$this->short_name."</Name>
-      <ElementPath>" . implode('|', $elements) . "</ElementPath>
+      <ElementPath>" . $this->getRenamedAttributePath() . "</ElementPath>
       <Type>".$this->get_gfs_type($this->get_database_type(false, false), $this->getBrackets())."</Type>
     </PropertyDefn>";
       return $gfs;
