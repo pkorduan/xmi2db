@@ -78,6 +78,7 @@
   $logger->log("<pre>
 ");
 
+  header("Content-type: text/xml");
   echo "<GMLFeatureClassList>".$gfs."\n</GMLFeatureClassList>";
 
   $logger->log("
