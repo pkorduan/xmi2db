@@ -77,6 +77,21 @@
       window.location = url + params.join('&');
     }
 
+    function execDb2GraphML() {
+      var umlSchema = document.getElementById("db2classes_umlSchema").value,
+          gmlSchema = document.getElementById("db2classes_gmlSchema").value,
+          createUserInfoColumns = document.getElementById('createUserInfoColumns').checked,
+          url = 'converter/db2graphml.php',
+          params = [];
+
+      if (umlSchema) params.push('umlSchema=' + umlSchema);
+      if (gmlSchema) params.push('gmlSchema=' + gmlSchema);
+      if (createUserInfoColumns) params.push('createUserInfoColumns=1');
+      if (params.length > 0) url += '?';
+
+      window.location = url + params.join('&');
+    }
+
     function execDb2Ogr() {
       var umlSchema = document.getElementById("db2ogr_umlSchema").value,
           ogrSchema = document.getElementById("db2ogr_ogrSchema").value,
@@ -255,7 +270,8 @@
     </div>
 
     <div class="text-center" id="queryButton">
-    <button type="submit" class="btn btn-primary btn-sm" id="queryNERC" onclick="execDb2Classes()"><span class="glyphicon glyphicon-ok"> </span> Erzeuge GML-Klassenschema</button>
+      <button type="submit" class="btn btn-primary btn-sm" id="queryNERC" onclick="execDb2Classes()"><span class="glyphicon glyphicon-ok"> </span> Erzeuge GML-Klassenschema</button>
+      <button type="submit" class="btn btn-primary btn-sm" id="queryNERC" onclick="execDb2GraphML()" style="background-color: #498649"><span class="glyphicon glyphicon-ok"> </span> Erzeuge GraphML vom Datenbank-Schema</button>
     </div>
 
     <h3>db2ogr</h4>

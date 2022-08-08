@@ -542,6 +542,91 @@ CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_objektkoordinaten
     return $sql;
   }
 
+  function asGraphML() {
+    $attribute_parts = array();
+    $xml = '    <node id="n' . $this->id . '">
+      <data key="d5">
+        <y:GenericNode configuration="com.yworks.entityRelationship.big_entity">
+          <y:Geometry height="103.0" width="220.0" x="10754.150804910565" y="16311.552704206119"/>
+          <y:Fill color="#FFFFE1" transparent="false"/>
+          <y:BorderStyle color="#000000" type="line" width="1.0"/>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" backgroundColor="#FFFFE1" configuration="com.yworks.entityRelationship.label.name" fontFamily="Courier" fontSize="12" fontStyle="plain" hasLineColor="false" height="19.66796875" horizontalTextPosition="center" iconTextGap="4" modelName="internal" modelPosition="t" textColor="#000000" verticalTextPosition="bottom" visible="true" width="184.029296875" x="17.9853515625" y="4.0">' . $this->name . '</y:NodeLabel>
+          <y:NodeLabel alignment="left" autoSizePolicy="content" backgroundColor="#FFFFFF" configuration="com.yworks.entityRelationship.label.attributes" fontFamily="Courier" fontSize="12" fontStyle="plain" hasLineColor="false" height="51.00390625" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="90.4140625" x="2.0" y="31.66796875">
+';
+
+    # Ausgabe id
+    if ($this->parent == null) {
+      $part .= " " . $this->primaryKey;
+      if (WITH_UUID_OSSP) {
+        $part .= " uuid NOT NULL DEFAULT uuid_generate_v1mc()";
+      }
+      else {
+        $part .= " " . $this->primaryKeyType;
+      }
+      $attribute_parts[] = $part;
+    }
+
+    $hat_objektkoordinaten = false;
+    # Ausgabe Attribute
+    foreach($this->attributes AS $attribute) {
+      if (!in_array($attribute->name, array(GEOMETRY_COLUMN_NAME, "objektkoordinaten"))) {
+        $attribute_parts[] = $attribute->asSql('table');
+      }
+      if ($attribute->name == "objektkoordinaten") {
+        $hat_objektkoordinaten = true;
+      }
+    }
+
+    # Ausgabe Assoziationsenden
+    $attribute_parts = array_merge(
+      $attribute_parts,
+      array_map(
+        function($associationsEnd) {
+          return $associationsEnd->asSql('table');
+        },
+        $this->associationEnds
+      )
+    );
+
+    if ($hat_objektkoordinaten) {
+      $this->attribute_parts.push('objektkoordinaten geometry(Point, ' . GEOMETRY_EPSG_CODE . ')');
+    }
+
+    # Zusammenfügen der Attributteile
+    $xml .= implode("\n", $attribute_parts);
+    $xml .= '
+            <y:LabelModel>
+              <y:ErdAttributesNodeLabelModel/>
+            </y:LabelModel>
+            <y:ModelParameter>
+              <y:ErdAttributesNodeLabelModelParameter/>
+            </y:ModelParameter>
+          </y:NodeLabel>
+        </y:GenericNode>
+      </data>
+    </node>
+';
+    # Ausgabe Vererbung
+    if ($this->parent != null) {
+      $xml .= 'INHERITS
+    <edge id="e' . $this->id .'" source="n' . $this->id . '" target="n' . $this->parent->id . '">
+      <data key="d9">
+        <y:PolyLineEdge>
+          <y:Path sx="0.0" sy="0.0" tx="0.0" ty="0.0"/>
+          <y:LineStyle color="#000000" type="dashed" width="1.0"/>
+          <y:Arrows source="white_triangle" target="circle"/>
+          <y:BendStyle smoothed="false"/>
+        </y:PolyLineEdge>
+      </data>
+    </edge>
+';
+    }
+
+
+
+    return $xml;
+  }
+
   function asFlattenedSql() {
     $attribute_parts = array();
     $sql = "

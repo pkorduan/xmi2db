@@ -13,6 +13,7 @@ class Schema {
     $this->attributes = array();
     $this->renameList = array();
     $this->unions = array();
+    $this->format = 'SQL';
   }
 
   function openConnection(
@@ -64,6 +65,25 @@ class Schema {
       $sql .= 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp"' . ";\n";
     }
     return $sql;
+  }
+
+  function asGraphML() {
+    $xml = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+  <graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:java="http://www.yworks.com/xml/yfiles-common/1.0/java" xmlns:sys="http://www.yworks.com/xml/yfiles-common/markup/primitives/2.0" xmlns:x="http://www.yworks.com/xml/yfiles-common/markup/2.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:y="http://www.yworks.com/xml/graphml" xmlns:yed="http://www.yworks.com/xml/yed/3" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://www.yworks.com/xml/schema/graphml/1.1/ygraphml.xsd">
+  <!-- Erstellt mit xmi2db ' . VERSION . ' -->
+  <key for="port" id="d0" yfiles.type="portgraphics"/>
+  <key for="port" id="d1" yfiles.type="portgeometry"/>
+  <key for="port" id="d2" yfiles.type="portuserdata"/>
+  <key attr.name="url" attr.type="string" for="node" id="d3"/>
+  <key attr.name="description" attr.type="string" for="node" id="d4"/>
+  <key for="node" id="d5" yfiles.type="nodegraphics"/>
+  <key for="graphml" id="d6" yfiles.type="resources"/>
+  <key attr.name="url" attr.type="string" for="edge" id="d7"/>
+  <key attr.name="description" attr.type="string" for="edge" id="d8"/>
+  <key for="edge" id="d9" yfiles.type="edgegraphics"/>
+  <graph edgedefault="directed" id="G">
+';
+    return $xml;
   }
 
   /**
@@ -753,7 +773,9 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
         $this->logger->log('</li>');
       }
       $this->logger->log('</ul>');
-      $sql .= $dataType->asSql();
+      if ($this->format != 'GraphML') {
+        $sql .= $dataType->asSql();
+      }
 
       if ($stereotype == 'Union')
         $this->unionTypes[$dataType->name] = $dataType;
@@ -847,7 +869,12 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
       $featureType->createUserInfoColumns();
     }
 
-    $sql = $featureType->asSql();
+    if ($this->format == 'GraphML') {
+      $sql = $featureType->asGraphML();
+    }
+    else {
+      $sql = $featureType->asSql();
+    }
 
     $this->logger->log('<pre>' . $sql . '</pre>');
 
@@ -868,7 +895,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
     $enumType = new EnumType($enumeration['name'], $this->logger);
     $enumType->setSchemas($this, $dbSchema);
     $enumType->setId($enumeration['id']);
-    $table->values = $enumType->getValues($enumeration);
+    $table->values = ($with_values ? $enumType->getValues($enumeration) : new Data());
 
     # definiere Attribute
     $wert_type = $enumType->getWertType();
@@ -880,14 +907,17 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
     # definiere Primärschlüssel
     $table->primaryKey = 'wert';
 
-    $this->logger->log($table->values->asTable($table->attributes));
+    if ($this->format != 'GraphML') {
+      $this->logger->log($table->values->asTable($table->attributes));
+      $sql  = $enumType->asSql();
+      if (
+        $table->values->rows[0][0] != $table->values->rows[0][1] AND
+        $table->values->rows[0][1] != 'NULL'
+      ) {
+        $sql .= $table->asSql($with_comments);
+      }
+    }
 
-    $sql  = $enumType->asSql();
-    if (
-      $table->values->rows[0][0] != $table->values->rows[0][1] AND
-      $table->values->rows[0][1] != 'NULL'
-    )
-    $sql .= $table->asSql();
     $this->logger->log('<pre>' . $tableSql . '</pre>');
     return $sql;
   }
@@ -905,10 +935,12 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
     $dataTypeAttribute = new Attribute('id', PG_CHARACTER_VARYING);
     $dataType->addAttribute($dataTypeAttribute);
 
-    # Erzeuge SQL und registriere DataType in Liste
-    $dataTypeSql = $dataType->asSql();
-    $this->logger->log('<pre>' . $dataTypeSql . '</pre>');
-    $sql .= $dataTypeSql;
+    if ($this->format != 'GraphML') {
+      # Erzeuge SQL und registriere DataType in Liste
+      $dataTypeSql = $dataType->asSql();
+      $this->logger->log('<pre>' . $dataTypeSql . '</pre>');
+      $sql .= $dataTypeSql;
+    }
     $this->dataTypes[$dataType->name] = $dataType;
     return $sql;
   }
@@ -916,7 +948,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
   function createCodeListTable($code_list) {
     $this->logger->log('<br><b>CodeList: ' . $code_list['name'] . '</b> (' . $code_list['xmi_id'] . ')');
 
-    $table = new Table($code_list['name']);
+    $table = new Table($code_list['name'], 1000 + $code_list['id']);
 
     # definiere Attribute
     $attribute = new Attribute('codeSpace', 'text');
@@ -929,10 +961,16 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
     # definiere Primärschlüssel
     $table->primaryKey = 'id';
 
-    # definiere Commentare
-    $table->addComment('UML-Typ: Code Liste');
+    if ($this->format == 'GraphML') {
+      $sql .= $table->asGraphML();
+    }
+    else {
+      # definiere Commentare
+      $table->addComment('UML-Typ: Code Liste');
 
-    $sql = $table->asSql();
+      $sql = $table->asSql();
+    }
+
     $this->logger->log('<pre>' . $sql . '</pre>');
 
     return $sql;
@@ -964,54 +1002,79 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
 
     $fkey_type = (WITH_UUID_OSSP) ? 'uuid' : 'text';
 
-    $sql = "\n
-" . PG_CREATE_TABLE . " {$table} (
-  " . strtolower($association['a_class']) . "_{$key1} $fkey_type,
-  " . strtolower($association['b_class']) . "_{$key2} $fkey_type,
-  PRIMARY KEY (" . strtolower($association['a_class']) . "_{$key1}, " . strtolower($association['b_class']) . "_{$key2})
-);
-";
-    if(COMMENTS) {
-	$sql .= "
-COMMENT ON TABLE {$table} IS 'Association {$association['a_class']} {$delimiter} {$association['b_class']}';
-";
-
-      if ($association['a_rel'] != '') {
-        //Fixed for self-associations (e.g. aa_reo)
-        if ($association['a_class'] == $association['b_class']) {
-          $sql .= "
-COMMENT ON COLUMN " . $table . "." . strtolower($association['a_class']) . "_1_gml_id IS '" . $association['a_rel'] ."';";
-        }
-        else {
-          $sql .= "
-COMMENT ON COLUMN " . $table . "." . strtolower($association['a_class']) . "_gml_id IS '" . $association['a_rel'] ."';";
-        }
-      }
-      if ($association['b_rel'] != '') {
-        if ($association['a_class'] == $association['b_class']) {
-          //Fixed for self-associations (e.g. aa_reo)
-          $sql .= "
-COMMENT ON COLUMN " . $table . "." . strtolower($association['b_class']) . "_2_gml_id IS '" . $association['b_rel'] ."';";
-        }
-        else {
-          $sql .= "
-COMMENT ON COLUMN " . $table . "." . strtolower($association['b_class']) . "_gml_id IS '" . $association['b_rel'] ."';";
-        }
-      }
+    if ($this->format == 'GraphML') {
+      $sql = '    <node id="n0">
+      <data key="d5">
+        <y:GenericNode configuration="com.yworks.entityRelationship.big_entity">
+          <y:Geometry height="103.0" width="220.0" x="10754.150804910565" y="16311.552704206119"/>
+          <y:Fill color="#FFFFE1" transparent="false"/>
+          <y:BorderStyle color="#000000" type="line" width="1.0"/>
+          <y:NodeLabel alignment="center" autoSizePolicy="content" backgroundColor="#FFFFE1" configuration="com.yworks.entityRelationship.label.name" fontFamily="Courier" fontSize="12" fontStyle="plain" hasLineColor="false" height="19.66796875" horizontalTextPosition="center" iconTextGap="4" modelName="internal" modelPosition="t" textColor="#000000" verticalTextPosition="bottom" visible="true" width="184.029296875" x="17.9853515625" y="4.0">' . $table . '</y:NodeLabel>
+          <y:NodeLabel alignment="left" autoSizePolicy="content" backgroundColor="#FFFFFF" configuration="com.yworks.entityRelationship.label.attributes" fontFamily="Courier" fontSize="12" fontStyle="plain" hasLineColor="false" height="51.00390625" horizontalTextPosition="center" iconTextGap="4" modelName="custom" textColor="#000000" verticalTextPosition="bottom" visible="true" width="90.4140625" x="2.0" y="31.66796875">
+            ' .  strtolower($association['a_class']) . '_' . $key1 . ' ' . $fkey_type . '
+            ' . strtolower($association['b_class']) . '_' . $key2 . ' ' . $fkey_type . '
+            <y:LabelModel>
+              <y:ErdAttributesNodeLabelModel/>
+            </y:LabelModel>
+            <y:ModelParameter>
+              <y:ErdAttributesNodeLabelModelParameter/>
+            </y:ModelParameter>
+          </y:NodeLabel>
+        </y:GenericNode>
+      </data>
+    </node>
+';
     }
-
-    //Fixed: Table identifier max length is 63
-    if (strlen($table_orig) > PG_MAX_NAME_LENGTH) {
-       $sql .= "
-ALTER TABLE " . $table . " ADD COLUMN " . $table . " " . PG_CHARACTER_VARYING . "(255);
-";
-
+    else {
+      $sql = "\n
+  " . PG_CREATE_TABLE . " {$table} (
+    " . strtolower($association['a_class']) . "_{$key1} $fkey_type,
+    " . strtolower($association['b_class']) . "_{$key2} $fkey_type,
+    PRIMARY KEY (" . strtolower($association['a_class']) . "_{$key1}, " . strtolower($association['b_class']) . "_{$key2})
+  );
+  ";
       if(COMMENTS) {
-	$sql .= "
-COMMENT ON COLUMN " . $table .".". $table ."
-IS '" . $table_orig .
-"';
-";
+  	$sql .= "
+  COMMENT ON TABLE {$table} IS 'Association {$association['a_class']} {$delimiter} {$association['b_class']}';
+  ";
+
+        if ($association['a_rel'] != '') {
+          //Fixed for self-associations (e.g. aa_reo)
+          if ($association['a_class'] == $association['b_class']) {
+            $sql .= "
+  COMMENT ON COLUMN " . $table . "." . strtolower($association['a_class']) . "_1_gml_id IS '" . $association['a_rel'] ."';";
+          }
+          else {
+            $sql .= "
+  COMMENT ON COLUMN " . $table . "." . strtolower($association['a_class']) . "_gml_id IS '" . $association['a_rel'] ."';";
+          }
+        }
+        if ($association['b_rel'] != '') {
+          if ($association['a_class'] == $association['b_class']) {
+            //Fixed for self-associations (e.g. aa_reo)
+            $sql .= "
+  COMMENT ON COLUMN " . $table . "." . strtolower($association['b_class']) . "_2_gml_id IS '" . $association['b_rel'] ."';";
+          }
+          else {
+            $sql .= "
+  COMMENT ON COLUMN " . $table . "." . strtolower($association['b_class']) . "_gml_id IS '" . $association['b_rel'] ."';";
+          }
+        }
+      }
+
+      //Fixed: Table identifier max length is 63
+      if (strlen($table_orig) > PG_MAX_NAME_LENGTH) {
+         $sql .= "
+  ALTER TABLE " . $table . " ADD COLUMN " . $table . " " . PG_CHARACTER_VARYING . "(255);
+  ";
+
+        if(COMMENTS) {
+  	$sql .= "
+  COMMENT ON COLUMN " . $table .".". $table ."
+  IS '" . $table_orig .
+  "';
+  ";
+        }
       }
     }
 
@@ -1411,10 +1474,12 @@ ORDER BY
     $comment .= ' ' . $dataTypeAttribute->multiplicity;
     $dataType->addComment($comment);
 
-    # Erzeuge SQL und registriere DataType in Liste
-    $dataTypeSql = $dataType->asSql();
-    $this->logger->log('<pre>' . $dataTypeSql . '</pre>');
-    $sql .= $dataTypeSql;
+    if ($this->format != 'GraphML') {
+      # Erzeuge SQL und registriere DataType in Liste
+      $dataTypeSql = $dataType->asSql();
+      $this->logger->log('<pre>' . $dataTypeSql . '</pre>');
+      $sql .= $dataTypeSql;
+    }
     $this->dataTypes[$dataType->name] = $dataType;
 
     #*******************************
@@ -1446,9 +1511,11 @@ ORDER BY
     $dataType->addComment($comment);
 
     # Erzeuge SQL und registriere DataType in Liste
-    $dataTypeSql = $dataType->asSql();
-    $this->logger->log('<pre>' . $dataTypeSql . '</pre>');
-    $sql .= $dataTypeSql;
+    if ($this->format != 'GraphML') {
+      $dataTypeSql = $dataType->asSql();
+      $this->logger->log('<pre>' . $dataTypeSql . '</pre>');
+      $sql .= $dataTypeSql;
+    }
     $this->dataTypes[$dataType->name] = $dataType;
 
     #*******************************
@@ -1474,15 +1541,18 @@ ORDER BY
     );
     $dataType->addAttribute($dataTypeAttribute);
 
+
     # Create Comments
     $comment  = $dataTypeAttribute->attribute_type . ': ' . $dataTypeAttribute->name;
     $comment .= ' ' . $dataTypeAttribute->multiplicity;
     $dataType->addComment($comment);
 
-    # Erzeuge SQL und registriere DataType in Liste
-    $dataTypeSql = $dataType->asSql();
-    $this->logger->log('<pre>' . $dataTypeSql . '</pre>');
-    $sql .= $dataTypeSql;
+    if ($this->format != 'GraphML') {
+      # Erzeuge SQL und registriere DataType in Liste
+      $dataTypeSql = $dataType->asSql();
+      $this->logger->log('<pre>' . $dataTypeSql . '</pre>');
+      $sql .= $dataTypeSql;
+    }
     $this->dataTypes[$dataType->name] = $dataType;
 
     #*******************************
@@ -1512,10 +1582,12 @@ ORDER BY
     $comment  = $dataTypeAttribute->attribute_type . ': ' . $dataTypeAttribute->name;
     $dataType->addComment($comment);
 
-    # Erzeuge SQL und registriere DataType in Liste
-    $dataTypeSql = $dataType->asSql();
-    $this->logger->log('<pre>' . $dataTypeSql . '</pre>');
-    $sql .= $dataTypeSql;
+    if ($this->format != 'GraphML') {
+      # Erzeuge SQL und registriere DataType in Liste
+      $dataTypeSql = $dataType->asSql();
+      $this->logger->log('<pre>' . $dataTypeSql . '</pre>');
+      $sql .= $dataTypeSql;
+    }
     $this->dataTypes[$dataType->name] = $dataType;
 
     #*******************************
@@ -1545,10 +1617,12 @@ ORDER BY
     $comment  = $dataTypeAttribute->attribute_type . ': ' . $dataTypeAttribute->name;
     $dataType->addComment($comment);
 
-    # Erzeuge SQL und registriere DataType in Liste
-    $dataTypeSql = $dataType->asSql();
-    $this->logger->log('<pre>' . $dataTypeSql . '</pre>');
-    $sql .= $dataTypeSql;
+    if ($this->format != 'GraphML') {
+      # Erzeuge SQL und registriere DataType in Liste
+      $dataTypeSql = $dataType->asSql();
+      $this->logger->log('<pre>' . $dataTypeSql . '</pre>');
+      $sql .= $dataTypeSql;
+    }
     $this->dataTypes[$dataType->name] = $dataType;
     return $sql;
   }
