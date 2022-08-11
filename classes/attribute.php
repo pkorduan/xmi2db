@@ -6,7 +6,7 @@ class Attribute {
     $this->name = $this->getName($name);
     $this->brackets = '';
     $this->parent = $parent;
-    $this->parts = parts;
+    $this->parts = $parts;
     $this->datatype = strtolower(substr($datatype, 0, PG_MAX_NAME_LENGTH));
     $this->datatype_alias = $datatype;
     $this->attribute_type = '';

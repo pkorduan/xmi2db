@@ -238,8 +238,7 @@ ALTER TABLE ax_fortfuehrungsauftrag SET WITH OIDS;";
       }
     }
 
-    $sql .= "
-CREATE VIEW alkis_wertearten(k,v,d,bezeichnung,element) AS\n  " . implode(" UNION\n  ", $wv) . ";";
+    #$sql .= "CREATE VIEW alkis_wertearten(k,v,d,bezeichnung,element) AS\n  " . implode(" UNION\n  ", $wv) . ";";
 
     return $sql;
   }

@@ -14,7 +14,7 @@ class Logger {
     for ($i = 0; $i < $indent; $i++) {
       $space .= '&nbsp;&nbsp;';
     }
-    $this->text[] = $text;
+    $this->text = $text;
     if ($this->level > 0 or $log_always) {
       if ($indent > 0) {
         $text = str_replace('<br>', '<br>' . $space . '|--', $text);
