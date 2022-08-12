@@ -22,7 +22,7 @@ CREATE TABLE schema_name.comments (
 -- Name: comments_id_seq; Type: SEQUENCE; Schema: schema_name; Owner: pgadmin
 --
 
-CREATE SEQUENCE comments_id_seq
+CREATE SEQUENCE IF NOT EXISTS comments_id_seq
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE

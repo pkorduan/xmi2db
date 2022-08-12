@@ -15,6 +15,7 @@ class xmi2db {
   function xmi2db($schema) {
     $this->root_element = 'XMI.content';
     $this->schema = $schema;
+    $this->enumeration_stereotype_id = null;
   }
 
   /**
@@ -162,11 +163,11 @@ class xmi2db {
   }
 
   function getQueriesForStereotypes() {
-    //if name="enumeration" getQueriesForStereotypesEnumarations()
+    //if name="enumeration" getQueriesForStereotypesEnumerations()
     //if name="CodeList" getQueriesForStereotypesCodeList()
   }
 
-  function getQueriesForStereotypesEnumarations() {
+  function getQueriesForStereotypesEnumerations() {
   }
 
   function getQueriesForStereotypesCodeList() {
@@ -197,6 +198,11 @@ class xmi2db {
     //echo '<br>' . $sql;
     $result = pg_query($this->conn, $sql);
     $row = pg_fetch_row($result);
+    if($row == FALSE) {
+      debug_print_backtrace();
+      echo "ERROR: $sql\n";
+      exit(1);
+    }
     //echo '<br>Returned id: ' . $row[0];
     return $row[0];
     //2. AssociationEnds der Association speichern und dabei ID der Association angeben
@@ -225,6 +231,11 @@ class xmi2db {
     //echo '<br>' . $sql;
     $result = pg_query($this->conn, $sql);
     $row = pg_fetch_row($result);
+    if($row == FALSE) {
+      debug_print_backtrace();
+      echo "ERROR: $sql\n";
+      exit(1);
+    }
     //echo '<br>Returned id: ' . $row[0];
     return $row[0];
   }
@@ -252,10 +263,15 @@ class xmi2db {
     //    model_id
     //    isActive
     //    updated_at
-    $sql = "INSERT INTO ".$this->schema.".uml_classes (xmi_id, name, visibility, \"isSpecification\", \"isRoot\", \"isLeaf\", \"isAbstract\", package_id, stereotype_id, general_id, created_at) VALUES('" . $class['xmi.id'] . "', '" . $class['name'] . "', '" . $class['visibility'] . "', '" . $class['isSpecification'] . "', '" . $class['isRoot'] . "', '" . $class['isLeaf'] . "', '" . $class['isAbstract'] . "', '" . $package_id . "', '" . $class['stereotype_id'] . "', '" . $class['general_id'] . "', CURRENT_TIMESTAMP) RETURNING id";
+    $sql = "INSERT INTO ".$this->schema.".uml_classes (xmi_id, name, visibility, \"isSpecification\", \"isRoot\", \"isLeaf\", \"isAbstract\", package_id, stereotype_id, general_id, created_at) VALUES ('" . $class['xmi.id'] . "', '" . $class['name'] . "', '" . $class['visibility'] . "', '" . $class['isSpecification'] . "', '" . $class['isRoot'] . "', '" . $class['isLeaf'] . "', '" . $class['isAbstract'] . "', '" . $package_id . "', '" . $class['stereotype_id'] . "', '" . $class['general_id'] . "', CURRENT_TIMESTAMP) RETURNING id";
     //echo '<br>' . $sql;
     $result = pg_query($this->conn, $sql);
     $row = pg_fetch_row($result);
+    if($row == FALSE) {
+      echo "ERROR!  No result\n";
+      debug_print_backtrace();
+      exit(1);
+    }
     //echo '<br>Returned id: ' . $row[0];
     return $row[0];
   }
@@ -285,6 +301,11 @@ class xmi2db {
     //echo '<br>' . $sql;
     $result = pg_query($this->conn, $sql);
     $row = pg_fetch_row($result);
+    if($row == FALSE) {
+      echo "ERROR: $sql\n";
+      debug_print_backtrace();
+      exit(1);
+    }
     //echo '<br>Returned id: ' . $row[0];
     return $row[0];
   }
@@ -320,6 +341,11 @@ class xmi2db {
     //echo '<br>' . $sql;
     $result = pg_query($this->conn, $sql);
     $row = pg_fetch_row($result);
+    if($row == FALSE) {
+      echo "ERROR: $sql\n";
+      debug_print_backtrace();
+      exit(1);
+    }
     //echo '<br>Returned id: ' . $row[0];
     return $row[0];
 
@@ -346,6 +372,11 @@ class xmi2db {
     //echo '<br>' . $sql;
     $result = pg_query($this->conn, $sql);
     $row = pg_fetch_row($result);
+    if($row == FALSE) {
+      echo "ERROR: $sql\n";
+      debug_print_backtrace();
+      exit(1);
+    }
     //echo '<br>Returned id: ' . $row[0];
     return $row[0];
   }
@@ -371,6 +402,11 @@ class xmi2db {
     //echo '<br>' . $sql;
     $result = pg_query($this->conn, $sql);
     $row = pg_fetch_row($result);
+    if($row == FALSE) {
+      echo "ERROR: $sql\n";
+      debug_print_backtrace();
+      exit(1);
+    }
     //echo '<br>Returned id: ' . $row[0];
     return $row[0];
   }
@@ -390,6 +426,11 @@ class xmi2db {
     //echo '<br>' . $sql;
     $result = pg_query($this->conn, $sql);
     $row = pg_fetch_row($result);
+    if($row == FALSE) {
+      echo "ERROR: $sql\n";
+      debug_print_backtrace();
+      exit(1);
+    }
     //echo '<br>Returned id: ' . $row[0];
     return $row[0];
   }
@@ -412,6 +453,11 @@ class xmi2db {
     //echo '<br>' . $sql;
     $result = pg_query($this->conn, $sql);
     $row = pg_fetch_row($result);
+    if($row == FALSE) {
+      echo "ERROR: $sql\n";
+      debug_print_backtrace();
+      exit(1);
+    }
     //echo '<br>Returned id: ' . $row[0];
     return $row[0];
   }
@@ -438,6 +484,11 @@ class xmi2db {
     //echo '<br>' . $sql;
     $result = pg_query($this->conn, $sql);
     $row = pg_fetch_row($result);
+    if($row == FALSE) {
+      debug_print_backtrace();
+      echo "ERROR: $sql\n";
+      exit(1);
+    }
     //echo '<br>Returned id: ' . $row[0];
     return $row[0];
   }
@@ -457,6 +508,11 @@ class xmi2db {
     //echo '<br>' . $sql;
     $result = pg_query($this->conn, $sql);
     $row = pg_fetch_row($result);
+    if($row == FALSE) {
+      echo "ERROR: $sql\n";
+      debug_print_backtrace();
+      exit(1);
+    }
     //echo '<br>Returned id: ' . $row[0];
     return $row[0];
   }
@@ -630,6 +686,119 @@ class xmi2db {
     }
   }
 
+  function iterateClass($class, $packageId) {
+    echo "\t\tKlasse: ".$class->attributes()->name."<br>";
+    Pascoul::send_message(0, "\t\tKlasse: ".$class->attributes()->name);
+
+    $classArray = $this->getAttributeInfos($class);
+
+    //stereotypes
+    if (isset($class->{'ModelElement.stereotype'})) {
+      //$stereotypeId = $class->{'ModelElement.stereotype'}->Stereotype->attributes()->{'xmi.idref'};
+      //$classId = $this->buildQueryForClass($classArray, $packageId, $stereotypeId);
+      if (isset($class->{'ModelElement.stereotype'}->Stereotype->attributes()->href))
+        $classArray['stereotype_id'] = (string) $class->{'ModelElement.stereotype'}->Stereotype->attributes()->href;
+      else if (isset($class->{'ModelElement.stereotype'}->Stereotype->attributes()->{'xmi.idref'}))
+        $classArray['stereotype_id'] = (string) $class->{'ModelElement.stereotype'}->Stereotype->attributes()->{'xmi.idref'};
+    } else if($class->getName() == 'Enumeration') {
+      if($this->enumeration_stereotype_id == null) {
+        $result = pg_query($this->conn, "SELECT xmi_id FROM " . $this->schema . ".stereotypes WHERE name='enumeration' AND lower(\"baseClass\")='class'");
+        $row = pg_fetch_row($result);
+        $this->enumeration_stereotype_id = $row[0];
+      }
+      $classArray['stereotype_id'] = $this->enumeration_stereotype_id;
+    } else {
+      $classArray['stereotype_id'] = -1;
+    }
+
+    //Generalizations
+    /*
+       <UML:GeneralizableElement.generalization>
+       <UML:Generalization xmi.idref="EAID_8D332318_85B0_468f_997D_ACE86ABEDB1F"/>
+       </UML:GeneralizableElement.generalization>
+     */
+    if (isset($class->{'GeneralizableElement.generalization'}->Generalization)) {
+      $classArray['general_id'] = (string) $class->{'GeneralizableElement.generalization'}->Generalization->attributes()->{'xmi.idref'};
+    } else {
+      $classArray['general_id'] = '-1';
+    }
+
+    $classId = $this->buildQueryForClass($classArray, $packageId);
+
+    //taggedValues
+    $i_taggedValues = 0;
+    if (isset($class->{'ModelElement.taggedValue'})) {
+      foreach ($class->{'ModelElement.taggedValue'}->TaggedValue as $taggedValue) {
+        $classTaggedValueArray = $this->getAttributeInfos($taggedValue);
+        $this->buildQueryForTaggedValue($classTaggedValueArray, 'NULL', $classId);
+        //echo "\t\t\tTaggedValue: ".$taggedValue->{'TaggedValue.type'}->TagDefinition->attributes()->{'xmi.idref'}."<br>";
+        //echo "\t\t\tTaggedValue isSpecification: ".$taggedValue->attributes()->isSpecification."<br>";
+        //echo "\t\t\tTaggedValue dataValue: ".$taggedValue->{'TaggedValue.dataValue'}."<br>";
+        //echo "\t\t\tTaggedValue type: ".$taggedValue->{'TaggedValue.type'}->TagDefinition->attributes()->{'xmi.idref'}."<br>";
+	$i_taggedValues++;
+      }
+    }
+    echo "\t\t\t".$i_taggedValues." taggedValues in die DB geschrieben.<br>";
+    Pascoul::send_message(0, "\t\t\t".$i_taggedValues." taggedValues in die DB geschrieben");
+
+    //attributes
+    $i_attributes = 0;
+    if (isset($class->{'Classifier.feature'})) {
+      foreach ($class->{'Classifier.feature'}->Attribute as $attribute) {
+        //$this->getAttributeInfos($attribute);
+        $attributeArray = $this->getAttributeInfos($attribute);
+        //print_r($attributeArray);
+        //echo "\t\t\tAttribut: ".$attribute->attributes()->name."<br>";
+        //echo "\t\t\t\tAttribut ID: ".$attribute->attributes()->{'xmi.id'}."<br>";
+        if (isset($attribute->{'StructuralFeature.type'}->DataType)) {
+          //echo "\t\t\t\tStructuralFeature DataType IDref: ".$attribute->{'StructuralFeature.type'}->DataType->attributes()->{'xmi.idref'}."<br>";
+          if (isset($attribute->{'StructuralFeature.type'}->DataType->attributes()->{'xmi.idref'})) $attributeArray['datatype'] = (string) $attribute->{'StructuralFeature.type'}->DataType->attributes()->{'xmi.idref'};
+          if (isset($attribute->{'StructuralFeature.type'}->DataType->attributes()->href)) $attributeArray['datatype'] = (string) $attribute->{'StructuralFeature.type'}->DataType->attributes()->href;
+        }
+        else if (isset($attribute->{'StructuralFeature.type'}->Class)) $attributeArray['classifier'] = (string) $attribute->{'StructuralFeature.type'}->Class->attributes()->{'xmi.idref'};
+        //was:
+        //else if (isset($attribute->{'StructuralFeature.type'}->Class)) $attributeArray['datatype'] = (string) $attribute->{'StructuralFeature.type'}->Class->attributes()->{'xmi.idref'};
+
+        if (isset($attribute->{'StructuralFeature.type'}->Classifier)) {
+          //echo "\t\t\t\tStructuralFeature Classifier IDref: ".$attribute->{'StructuralFeature.type'}->Classifier->attributes()->{'xmi.idref'}."<br>";
+          $attributeArray['classifier'] = (string) $attribute->{'StructuralFeature.type'}->Classifier->attributes()->{'xmi.idref'};
+        }
+
+        if (isset($attribute->{'Attribute.initialValue'}->Expression)) {
+          //echo "\t\t\t\tinitialValue id: ".$attribute->{'Attribute.initialValue'}->Expression->attributes()->{'xmi.id'}."<br>";
+          $attributeArray['initialvalue_id'] = (string) $attribute->{'Attribute.initialValue'}->Expression->attributes()->{'xmi.id'};
+          //echo "\t\t\t\tinitialValue body: ".$attribute->{'Attribute.initialValue'}->Expression->attributes()->body."<br>";
+          $attributeArray['initialvalue_body'] = (string) $attribute->{'Attribute.initialValue'}->Expression->attributes()->body;
+        }
+
+        /*
+           echo "\t\t\t\tStructuralFeature Multiplicity id: ".$attribute->{'StructuralFeature.multiplicity'}->Multiplicity->attributes()->{'xmi.id'}."<br>";
+           echo "\t\t\t\tStructuralFeature Multiplicity Range id: ".$attribute->{'StructuralFeature.multiplicity'}->Multiplicity->{'Multiplicity.range'}->MultiplicityRange->attributes()->{'xmi.id'}."<br>";
+           echo "\t\t\t\tStructuralFeature Multiplicity Range lower: ".$attribute->{'StructuralFeature.multiplicity'}->Multiplicity->{'Multiplicity.range'}->MultiplicityRange->attributes()->lower."<br>";
+           echo "\t\t\t\tStructuralFeature Multiplicity Range upper: ".$attribute->{'StructuralFeature.multiplicity'}->Multiplicity->{'Multiplicity.range'}->MultiplicityRange->attributes()->upper."<br>";
+         */
+        //$this->getMultiplicityInfos($attribute->{'StructuralFeature.multiplicity'}->Multiplicity);
+        $attributeArrayMultiplicity = array_merge($attributeArray, $this->getMultiplicityInfos($attribute->{'StructuralFeature.multiplicity'}->Multiplicity));
+
+        $attributeId = $this->buildQueryForAttribute($attributeArrayMultiplicity, $classId);
+
+        //Bsp: name="gebietsTyp" xmi.id="EAID_44CDE765_DE87_4264_80A2_960C6B709A1F"
+        if (isset($attribute->{'ModelElement.taggedValue'}->TaggedValue)) {
+          foreach ($attribute->{'ModelElement.taggedValue'}->TaggedValue as $taggedValueAttr) {
+            $attributeTaggedValueArray = $this->getAttributeInfos($taggedValueAttr);
+            $this->buildQueryForTaggedValue($attributeTaggedValueArray, $attributeId, 'NULL');
+            //echo "\t\t\t\tTaggedValue: ".$taggedValueAttr->{'TaggedValue.type'}->TagDefinition->attributes()->{'xmi.idref'}."<br>";
+            //echo "\t\t\t\tTaggedValue isSpecification: ".$taggedValueAttr->attributes()->isSpecification."<br>";
+            //echo "\t\t\t\tTaggedValue dataValue: ".$taggedValueAttr->{'TaggedValue.dataValue'}."<br>";
+          }
+        }
+        $i_attributes++;
+      }
+    }
+    echo "\t\t\t".$i_attributes." Attribute in die DB geschrieben.<br>";
+    Pascoul::send_message(0, "\t\t\t".$i_attributes." Attribute in die DB geschrieben");
+  }
+
   /** Go through a package and store everything
    * TODO
    */
@@ -656,113 +825,24 @@ class xmi2db {
 
     //TODO: ModelElement.comment mit auswerten
 
-    if (isset($pckg->{'Namespace.ownedElement'})) $pckgChildren = $pckg->{'Namespace.ownedElement'};
-    else $pckgChildren = $pckg;
+    if (isset($pckg->{'Namespace.ownedElement'}))
+      $pckgChildren = $pckg->{'Namespace.ownedElement'};
+    else
+      $pckgChildren = $pckg;
 
     $i_classes = 0;
-    //iterate through classes
-    foreach ($pckgChildren->Class as $class) {
-      echo "\t\tKlasse: ".$class->attributes()->name."<br>";
-      Pascoul::send_message(0, "\t\tKlasse: ".$class->attributes()->name);
-      //$this->getAttributeInfos($class);
 
-      $classArray = $this->getAttributeInfos($class);
-
-      //stereotypes
-      if (isset($class->{'ModelElement.stereotype'})) {
-        //$stereotypeId = $class->{'ModelElement.stereotype'}->Stereotype->attributes()->{'xmi.idref'};
-        //$classId = $this->buildQueryForClass($classArray, $packageId, $stereotypeId);
-        if (isset($class->{'ModelElement.stereotype'}->Stereotype->attributes()->{'xmi.idref'})) $classArray['stereotype_id'] = (string) $class->{'ModelElement.stereotype'}->Stereotype->attributes()->{'xmi.idref'};
-        if (isset($class->{'ModelElement.stereotype'}->Stereotype->attributes()->href)) $classArray['stereotype_id'] = (string) $class->{'ModelElement.stereotype'}->Stereotype->attributes()->href;
-      }
-      else $classArray['stereotype_id'] = '-1';
-
-
-      //Generalizations
-      /*
-         <UML:GeneralizableElement.generalization>
-         <UML:Generalization xmi.idref="EAID_8D332318_85B0_468f_997D_ACE86ABEDB1F"/>
-         </UML:GeneralizableElement.generalization>
-       */
-      if (isset($class->{'GeneralizableElement.generalization'}->Generalization)) $classArray['general_id'] = (string) $class->{'GeneralizableElement.generalization'}->Generalization->attributes()->{'xmi.idref'};
-      else $classArray['general_id'] = '-1';
-
-      $classId = $this->buildQueryForClass($classArray, $packageId);
-
-      //taggedValues
-      $i_taggedValues = 0;
-      if (isset($class->{'ModelElement.taggedValue'})) {
-        foreach ($class->{'ModelElement.taggedValue'}->TaggedValue as $taggedValue) {
-          $classTaggedValueArray = $this->getAttributeInfos($taggedValue);
-          $this->buildQueryForTaggedValue($classTaggedValueArray, 'NULL', $classId);
-          //echo "\t\t\tTaggedValue: ".$taggedValue->{'TaggedValue.type'}->TagDefinition->attributes()->{'xmi.idref'}."<br>";
-          //echo "\t\t\tTaggedValue isSpecification: ".$taggedValue->attributes()->isSpecification."<br>";
-          //echo "\t\t\tTaggedValue dataValue: ".$taggedValue->{'TaggedValue.dataValue'}."<br>";
-          //echo "\t\t\tTaggedValue type: ".$taggedValue->{'TaggedValue.type'}->TagDefinition->attributes()->{'xmi.idref'}."<br>";
-          $i_taggedValues++;
-        }
-      }
-      echo "\t\t\t".$i_taggedValues." taggedValues in die DB geschrieben.<br>";
-      Pascoul::send_message(0, "\t\t\t".$i_taggedValues." taggedValues in die DB geschrieben");
-
-      //attributes
-      $i_attributes = 0;
-      if (isset($class->{'Classifier.feature'})) {
-        foreach ($class->{'Classifier.feature'}->Attribute as $attribute) {
-          //$this->getAttributeInfos($attribute);
-          $attributeArray = $this->getAttributeInfos($attribute);
-          //print_r($attributeArray);
-          //echo "\t\t\tAttribut: ".$attribute->attributes()->name."<br>";
-          //echo "\t\t\t\tAttribut ID: ".$attribute->attributes()->{'xmi.id'}."<br>";
-          if (isset($attribute->{'StructuralFeature.type'}->DataType)) {
-            //echo "\t\t\t\tStructuralFeature DataType IDref: ".$attribute->{'StructuralFeature.type'}->DataType->attributes()->{'xmi.idref'}."<br>";
-            if (isset($attribute->{'StructuralFeature.type'}->DataType->attributes()->{'xmi.idref'})) $attributeArray['datatype'] = (string) $attribute->{'StructuralFeature.type'}->DataType->attributes()->{'xmi.idref'};
-            if (isset($attribute->{'StructuralFeature.type'}->DataType->attributes()->href)) $attributeArray['datatype'] = (string) $attribute->{'StructuralFeature.type'}->DataType->attributes()->href;
-          }
-          else if (isset($attribute->{'StructuralFeature.type'}->Class)) $attributeArray['classifier'] = (string) $attribute->{'StructuralFeature.type'}->Class->attributes()->{'xmi.idref'};
-          //was:
-          //else if (isset($attribute->{'StructuralFeature.type'}->Class)) $attributeArray['datatype'] = (string) $attribute->{'StructuralFeature.type'}->Class->attributes()->{'xmi.idref'};
-
-          if (isset($attribute->{'StructuralFeature.type'}->Classifier)) {
-            //echo "\t\t\t\tStructuralFeature Classifier IDref: ".$attribute->{'StructuralFeature.type'}->Classifier->attributes()->{'xmi.idref'}."<br>";
-            $attributeArray['classifier'] = (string) $attribute->{'StructuralFeature.type'}->Classifier->attributes()->{'xmi.idref'};
-          }
-
-          if (isset($attribute->{'Attribute.initialValue'}->Expression)) {
-            //echo "\t\t\t\tinitialValue id: ".$attribute->{'Attribute.initialValue'}->Expression->attributes()->{'xmi.id'}."<br>";
-            $attributeArray['initialvalue_id'] = (string) $attribute->{'Attribute.initialValue'}->Expression->attributes()->{'xmi.id'};
-            //echo "\t\t\t\tinitialValue body: ".$attribute->{'Attribute.initialValue'}->Expression->attributes()->body."<br>";
-            $attributeArray['initialvalue_body'] = (string) $attribute->{'Attribute.initialValue'}->Expression->attributes()->body;
-          }
-
-          /*
-             echo "\t\t\t\tStructuralFeature Multiplicity id: ".$attribute->{'StructuralFeature.multiplicity'}->Multiplicity->attributes()->{'xmi.id'}."<br>";
-             echo "\t\t\t\tStructuralFeature Multiplicity Range id: ".$attribute->{'StructuralFeature.multiplicity'}->Multiplicity->{'Multiplicity.range'}->MultiplicityRange->attributes()->{'xmi.id'}."<br>";
-             echo "\t\t\t\tStructuralFeature Multiplicity Range lower: ".$attribute->{'StructuralFeature.multiplicity'}->Multiplicity->{'Multiplicity.range'}->MultiplicityRange->attributes()->lower."<br>";
-             echo "\t\t\t\tStructuralFeature Multiplicity Range upper: ".$attribute->{'StructuralFeature.multiplicity'}->Multiplicity->{'Multiplicity.range'}->MultiplicityRange->attributes()->upper."<br>";
-           */
-          //$this->getMultiplicityInfos($attribute->{'StructuralFeature.multiplicity'}->Multiplicity);
-          $attributeArrayMultiplicity = array_merge($attributeArray, $this->getMultiplicityInfos($attribute->{'StructuralFeature.multiplicity'}->Multiplicity));
-
-          $attributeId = $this->buildQueryForAttribute($attributeArrayMultiplicity, $classId);
-
-          //Bsp: name="gebietsTyp" xmi.id="EAID_44CDE765_DE87_4264_80A2_960C6B709A1F"
-          if (isset($attribute->{'ModelElement.taggedValue'}->TaggedValue)) {
-            foreach ($attribute->{'ModelElement.taggedValue'}->TaggedValue as $taggedValueAttr) {
-              $attributeTaggedValueArray = $this->getAttributeInfos($taggedValueAttr);
-              $this->buildQueryForTaggedValue($attributeTaggedValueArray, $attributeId, 'NULL');
-              //echo "\t\t\t\tTaggedValue: ".$taggedValueAttr->{'TaggedValue.type'}->TagDefinition->attributes()->{'xmi.idref'}."<br>";
-              //echo "\t\t\t\tTaggedValue isSpecification: ".$taggedValueAttr->attributes()->isSpecification."<br>";
-              //echo "\t\t\t\tTaggedValue dataValue: ".$taggedValueAttr->{'TaggedValue.dataValue'}."<br>";
-            }
-          }
-          $i_attributes++;
-        }
-      }
-      echo "\t\t\t".$i_attributes." Attribute in die DB geschrieben.<br>";
-      Pascoul::send_message(0, "\t\t\t".$i_attributes." Attribute in die DB geschrieben");
+    foreach ($pckgChildren->Enumeration as $enumeration) {
+      $this->iterateClass($enumeration, $packageId);
       $i_classes++;
     }
+
+    //iterate through classes
+    foreach ($pckgChildren->Class as $class) {
+      $this->iterateClass($class, $packageId);
+      $i_classes++;
+    }
+
     echo "\t\t".$i_classes." Klassen in die DB geschrieben.<br>";
     Pascoul::send_message(0, "<i>\t\t".$i_classes." Klassen in die DB geschrieben</i>");
 
@@ -875,12 +955,17 @@ class xmi2db {
       Pascoul::send_message(0, 'SCHEMA_CONF_FILE eingelesen' , $progress++);
     }
     else Pascoul::send_message(0, 'SCHEMA_CONF_FILE NICHT eingelesen' , $progress++);
-    $packages_conf = str_replace("'", "", PACKAGES);
-    $packages_conf = explode(";", $packages_conf);
-    //Delete single empty value so that array is really eampty when there are no PACKAGES given in database_conf
-    //if ($packages_conf[0]=="") $packages_conf = array_filter($packages_conf);
-    //Delete sole entry in array ('PACKAGES') which means that there is no package configured, thus the array should be empty.
-    if ($packages_conf[0]='PACKAGES') unset($packages_conf[0]);;
+    if(defined('PACKAGES')) {
+      $packages_conf = str_replace("'", "", PACKAGES);
+      $packages_conf = explode(";", $packages_conf);
+      //Delete single empty value so that array is really eampty when there are no PACKAGES given in database_conf
+      //if ($packages_conf[0]=="") $packages_conf = array_filter($packages_conf);
+      //Delete sole entry in array ('PACKAGES') which means that there is no package configured, thus the array should be empty.
+      if ($packages_conf[0]='PACKAGES')
+        unset($packages_conf[0]);
+    } else
+      $packages_conf=array();
+
     $this->setConfiguredPackages($packages_conf);
 
     $this->buildSchema();
@@ -1011,6 +1096,10 @@ class xmi2db {
     foreach ($xmi->{$this->root_element}->children($namespaces["UML"])->Model->{'Namespace.ownedElement'}->Stereotype as $stereotypes) {
       $stereotypesArray = $this->getAttributeInfos($stereotypes);
       $stereotypesArray['baseClass'] = (string) $stereotypes->{'Stereotype.baseClass'};
+      if($stereotypesArray['baseClass'] == "Enumeration" && $stereotypesArray['name'] == 'retired') {
+        $stereotypesArray['name'] = "enumeration";
+        $stereotypesArray['baseClass'] = "Class";
+      }
       $this->buildQueryForStereotype($stereotypesArray);
       //echo $stereotypes->attributes()->name."<br>";
       //echo "baseClass: ".$stereotypes->{'Stereotype.baseClass'}."<br>";
@@ -1093,11 +1182,11 @@ class xmi2db {
       $sql[$c] = "INSERT INTO " . $this->table ." SET ";
       foreach($this->data as $d_array) {
         $sql[$c] .= $d_array[2] . " = '";
-        // node root attribuite
+        // node root attribute
         if ($d_array[1]=="attr" and empty($d_array[0]) and isset($item[ $d_array[3] ])) {
           $sql[$c] .= utf8_decode($item[ $d_array[3] ]);
         }
-        // node attribuite
+        // node attribute
         elseif ($d_array[1]=="attr" and !empty( $item->{$d_array[0]}[ $d_array[3] ] ))
         {
           $sql[$c] .= utf8_decode($item->{$d_array[0]}[ $d_array[3] ]);
@@ -1120,7 +1209,7 @@ class xmi2db {
   }
 
   function addExternalUmlClasses() {
-    Pascoul::send_message(0, 'Externe UML-Klassen Anlegen', $progress);
+    Pascoul::send_message(0, 'Externe UML-Klassen anlegen', $progress);
     pg_query(
         $this->conn,
         str_replace(

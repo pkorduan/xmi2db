@@ -4,7 +4,7 @@ class OgrSchema extends Schema {
   function create_delete_trigger() {
     $sql = str_replace('schema_name', $this->schemaName, file_get_contents('../sql/delete_trigger.sql'));
     if (!empty(GEOMETRY_EPSG_CODE)) {
-      $sql = str_replace('25832', GEOMETRY_EPSG_CODE, $sql);
+      $sql = str_replace(':alkis_epsg', GEOMETRY_EPSG_CODE, $sql);
     }
     return $sql;
   }
@@ -23,7 +23,7 @@ ALTER TABLE ax_fortfuehrungsauftrag SET WITH OIDS;";
       $this->logger->log("<br>Ignoriere Enumeration: {$enumeration['name']}");
     }
 
-    $this->logger->log('<br><b>Create Enumeration Tables: ' . $enumeration['name'] . '</b> (' . $enumeration['xmi_id'] . ')');
+    $this->logger->log('<br><b>Erzeuge Enumerationstabellen: ' . $enumeration['name'] . '</b> (' . $enumeration['xmi_id'] . ')');
 
     $table = new Table($enumeration['name']);
 
@@ -79,7 +79,7 @@ ALTER TABLE ax_fortfuehrungsauftrag SET WITH OIDS;";
       return "";
     }
 
-    $this->logger->log('<br><b>Create ' . $stereotype . ': ' . $class['name'] . ' von ' . $parent->name . '</b> (' . $parent->alias . ')');
+    $this->logger->log('<br><b>Erzeuge ' . $stereotype . ': ' . $class['name'] . ' abgeleitet von ' . $parent->name . '</b> (' . $parent->alias . ')');
 
     $featureType = new FeatureType($class['name'], $parent, $this->logger, $this->umlSchema, $this->enumerations);
     $featureType->ogrSchema = $this;
@@ -97,7 +97,7 @@ ALTER TABLE ax_fortfuehrungsauftrag SET WITH OIDS;";
       $featureType->attribute_filter = array();
 
     $this->logger->log('<br><b>Hole Attribute und verfolge dabei Datentypen bis zum Ende.</b>');
-    $featureType->getAttributesUntilLeafs($featureType->alias, $stereotype, array());
+    $featureType->getAttributesUntilLeaves($featureType->alias, $stereotype, array());
 
     $featureType->flattenAttributes();
 
@@ -110,7 +110,7 @@ ALTER TABLE ax_fortfuehrungsauftrag SET WITH OIDS;";
     $res = array();
 
     # lade abgeleitete Klassen
-    $subClasses = $this->umlSchema->getSubUmlClasses($stereotype, $class);
+    $subClasses = $this->umlSchema->getSubUmlClasses($class);
     if (empty($subClasses)) {
       $featureType->unifyShortNames();
       $this->renameList = array_merge(
@@ -125,7 +125,7 @@ ALTER TABLE ax_fortfuehrungsauftrag SET WITH OIDS;";
       $indent++;
       foreach($subClasses as $subClass) {
         # übergibt den featureType als parent an die Sub-Klassen
-        $this->logger->log('<br><b>Create Subclass: ' . $subClass['name'] . ' von Class ' . $featureType->name . '</b>');
+        $this->logger->log('<br><b>Erzeuge Subclass: ' . $subClass['name'] . ' von Class ' . $featureType->name . '</b>');
         $res = array_merge($res, $this->createFeatureTypes($stereotype, $featureType, $subClass));
       }
       $indent--;
@@ -139,7 +139,51 @@ ALTER TABLE ax_fortfuehrungsauftrag SET WITH OIDS;";
 
     if(RENAME_OPTIONAL_FIRST) {
       // Pfade feststellen auf denen umbenannt wurde
-      $renamed_paths = array();
+
+      // Einige Vorbelegungen um einerseits für die vorherige Schemaversion
+      // generierte Umbenennungen beizubehalten und andererseits überlange
+      // Bezeichner in ax_bauteil3d zu vermeiden.
+      $renamed_paths = array(
+        'qualitaetsangaben_herkunft_processstep' => 'processstep_',
+        'qualitaetsangaben_herkunft_processstep_processor' => 'processstep_',
+        'qualitaetsangaben_herkunft_processstep_source' => 'processstep_',
+        'qualitaetsangaben_herkunft_processstep_source_source' => 'processstep_',
+
+        'qualitaetsangaben_herkunft3d_source' => 'herkunft3d_',
+        'anliegervermerk_flurstuecksnummer' => 'anliegervermerk_',
+        'anliegervermerk_gemarkung' => 'anliegervermerk_',
+        'zeigtaufexternes_fachdatenobjekt' => 'zeigtaufexternes_',
+
+        'qualitaetbodenhoehe_herkunft' => 'qbodenhoehe_',
+        'qualitaetbodenhoehe_herkunft_processstep' => 'qbodenhoehe_ps_',
+        'qualitaetbodenhoehe_herkunft_processstep_processor' => 'qbodenhoehe_ps_',
+        'qualitaetbodenhoehe_herkunft_processstep_processor_contactinfo' => 'qbodenhoehe_ps_',
+        'qualitaetbodenhoehe_herkunft_processstep_processstep' => 'qbodenhoehe_ps_',
+        'qualitaetbodenhoehe_herkunft_processstep_source' => 'qbodenhoehe_ps_src_',
+        'qualitaetbodenhoehe_herkunft_processstep_source_source' => 'qbodenhoehe_ps_src_',
+        'qualitaetbodenhoehe_herkunft_source' => 'qbodenhoehe_src_',
+        'qualitaetbodenhoehe_herkunft_source_source' => 'qbodenhoehe_src_',
+
+        'qualitaetdachhoehe_herkunft' => 'qdachhoehe_',
+        'qualitaetdachhoehe_herkunft_processstep' => 'qdachhoehe_ps_',
+        'qualitaetdachhoehe_herkunft_processstep_processor' => 'qdachhoehe_ps_',
+        'qualitaetdachhoehe_herkunft_processstep_processor_contactinfo' => 'qdachhoehe_ps_',
+        'qualitaetdachhoehe_herkunft_processstep_processstep' => 'qdachhoehe_ps_',
+        'qualitaetdachhoehe_herkunft_processstep_source' => 'qdachhoehe_ps_src_',
+        'qualitaetdachhoehe_herkunft_processstep_source_source' => 'qdachhoehe_ps_src_',
+        'qualitaetdachhoehe_herkunft_source' => 'qdachhoehe_src_',
+        'qualitaetdachhoehe_herkunft_source_source' => 'qdachhoehe_src_',
+      );
+
+      // In folgenden Elementen nur die weiteren optionalen Attribute umbenennen
+      // und nicht alle (mindert vermeidbare Modelländerungen)
+      $onlyoptional = array(
+        'ax_benutzergruppemitzugriffskontrolle',
+        'ax_benutzergruppenba',
+        'ax_fortfuehrungsnachweisdeckblatt',
+        'ax_gebiet_bundesland'
+      );
+
       foreach($featureTypes as $featureType) {
         foreach($featureType->attributes as $a) {
           if($a->short_name != end($a->parts)->name) {
@@ -153,21 +197,25 @@ ALTER TABLE ax_fortfuehrungsauftrag SET WITH OIDS;";
                 )
               );
 
+            if(array_key_exists($path, $renamed_paths))
+              continue;
+
             $renamed_paths[$path] = substr( $a->short_name, 0, strlen($a->short_name) - strlen(end($a->parts)->name) );
-            # echo "-- renamed path: " . $path . " => " . $renamed_paths[$path] . " [" . $featureType->name . ": " . end($a->parts)->name . " => " . $a->short_name . "]\n";
+            $this->logger->log("<br>" . $featureType->alias .  ": Umbenannter Pfad: " . $path . " => " . $renamed_paths[$path] . " [" . end($a->parts)->name . " => " . $a->short_name . "; Konflikte: " . $a->conflictsAt . "]");
           }
         }
       }
 
       // Auch nicht umbenannte Attribute auf Pfaden mit Umbenennung umbenennen
+      // (längere Pfade zuerst)
       // Führt z.B. zu:
       //   zeigtaufexternes_uri statt fachdatenobjekt_uri
       //   processstep_sourcereferencesystem statt processstep_source_source_sourcereferencesystem
       foreach($featureTypes as $featureType) {
         $namelen_exceeded = false;
         foreach($featureType->attributes as $a) {
-          if( $a->isOptional() ) {
-            for( $i = 1; $i < count($a->parts); $i++ ) {
+          if( !in_array($featureType->name, $onlyoptional) || $a->isOptional() ) {
+            for( $i = count($a->parts) - 1; $i > 0; $i-- ) {
               $path =
                 implode('_',
                   array_map(
@@ -181,11 +229,11 @@ ALTER TABLE ax_fortfuehrungsauftrag SET WITH OIDS;";
               if(array_key_exists($path, $renamed_paths)) {
                 $a->short_name_orig = $a->short_name;
                 $a->short_name = $renamed_paths[$path] . end($a->parts)->name;
-                # echo "-- renamed " . end($a->parts)->name . " in " . $a->short_name . " in " . $featureType->alias . " \n";
+                # echo "-- renamed " . end($a->parts)->name . " in " . $a->short_name . " in " . $featureType->alias . "\n";
                 if( strlen($a->short_name) > PG_MAX_NAME_LENGTH ) {
                   $namelen_exceeded = true;
                 }
-                $this->logger->log("<br>\nUmbenennung von " . end($a->parts)->name . " in " . $a->short_name . " in " . $featureType->alias . ".");
+                $this->logger->log("<br>" . $a->path_name . ": Pfadumbenennung von " . end($a->parts)->name . " in " . $a->short_name . " in " . $featureType->alias . "[auf umbenannten Pfad: $path].");
                 break;
               }
             }
@@ -198,11 +246,11 @@ ALTER TABLE ax_fortfuehrungsauftrag SET WITH OIDS;";
           // AX_Fortfuehrungsfall.verweistauf_uri => enthaeltewp_uri
           // AX_Fortfuehrungsfall.verweistauf_uri => verweistauf_uri
           // AX_BesondererHoehenpunkt.erfassungbesondererhoehenpunkt_ax_dqerfassungsmethodebesondererhoehenpunkt => ax_dqerfassungsmethodebesondererhoehenpunkt
-          $this->logger->log("<br>\nUmbenennung auf gleichen Pfaden führte zu Doppeldeutigkeiten oder Überlängen in " . $featureType->alias . "!");
+          $this->logger->log("<br>" . $featureType->alias . ": Umbenennung auf gleichen Pfaden führte zu Doppeldeutigkeiten oder Überlängen!");
           foreach($featureType->attributes as $a) {
             if(property_exists($a, "short_name_orig") && ($a->frequency > 1 || strlen($a->short_name) > PG_MAX_NAME_LENGTH) )
             {
-              $this->logger->log("<br>\n" . $featureType->alias . "." . $a->short_name . " => " . $a->short_name_orig);
+              $this->logger->log("<br>" . $featureType->alias . "." . $a->short_name . " => " . $a->short_name_orig);
               $a->short_name = $a->short_name_orig;
             }
           }
@@ -216,8 +264,6 @@ ALTER TABLE ax_fortfuehrungsauftrag SET WITH OIDS;";
   function createFeatureTypeTables($stereotype, $parent, $class, $parts = array(), $createUserInfoColumns = false) {
     $sql = "";
 
-    $wv = array();
-
     foreach($this->createFeatureTypes($stereotype, $parent, $class) as $featureType) {
       $sql .= $featureType->asFlattenedSql();
 
@@ -226,19 +272,17 @@ ALTER TABLE ax_fortfuehrungsauftrag SET WITH OIDS;";
           continue;
 
         if( $a->stereotype == "enumeration" ) {
-          $wv[] = "SELECT wert::text AS k, beschreibung::text AS v,'' AS d,'" . $a->short_name . "' AS bezeichnung,'" . $featureType->name . "' AS element FROM " . $a->datatype;
+          $this->wertartenQueries[$featureType->name] = "SELECT wert::text AS k, beschreibung::text AS v,'' AS d,'" . $a->short_name . "' AS bezeichnung,'" . $featureType->name . "' AS element FROM " . $a->datatype;
         }
         else if( $a->stereotype == "codelist" ) {
           if($a->datatype == "aa_anlassart" && !WITH_CODE_LISTS)
             continue;
 
 
-          $wv[] = "SELECT id::text AS k, value::text AS v,'' AS d,'" . $a->short_name . "' AS bezeichnung,'" . $featureType->name . "' AS element FROM " . $a->datatype;
+          $this->wertartenQueries[$featureType->name] = "SELECT id::text AS k, value::text AS v,'' AS d,'" . $a->short_name . "' AS bezeichnung,'" . $featureType->name . "' AS element FROM " . $a->datatype;
         }
       }
     }
-
-    #$sql .= "CREATE VIEW alkis_wertearten(k,v,d,bezeichnung,element) AS\n  " . implode(" UNION\n  ", $wv) . ";";
 
     return $sql;
   }

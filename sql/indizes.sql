@@ -1,8 +1,14 @@
-CREATE INDEX ap_lpo_art ON ap_lpo USING btree (art);
 CREATE INDEX ap_ppo_art ON ap_ppo USING btree (art);
+CREATE INDEX ap_lpo_art ON ap_lpo USING btree (art);
 CREATE INDEX ap_pto_art ON ap_pto USING btree (art);
+CREATE INDEX ap_lto_art ON ap_lto USING btree (art);
+CREATE INDEX ap_darstellung_art ON ap_darstellung USING btree (art);
 
+CREATE INDEX ap_ppo_sn ON ap_ppo USING btree (signaturnummer);
+CREATE INDEX ap_lpo_sn ON ap_lpo USING btree (signaturnummer);
 CREATE INDEX ap_pto_sn ON ap_pto USING btree (signaturnummer);
+CREATE INDEX ap_lto_sn ON ap_lto USING btree (signaturnummer);
+CREATE INDEX ap_darstellung_sn ON ap_darstellung USING btree (signaturnummer);
 
 CREATE INDEX ax_besondereflurstuecksgrenze_adfg ON ax_besondereflurstuecksgrenze USING gin (artderflurstuecksgrenze);
 CREATE INDEX ax_besonderegebaeudelinie_bes ON ax_besonderegebaeudelinie USING gin (beschaffenheit);
@@ -17,6 +23,8 @@ CREATE INDEX ax_klassifizierungnachwasserrecht_afs ON ax_klassifizierungnachwass
 CREATE INDEX ax_naturumweltoderbodenschutzrecht_afs ON ax_naturumweltoderbodenschutzrecht(land,stelle);
 CREATE INDEX ax_schutzgebietnachnaturumweltoderbodenschutzrecht_afs ON ax_schutzgebietnachnaturumweltoderbodenschutzrecht(land,stelle);
 CREATE INDEX ax_schutzgebietnachwasserrecht_afs ON ax_schutzgebietnachwasserrecht(land,stelle);
+
+CREATE INDEX ax_dienststelle_sg ON ax_dienststelle(schluesselgesamt);
 
 CREATE INDEX ax_flurstueck_lgfzn ON ax_flurstueck USING btree (land,gemarkungsnummer,flurnummer,zaehler,nenner);
 CREATE INDEX ax_flurstueck_arz ON ax_flurstueck USING btree (abweichenderrechtszustand);

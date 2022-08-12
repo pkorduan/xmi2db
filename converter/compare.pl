@@ -5,13 +5,16 @@ use warnings;
 use DBI;
 use Data::UUID;
 
-my $O = "aaa_orig";
-my $N = "aaa_xmi2db";
+my $O = shift @ARGV;
+my $N = shift @ARGV;
+my $UMLSCHEMA = shift @ARGV;
 my $ug = Data::UUID->new;
+
+die "uml schema undefined" unless defined $UMLSCHEMA;
 
 my $dbh = DBI->connect("dbi:Pg:service=xmi2db", undef, undef, { RaiseError=>1, ShowErrorStatement=>1});
 
-open F, ">/tmp/update.sql";  # Migrationskript
+open F, ">:utf8", "/tmp/update.sql" or die "could not open update.sql: $!";  # Migrationskript
 
 print "\nGeänderte Tabellen:";
 
@@ -37,13 +40,12 @@ my $attsth = $dbh->prepare( "SELECT"
 			  );
 
 
-my $sth = $dbh->prepare("SELECT a.table_name FROM information_schema.tables a JOIN information_schema.tables b ON a.table_name=b.table_name AND b.table_schema='$N' WHERE a.table_schema='$O' ORDER BY a.table_name");
-$sth->execute;
+my $sth = $dbh->prepare("SELECT a.table_name FROM information_schema.tables a JOIN information_schema.tables b ON a.table_name=b.table_name AND b.table_schema=? WHERE a.table_schema=? ORDER BY a.table_name");
+$sth->execute($O, $N);
 while( my($t) = $sth->fetchrow_array ) {
 	my @out;
 
 	push @out, "\n  $t:\n";
-	print F "\n";
 
 	my $ident = 1;
 
@@ -111,7 +113,6 @@ while( my($t) = $sth->fetchrow_array ) {
 					next;
 				}
 
-
 				my @replace;
 				if($t =~ /^ax_fortfuehrungs(fall|nachweisdeckblatt)$/ && $c eq "uri") {
 					@replace = qw/zeigtaufexternes_uri/;
@@ -154,24 +155,25 @@ while( my($t) = $sth->fetchrow_array ) {
 
 			next if $d0 eq $d1 && $c0 eq $c1 && $c eq $d;
 
-			push @out, "  > $t.$c" . ($c eq $d ? "" : " => $d" ) . ": $d0$c0 => $d1$c1\n";
+			push @out, "  > $t.$c" . ($c eq $d ? "" : " -> $d" ) . ": $d0$c0 => $d1$c1\n";
 
 			if($d0 ne $d1) {
-				print F "\t\t-- $t.$c => $d: $d0 => $d1\n";
-
+				print F "\n\t\t-- $t.$c -> $d: $d0 => $d1\n";
 
 				my $alter = "\t\tALTER TABLE $t ALTER $d TYPE $d1";
 
 				if(
-					($d0 =~ /^geometry\((PointZ?|LineString|Polygon),25832\)$/ && $d1 eq "geometry(Geometry,25832)")
+					($d0 =~ /^geometry\((PointZ?|LineString|Polygon|Geometry),25832\)$/ && $d1 =~ /^geometry\(GeometryZ?,25832\)$/ )
 				) {
+					my $d = $d1 =~ /Z/ ? 3 : 2;
+					my $g = $d == 2 ? "${c}_" : "st_force3d(${c}_)";
 					print F <<EOF;
 		BEGIN
 			ALTER TABLE $t DROP CONSTRAINT enforce_geotype_wkb_geometry;
 		EXCEPTION WHEN OTHERS THEN
 			ALTER TABLE $t RENAME ${c} TO ${c}_;
-			PERFORM AddGeometryColumn('$t','$c',find_srid(current_schema()::text,'ax_flurstueck','wkb_geometry'),'GEOMETRY',2);
-			UPDATE $t SET $c=${c}_;
+			PERFORM AddGeometryColumn('$t','$c',find_srid(current_schema()::text,'ax_flurstueck','wkb_geometry'),'GEOMETRY',$d);
+			UPDATE $t SET $c=${g};
 			ALTER TABLE $t DROP ${c}_;
 			CREATE INDEX ${t}_${c}_idx ON $t USING gist($c);
 		END;
@@ -208,6 +210,11 @@ EOF
 					$alter .= " USING ${d}::double precision";
 
 				} elsif(
+					($d0 eq "double precision" && $d1 eq "character varying")
+				) {
+					$alter .= " USING ${d}::text";
+
+				} elsif(
 					($d0 eq "integer" && $d1 eq "character varying")
 				) {
 					$alter .= " USING ${d}::varchar";
@@ -217,7 +224,7 @@ EOF
 					$alter .= " USING to_date($d, 'YYYY-dd-mm')";
 
 				} elsif(
-					($d0 eq "integer[]" && $d1 eq "character varying[]")
+					($d0 =~ /^(integer|double precision)\[\]/ && $d1 eq "character varying[]")
 				) {
 					$alter  = "\t\tALTER TABLE $t RENAME $d TO ${d}_;\n";
 					$alter .= "\t\tALTER TABLE $t ADD $d $d1;\n";
@@ -228,14 +235,14 @@ EOF
 					die "Unbekannte Transformation $d0 => $d1\n";
 				}
 
-				print F "$alter;\n" if $alter ne "";
+				print F "\n$alter;\n" if $alter ne "";
 			}
 
 			if($c0 ne $c1) {
 				if($c1 eq " NOT NULL") {
-					print F "\t\tALTER TABLE $t ALTER $d SET NOT NULL;\n";
+					print F "\n\t\tALTER TABLE $t ALTER $d SET NOT NULL;\n";
 				} else {
-					print F "\t\tALTER TABLE $t ALTER $d DROP NOT NULL;\n";
+					print F "\n\t\tALTER TABLE $t ALTER $d DROP NOT NULL;\n";
 				}
 			}
 
@@ -320,7 +327,7 @@ EOF
 		my $id = $ug->to_string($ug->create());
 		$id =~ s/-/_/g;
 
-		print F "\t\tCREATE " . ($srcidx{$idx} ? "UNIQUE " : "") . "INDEX alkis_$id $idx;\n";
+		print F "\n\t\tCREATE " . ($srcidx{$idx} ? "UNIQUE " : "") . "INDEX alkis_$id $idx;\n";
 	}
 
 
@@ -346,7 +353,7 @@ while( my($t) = $sth->fetchrow_array ) {
 }
 $sth->finish;
 
-open I, "/tmp/alkis-schema.sql";
+open I, "<:utf8", "/tmp/alkis-schema-$UMLSCHEMA.sql" or die "Schema not found: $!";
 
 my $skip = 1;
 my $re = "^CREATE (TABLE\\s+(" . join("|", @new) . ")\\s*\\(|VIEW alkis_wertearten\\()";
@@ -364,6 +371,7 @@ while(<I>) {
 
 	s/SELECT AddGeometryColumn/PERFORM AddGeometryColumn/;
 	s/:alkis_epsg/find_srid(current_schema()::text,'ax_flurstueck','wkb_geometry')/;
+	s/CREATE VIEW/CREATE OR REPLACE VIEW/;
 
 	print F;
 }
@@ -375,7 +383,45 @@ print "\nFehlende Tabellen:\n";
 $sth->execute($O, $N);
 while( my($t) = $sth->fetchrow_array ) {
 	print "  $t\n";
+	print F "\t\tDROP TABLE $t;\n";
 }
+$sth->finish;
+
+print F "\n";
+
+$sth = $dbh->prepare("
+  SELECT
+    table_name
+  FROM information_schema.tables a
+  JOIN information_schema.tables b USING (table_name)
+  WHERE a.table_schema=?
+    AND b.table_schema=?
+    AND obj_description(format('%I.%I', a.table_schema, a.table_name)::regclass) LIKE '%UML-Typ: Enumeration'
+    AND obj_description(format('%I.%I', b.table_schema, b.table_name)::regclass) LIKE '%UML-Typ: Enumeration'
+");
+$sth->execute($O, $N);
+
+while( my($t) = $sth->fetchrow_array ) {
+	my ($delete) = $dbh->selectrow_array("SELECT 'DELETE FROM $t WHERE wert IN ('||array_to_string(array_agg(format('%L',wert)),',')||');' FROM $O.$t a WHERE NOT EXISTS (SELECT * FROM $N.$t b WHERE a.wert::text=b.wert::text)");
+	print F "\t\t$delete\n" if defined $delete;
+
+	for my $c (qw/beschreibung dokumentation/) {
+		my $sth = $dbh->prepare("SELECT format('UPDATE $t SET $c=%L WHERE wert=%L;', a.$c, b.wert) FROM $N.$t a JOIN $O.$t b ON a.wert::text=b.wert::text AND (a.$c<>b.$c OR (a.$c IS NULL)<>(b.$c IS NULL))");
+		$sth->execute;
+		while( my($update) = $sth->fetchrow_array ) {
+			print F "\t\t$update\n";
+		}
+		$sth->finish;
+	}
+
+	my $sth = $dbh->prepare("SELECT format('INSERT INTO $t(wert,beschreibung,dokumentation) VALUES (%L,%L,%L);', a.wert, a.beschreibung, a.dokumentation) FROM $N.$t a WHERE NOT EXISTS (SELECT * FROM $O.$t b WHERE a.wert::text=b.wert::text)");
+	$sth->execute;
+	while( my($insert) = $sth->fetchrow_array ) {
+		print F "\t\t$insert\n";
+	}
+	$sth->finish;
+}
+
 $sth->finish;
 
 $dbh->disconnect;

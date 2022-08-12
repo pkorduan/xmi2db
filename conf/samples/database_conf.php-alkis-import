@@ -3,11 +3,7 @@
 
   define(
     'VERSION',
-    preg_replace(
-      "/\r|\n/",
-      "",
-      file($rel_path . 'README.md')[3]
-    )
+    'Version vom 20.07.2020 15:21'
   );
   error_reporting(E_ALL & ~E_NOTICE);
 
@@ -15,10 +11,10 @@
   define('LOGLEVEL', $loglevel);
 
   define('PG_HOST', 'localhost');
-  define('PG_DBNAME', 'postgres');
-  define('PG_USER', 'postgres');
-  define('PG_PASSWORD', 'postgres');
-  define('PG_PORT', '5432');
+  define('PG_DBNAME', 'alkis');
+  define('PG_USER', 'alkis');
+  define('PG_PASSWORD', 'geheem');
+  define('PG_PORT', '5435');
   define('PG_MAX_NAME_LENGTH', 58); // Maximale Länge von Tabellen, Type und Attributnamen
   define('PG_GML_ID', 'character(16)');
   define('PG_CHARACTER_VARYING', 'character varying');
@@ -32,7 +28,7 @@
   define('WITH_DELETE_TRIGGER', false);
   define('WITH_INDEXES', true);
 
-  $umlSchemaVar = ($_REQUEST['umlSchema'] != '') ? $_REQUEST['umlSchema'] : 'aaa_uml';
+  $umlSchemaVar = ($_REQUEST['umlSchema'] != '') ? $_REQUEST['umlSchema'] : 'aaa_uml_neu';
   define('UML_SCHEMA', $umlSchemaVar);
 
   $gmlSchemaVar = ($_REQUEST['gmlSchema'] != '') ? $_REQUEST['gmlSchema'] : 'aaa_gml';
@@ -55,9 +51,11 @@
   define('RENAME_ZEIGT_AUF_EXTERNES', false);
   define('COMMENTS', true);
   define('WITH_NRW_KOM', true);
+  define('FILTER_FILE', '');
+  define('FILTER_INFO', '');
 
   # Definition of the model conf file
-  define('SCHEMA_CONF_FILE', $rel_path . 'conf/model_aaa_conf.php');
+  define('SCHEMA_CONF_FILE', $rel_path . 'conf/model_gid7_conf.php');
 
   define('WITH_CODE_LISTS', ($_REQUEST['withCodeLists'] == '1'));
 ?>

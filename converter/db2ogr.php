@@ -51,6 +51,7 @@
   # Initialize the gmlSchema object
   $ogrSchema = new OgrSchema(OGR_SCHEMA, $logger);
   $ogrSchema->umlSchema = $umlSchema;
+  $ogrSchema->wertartenQueries = array();
   $sql = $ogrSchema->asSql();
 
   $logger->log('<br><hr><br>');
@@ -89,8 +90,13 @@
   # Für alle oberen Klassen
   foreach($topClasses as $topClass) {
     $ogrSchema->logger->log('<br><b>TopKlasse: ' . $topClass['name'] . '</b> (' . $topClass['xmi_id'] . ')');
+
     $sql .= $ogrSchema->createFeatureTypeTables('FeatureType', null, $topClass);
   }
+
+  $values = array_values($ogrSchema->wertartenQueries);
+  sort($values);
+  $sql .= "\nCREATE VIEW alkis_wertearten(k,v,d,bezeichnung,element) AS\n  " . implode(" UNION\n  ", $values) . ";";
 
   if(WITH_DELETE_TRIGGER) {
     # $logger->log('<br><hr><br>');
@@ -105,8 +111,10 @@
   }
 
   if (WITH_NRW_KOM) {
-    $sql .= file_get_contents('../sql/nrw-kom.sql');
+    $sql .= "\n" . file_get_contents('../sql/nrw-kom.sql');
   }
+
+  $sql .= "\n\nEND;\n";
 
 # $gmlSchema->execSql($sql);
 

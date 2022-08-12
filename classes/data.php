@@ -55,7 +55,7 @@ class Data {
                             $sql = "NULL";
                           break;
                           default:
-                            $sql = "'" . $value . "'";
+                            $sql = "'" . str_replace(' \n','\n', str_replace('Blöcken L+St)', 'Blöcken (L+St)', str_replace('altrechtliche )', 'altrechtliche)', str_replace('  ', ' ',$value)))) . "'";
                         }
                       break;
                       case 'boolean' :

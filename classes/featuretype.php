@@ -8,7 +8,7 @@ class FeatureType {
     if ($this->name != $this->alias)
       $this->comments[] = 'FeatureType: "' . $this->alias . '"';
     $this->attributes = array();
-    $this->attributes_until_leafs = array();
+    $this->attributes_until_leaves = array();
     $this->associationEnds = array();
     $this->primaryKey = '';
     $this->primaryKeyType = 'text';
@@ -20,6 +20,31 @@ class FeatureType {
     $this->stereotype = 'featuretype';
     $this->attribute_filter = array();
     $this->enumerations = $enumerations;
+
+    // Einige Umbenennungen vermeiden, damit im alten Schema verwendete
+    // Umbenennungen erhalten bleiben.
+    $this->preserveNames = array(
+        $this->alias . '#lebenszeitintervall|AA_Lebenszeitintervall#beginnt',
+        $this->alias . '#lebenszeitintervall|AA_Lebenszeitintervall#endet',
+        $this->alias . '#flurstuecksnummer|AX_Flurstuecksnummer#zaehler',
+        $this->alias . '#flurstuecksnummer|AX_Flurstuecksnummer#nenner',
+        $this->alias . '#gemarkung|AX_Gemarkung_Schluessel#land',
+        $this->alias . '#qualitaetsangaben|AX_DQMitDatenerhebung#herkunft|LI_Lineage#statement',
+        'AX_BenutzergruppeMitZugriffskontrolle#zustaendigeStelle|AX_Dienststelle_Schluessel|land',
+        'AX_BenutzergruppeMitZugriffskontrolle#zustaendigeStelle|AX_Dienststelle_Schluessel|stelle',
+        'AX_BenutzergruppeNBA#zustaendigeStelle|AX_Dienststelle_Schluessel|land',
+        'AX_BenutzergruppeNBA#zustaendigeStelle|AX_Dienststelle_Schluessel|stelle',
+        'AX_Gemeinde#gemeindekennzeichen|AX_Gemeindekennzeichen#land',
+        'AX_Gemeinde#gemeindekennzeichen|AX_Gemeindekennzeichen#regierungsbezirk',
+        'AX_Gemeinde#gemeindekennzeichen|AX_Gemeindekennzeichen#kreis',
+        'AX_Gemeinde#gemeindekennzeichen|AX_Gemeindekennzeichen#gemeinde',
+        'AX_Gemeinde#gemeindekennzeichen|AX_Gemeindekennzeichen#gemeindeteil',
+        'AX_Gemeindeteil#gemeindekennzeichen|AX_Gemeindekennzeichen|land',
+        'AX_Gemeindeteil#gemeindekennzeichen|AX_Gemeindekennzeichen|regierungsbezirk',
+        'AX_Gemeindeteil#gemeindekennzeichen|AX_Gemeindekennzeichen|kreis',
+        'AX_Gemeindeteil#gemeindekennzeichen|AX_Gemeindekennzeichen|gemeinde',
+        'AX_Gemeindeteil#gemeindekennzeichen|AX_Gemeindekennzeichen|gemeindeteil',
+    );
   }
 
   public static function getName($name) {
@@ -76,7 +101,7 @@ class FeatureType {
     return $is_filtered;
   }
 
-  function getAttributesUntilLeafs($type, $stereotype, $parts) {
+  function getAttributesUntilLeaves($type, $stereotype, $parts) {
     $return_attributes = array();
     $isExternal = in_array(substr($type, 0, 3), array('DQ_', 'LI_', 'CI_'));
     if ($isExternal) {
@@ -130,7 +155,7 @@ class FeatureType {
           $new_path = $parts;
           array_push($new_path, $attributeObj);
           if (in_array(strtolower($attribute['attribute_stereotype']), array('datatype', 'union'))) {
-            foreach ($this->getAttributesUntilLeafs($attribute['attribute_datatype'], $attribute['attribute_stereotype'], $new_path) AS $child_attribute) {
+            foreach ($this->getAttributesUntilLeaves($attribute['attribute_datatype'], $attribute['attribute_stereotype'], $new_path) AS $child_attribute) {
               $return_attributes[] = $child_attribute;
             }
           }
@@ -140,7 +165,7 @@ class FeatureType {
         }
       }
     }
-    $this->attributes_until_leafs = $return_attributes;
+    $this->attributes_until_leaves = $return_attributes;
     return $return_attributes;
   }
 
@@ -153,22 +178,12 @@ class FeatureType {
       }
     }
 
-    foreach($this->attributes_until_leafs AS $attribute_parts) {
+    foreach($this->attributes_until_leaves AS $attribute_parts) {
       $attribute = end($attribute_parts);
       $attribute->parts = $attribute_parts;
       $attribute->setNameFromParts();
       $this->attributes[] = clone $attribute;
     }
-  }
-
-  function getParentsAttributes() {
-    if ($this->parent == null)
-      return array();
-    else
-      return array_merge(
-        $this->parent->attributes,
-        $this->parent->getParentsAttributes()
-      );
   }
 
   function getParentsAssociationEnds() {
@@ -185,14 +200,18 @@ class FeatureType {
     $hasCollisions = false;
 
     foreach($this->attributes AS $a) {
+      $paths = array();
       $frequency = 0;
       foreach($this->attributes AS $b) {
         if ($a->short_name == $b->short_name) {
+          $paths[] = $b->path_name;
           $frequency++;
         }
       }
       $a->frequency = $frequency;
       if ($frequency > 1) {
+        $this->logger->log("<br>Attribut " . $a->short_name . " kommt " . $frequency . "x vor [\n  " . implode("\n  ", $paths) . "\n]");
+        $a->conflictsAt = implode("; ", $paths);
         $hasCollisions = true;
       }
     }
@@ -209,49 +228,52 @@ class FeatureType {
 
       # Erst optionale Attribute qualifizieren
       foreach($this->attributes AS $a) {
-        if( $a->frequency > 1 && $a->isOptional() && count($a->parts) >= 2 ) {
+        if( $a->frequency > 1 && $a->isOptional() && count($a->parts) >= 2 &&
+            !in_array($a->path_name, $this->preserveNames) ) {
           $n = count($a->parts) - 2;
           $a->short_name = $a->parts[$n]->name . '_' . $a->short_name;
 
-          $this->logger->log('<br>Optionales Attribut ' . end($a->parts)->name . " umbenannt in " . $a->short_name . "\n");
+          $this->logger->log('<br>Optionales Attribut ' . end($a->parts)->name . " von " . $this->name . " umbenannt in " . $a->short_name . " [" . $a->path_name . "][Konflikt: " . $a->conflictsAt . "]");
         }
       }
     }
 
-    $this->unifyShortNamesLevel();
+    if(!$this->unifyShortNamesLevel()) {
+      $this->logger->log('<br>Abbruch bei Level ' . $level . ' weil Umbenennung nicht möglich.');
+      throw new Exception("Umbenennung nicht möglich [FeaturType:" . $this->name . "]");
+    }
   }
 
   function unifyShortNamesLevel($startlevel = 1) {
     $this->logger->log('<br><b>unifyShortNames:</b>');
 
-    for($level = $startlevel; $level <= 10; ++$level) {
+    for($level = $startlevel; $level <= 15; ++$level) {
       if( !$this->hasCollisions() ) {
         $this->logger->log("<br>Keine verbleibenden Namenskollisionen!");
-        return;
+        return true;
       }
 
-      $this->logger->log('<br>gleichlautende Namen gefunden in Runde ' . $level . ' der Umbenennung!');
+      $this->logger->log("<br>unifyShortNamesLevel $level: gleichlautende Namen gefunden");
 
       foreach($this->attributes AS $a) {
         if ($a->frequency == 1)
           continue;
 
-        $this->logger->log('<br>' . $a->path_name . ' (nicht umbenannt; ' . count($a->parts) . ')');
+        if(in_array($a->path_name, $this->preserveNames)) {
+          $this->logger->log('<br>  ' . $a->short_name . " " . $a->frequency . " " . $a->path_name . ' skipped');
+          continue;
+        }
 
         $n = count($a->parts) - $level - 1; # Stufe der Klasse im Pfad
         if ($n > -1) {
-          $this->logger->log('<br>' . $a->path_name);
-          $this->logger->log('<br>' . $a->short_name);
-          $a->short_name = $a->parts[$n]->name . '_' . $a->short_name;
+            $a->short_name = $a->parts[$n]->name . '_' . $a->short_name;
 
-          $this->logger->log(' => ' . $a->short_name . ' (kam ' . $a->frequency . ' mal vor' . ($a->isOptional() ? ' und ist OPTIONAL' : '') . ')');
+            $this->logger->log("<br>" . $a->short_name . " für " . $a->path_name . ' (kam ' . $a->frequency . ' mal vor' . ($a->isOptional() ? ' und ist OPTIONAL' : '') . ")");
         }
       }
     }
 
-    if ($level > 10) {
-      $this->logger->log('<br>Abbruch bei level: ' . $level . ' weil Umbenennung nicht möglich.');
-    }
+    return false;
   }
 
   function getKeys() {
@@ -357,7 +379,7 @@ class FeatureType {
     $output = array();
     if (!empty($this->attributes)) {
       foreach ($this->attributes AS $attribute) {
-        $this->logger->log('<br>Attribut Pfad: ' . $attribute->path_name . ' (' . $attribute->short_name . ')');
+        $this->logger->log('<br>Attributpfad: ' . $attribute->path_name . ' (' . $attribute->short_name . ')');
         if (RENAME_ZEIGT_AUF_EXTERNES) {
           $zeigt_auf_externes_pos = strpos($attribute->path_name, 'zeigtAufExternes');
           if ($zeigt_auf_externes_pos !== false) {
@@ -425,10 +447,14 @@ class FeatureType {
       if (!in_array($attribute->name, array(GEOMETRY_COLUMN_NAME, "objektkoordinaten"))) {
         $attribute_parts[] = $attribute->asSql('table');
       }
-      if ($attribute->name == "objektkoordinaten") {
-        $hat_objektkoordinaten = true;
-      }
     }
+
+    $attributenames = array_map(
+          function($a) {
+            return $a->name;
+          },
+          $this->attributes
+        );
 
     # Ausgabe Assoziationsenden
     $attribute_parts = array_merge(
@@ -462,7 +488,9 @@ class FeatureType {
     $sql .= ';
 ';  # Tabellenende
 
-    if(WITH_INDEXES) {
+    if(WITH_INDEXES &&
+       in_array('beginnt', $attributenames) &&
+       in_array('endet', $attributenames) ) {
       $sql .= "
 CREATE UNIQUE INDEX " . $this->name . "_gml ON " . $this->name . " USING btree (gml_id,beginnt);
 CREATE INDEX " . $this->name . "_endet ON " . $this->name . " USING btree (endet);";
@@ -471,14 +499,14 @@ CREATE INDEX " . $this->name . "_endet ON " . $this->name . " USING btree (endet
     # Set epsg code
     if (!empty(GEOMETRY_EPSG_CODE) and $this->hasGeometryColumn()) {
       $sql .= "
-SELECT AddGeometryColumn('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "', " . GEOMETRY_EPSG_CODE . ", 'GEOMETRY', 2);";
+SELECT AddGeometryColumn('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "', " . GEOMETRY_EPSG_CODE . ", 'GEOMETRY', " . ($this->name=="ax_punktortau" || substr($this->name, strlen($this->name)-2) == "3d" ? 3 : 2) . ");";
       if(WITH_INDEXES) {
         $sql .= "
 CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_" . GEOMETRY_COLUMN_NAME . "_idx" ) . " ON " . $this->name . " USING gist (" . GEOMETRY_COLUMN_NAME . ");";
       }
     }
 
-    if ($hat_objektkoordinaten) {
+    if (in_array("objektkoordinaten", $attributenames) ) {
       $sql .= "
 SELECT AddGeometryColumn('" . $this->name . "', 'objektkoordinaten', " . GEOMETRY_EPSG_CODE . ", 'POINT', 2);";
       if(WITH_INDEXES) {
@@ -645,13 +673,17 @@ CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_objektkoordinaten
 
     $hat_objektkoordinaten = false;
 
+    $attributenames = array_map(
+          function($a) {
+            return $a->name;
+          },
+          $this->attributes
+        );
+
     # Ausgabe Attribute
     foreach($this->attributes AS $attribute) {
       if (!in_array($attribute->name, array(GEOMETRY_COLUMN_NAME, "objektkoordinaten"))) {
         $attribute_parts[] = $attribute->asFlattenedSql();
-      }
-      if ($attribute->name == "objektkoordinaten") {
-        $hat_objektkoordinaten = true;
       }
     }
 
@@ -696,7 +728,9 @@ CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_objektkoordinaten
     $sql .= ';
 ';  # Tabellenende
 
-    if(WITH_INDEXES) {
+    if(WITH_INDEXES &&
+       in_array('beginnt', $attributenames) &&
+       in_array('endet', $attributenames)) {
       $sql .= "
 CREATE UNIQUE INDEX " . $this->name . "_gml ON " . $this->name . " USING btree (gml_id,beginnt);
 CREATE INDEX " . $this->name . "_endet ON " . $this->name . " USING btree (endet);";
@@ -705,14 +739,14 @@ CREATE INDEX " . $this->name . "_endet ON " . $this->name . " USING btree (endet
     # Set epsg code
     if (!empty(GEOMETRY_EPSG_CODE) and $this->hasGeometryColumn()) {
       $sql .= "
-SELECT AddGeometryColumn('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "', " . GEOMETRY_EPSG_CODE . ", 'GEOMETRY', 2);";
+SELECT AddGeometryColumn('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "', " . GEOMETRY_EPSG_CODE . ", 'GEOMETRY', " . ($this->name=="ax_punktortau" || substr($this->name, strlen($this->name)-2) == "3d" ? 3 : 2) . ");";
       if(WITH_INDEXES) {
         $sql .= "
 CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_" . GEOMETRY_COLUMN_NAME . "_idx" ) . " ON " . $this->name . " USING gist (" . GEOMETRY_COLUMN_NAME . ");";
       }
     }
 
-    if ($hat_objektkoordinaten) {
+    if (in_array("objektkoordinaten", $attributenames)) {
       $sql .= "
 SELECT AddGeometryColumn('" . $this->name . "', 'objektkoordinaten', " . GEOMETRY_EPSG_CODE . ", 'POINT', 2);";
       if(WITH_INDEXES) {
@@ -798,7 +832,7 @@ CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_objektkoordinaten
     $hat_objektkoordinaten = false;
     # Ausgabe Attribute
     foreach($this->attributes AS $attribute) {
-      if ($attribute->name == "wkb_geometry") {
+      if ($attribute->name == GEOMETRY_COLUMN_NAME) {
         $hat_position = true;
       }
       if ($attribute->name == "objektkoordinaten") {
@@ -808,11 +842,11 @@ CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_objektkoordinaten
 
     if ($hat_position) {
       $attribute_parts[] .= "
-      <GeomPropertyDefn>
-        <Name>wkb_geometry</Name>
-        <ElementPath>position</ElementPath>
-        <GeometryType>" . $this->getGeometryType() . "</GeometryType>
-      </GeomPropertyDefn>";
+    <GeomPropertyDefn>
+      <Name>" . GEOMETRY_COLUMN_NAME . "</Name>
+      <ElementPath>position</ElementPath>
+      <GeometryType>" . $this->getGeometryType() . "</GeometryType>
+    </GeomPropertyDefn>";
     }
 
     if($hat_objektkoordinaten) {

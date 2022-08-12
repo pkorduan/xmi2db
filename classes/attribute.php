@@ -126,13 +126,13 @@ COMMENT ON COLUMN " . $table_name . "." . $this->name . " IS '";
 
     if($this->isExternal) {
       $parts = explode('|', $this->getAttributePath());
-    	if (end($elements) != end($parts)) {
+      if (end($elements) != end($parts)) {
         $elements[] = end($parts);
       }
       else {
         if( isset($this->datatype_alias) ) {
           $elements[] = $this->datatype_alias;
-        } 
+        }
         else {
           $elements[] = "CharacterString";
         }
@@ -182,7 +182,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->name . " IS '";
     $attribute_path = $this->getRenamedAttributePath();
     $sql = "
 COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
-    $sql .= $this->getLastAttributeName() . ' ' . $attribute_path . ' ' . $this->stereotype_alias . ' ' . $this->datatype_alias;
+    $sql .= $attribute_path . ' ' . $this->stereotype_alias . ' ' . $this->datatype_alias;
     $sql .= ' ' . $this->multiplicity;
     $sql .= "';";
     return $sql;
@@ -287,7 +287,16 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
             'transaction',
             'dq_result',
             'md_identifier',
-            'ci_citation'
+            'ci_citation',
+
+            'aa_aktivitaetsart',
+            'aa_anlassart',
+            'aa_antragsart',
+            'aa_gefuehrteobjektart',
+            'aa_modellart',
+            'aa_projektsteuerungsart',
+            'aa_vertragsart',
+            'aa_vorgangsart'
           )) :
           $database_type = PG_CHARACTER_VARYING;
         break;
@@ -460,7 +469,6 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
   }
 
   function get_gfs_type($database_type, $brackets) {
-
     switch (true) {
       case in_array($database_type, array(
           PG_CHARACTER_VARYING,
@@ -591,16 +599,16 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
   }
 
   function asFlattenedSql() {
-    # if (substr($this->get_database_type(), 0, 8) == 'geometry' and $this->name <> 'wkb_geometry') echo '<br>Klasse: ' . $this->parent->name . ' Geometriespalte: ' . $this->name . ' type: ' . $this->get_database_type();
+    # if (substr($this->get_database_type(), 0, 8) == 'geometry' and $this->name <> GEOMETRY_COLUMN_NAME) echo '<br>Klasse: ' . $this->parent->name . ' Geometriespalte: ' . $this->name . ' type: ' . $this->get_database_type();
 
     $sql = "  " .
       $this->short_name . " " . $this->get_database_type(false, false) . $this->getBrackets() . $this->getNotNull();
 
-if(0) {
-    $sql .= " /*";
+    if(0) {
+      $sql = sprintf("%-80s /* PATH %s  %s", $sql, $this->path_name, implode('_', array_map(function($part) { return $part->name; }, $this->parts)));
 
-    if ($this->short_name != end($this->parts)->name) {
-        $sql .= " RENAMED " . $this->path_name . " to " . $this->short_name;
+      if ($this->short_name != end($this->parts)->name) {
+	$sql .= " RENAMED";
 #        if(!$this->isOptional()) {
 #           $sql .= "\n\t\tNOT OPTIONAL:\n";
 #           foreach($this->parts AS $part) {
@@ -608,16 +616,14 @@ if(0) {
 #          }
 #          $sql .= "\t\t";
 #        }
-#    } else {
-        $sql .= " PATH " . $this->path_name;
-    }
+      }
 
-    if ($this->stereotype == 'enumeration' and $this->short_name != $this->datatype) {
-      $sql .= ' datatype: ' . $this->datatype . ' stereotype: ' . $this->stereotype;
-    }
+      if ($this->stereotype == 'enumeration' && $this->short_name != $this->datatype) {
+	$sql .= ' datatype: ' . $this->datatype . ' stereotype: ' . $this->stereotype;
+      }
 
-    $sql .= " */";
-}
+      $sql .= " */";
+    }
 
     # Ausgabe DEFAULT
     if ($this->default != '')
@@ -627,30 +633,30 @@ if(0) {
   }
 
   function asGfs() {
-    if($this->short_name != "wkb_geometry" && $this->short_name != "objektkoordinaten") {
+    if($this->short_name != GEOMETRY_COLUMN_NAME && $this->short_name != "objektkoordinaten") {
       if(0) {
         $gfs = "\n    <!--";
-        foreach ($this as $property => $value) {
-                $gfs .= "\n      $property => " . (is_scalar($value) ? $value : "[" . gettype($value) . "]");
-        }
+	foreach ($this as $property => $value) {
+	  $gfs .= "\n      $property => " . (is_scalar($value) ? $value : "[" . gettype($value) . "]");
+	}
 
         $gfs .= "\n\n      overwrite:";
-        foreach ($this->overwrite as $property => $value) {
-                $gfs .= "\n        $property => " . (is_scalar($value) ? $value : "[" . gettype($value) . "]");
-        }
+	foreach ($this->overwrite as $property => $value) {
+	  $gfs .= "\n        $property => " . (is_scalar($value) ? $value : "[" . gettype($value) . "]");
+	}
 
-        foreach ($this->parts as $part) {
-                $gfs .= "\n\n      part:";
-                foreach ($part as $property => $value) {
-                        $gfs .= "\n        $property => " . (is_scalar($value) ? $value : "[" . gettype($value) . "]");
+	foreach ($this->parts as $part) {
+	  $gfs .= "\n\n      part:";
+	  foreach ($part as $property => $value) {
+	    $gfs .= "\n        $property => " . (is_scalar($value) ? $value : "[" . gettype($value) . "]");
 
-                }
+	  }
 
-                $gfs .= "\n        overwrite:";
-                foreach ($part->overwrite as $property => $value) {
-                        $gfs .= "\n          $property => " . (is_scalar($value) ? $value : "[" . gettype($value) . "]");
-                }
-        }
+	  $gfs .= "\n        overwrite:";
+	  foreach ($part->overwrite as $property => $value) {
+	    $gfs .= "\n          $property => " . (is_scalar($value) ? $value : "[" . gettype($value) . "]");
+	  }
+	}
         $gfs .= "\n      path:" . $this->getAttributePath();
         $gfs .= "\n    -->";
       }

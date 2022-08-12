@@ -6,6 +6,17 @@
 
 -- DROP VIEW schema_name.classes_attributes;
 
+DROP VIEW IF EXISTS schema_name.full_model;
+DROP VIEW IF EXISTS schema_name."packages_parent-name";
+DROP VIEW IF EXISTS schema_name.classes_attributes_types_gen;
+DROP VIEW IF EXISTS schema_name.generalizations;
+DROP VIEW IF EXISTS schema_name.classes_comments;
+DROP VIEW IF EXISTS schema_name.class_children;
+DROP VIEW IF EXISTS schema_name.classes_attributes_types;
+DROP VIEW IF EXISTS schema_name.classes_attributes;
+DROP VIEW IF EXISTS schema_name.classes_attributes_types;
+
+DROP VIEW IF EXISTS schema_name.classes_attributes;
 CREATE OR REPLACE VIEW schema_name.classes_attributes AS 
  SELECT uml_classes.name AS class_name,
     uml_attributes.name AS atribute_name,
@@ -24,6 +35,7 @@ CREATE OR REPLACE VIEW schema_name.classes_attributes AS
 
 -- DROP VIEW schema_name.classes_attributes_types;
 
+DROP VIEW IF EXISTS schema_name.classes_attributes_types;
 CREATE OR REPLACE VIEW schema_name.classes_attributes_types AS 
  SELECT t1.class_name,
     t1.atribute_name,
@@ -44,6 +56,7 @@ CREATE OR REPLACE VIEW schema_name.classes_attributes_types AS
 
 -- DROP VIEW schema_name.class_children;
 
+DROP VIEW IF EXISTS schema_name.class_children;
 CREATE OR REPLACE VIEW schema_name.class_children AS 
  SELECT uml_classes.name AS parent_name,
     class_generalizations.child_id
@@ -54,6 +67,7 @@ CREATE OR REPLACE VIEW schema_name.class_children AS
 
 -- DROP VIEW schema_name.classes_comments;
 
+DROP VIEW IF EXISTS schema_name.classes_comments;
 CREATE OR REPLACE VIEW schema_name.classes_comments AS 
  SELECT comments.id AS comment_id,
     comments.xmi_id AS comment_xmi_id,
@@ -82,6 +96,7 @@ CREATE OR REPLACE VIEW schema_name.classes_comments AS
 
 -- DROP VIEW schema_name.generalizations;
 
+DROP VIEW IF EXISTS schema_name.generalizations;
 CREATE OR REPLACE VIEW schema_name.generalizations AS 
  SELECT class_children.parent_name,
     classes_comments.name,
@@ -95,6 +110,7 @@ CREATE OR REPLACE VIEW schema_name.generalizations AS
 
 -- DROP VIEW schema_name.classes_attributes_types_gen;
 
+DROP VIEW IF EXISTS schema_name.classes_attributes_types_gen;
 CREATE OR REPLACE VIEW schema_name.classes_attributes_types_gen AS 
  SELECT generalizations.parent_name AS gen_name,
     classes_attributes_types.class_name,
@@ -117,6 +133,7 @@ CREATE OR REPLACE VIEW schema_name.classes_attributes_types_gen AS
 
 -- DROP VIEW schema_name."packages_parent-name";
 
+DROP VIEW IF EXISTS schema_name."packages_parent-name";
 CREATE OR REPLACE VIEW schema_name."packages_parent-name" AS 
  WITH RECURSIVE subpackage AS (
          SELECT p.xmi_id,
@@ -172,6 +189,7 @@ CREATE OR REPLACE VIEW schema_name."packages_parent-name" AS
 
 -- DROP VIEW schema_name.full_model;
 
+DROP VIEW IF EXISTS schema_name.full_model;
 CREATE OR REPLACE VIEW schema_name.full_model AS 
  SELECT "packages_parent-name".parent_package_name,
     "packages_parent-name".name AS package_name,

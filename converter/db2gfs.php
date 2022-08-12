@@ -79,7 +79,13 @@
 ");
 
   header("Content-type: text/xml");
-  echo "<GMLFeatureClassList>".$gfs."\n</GMLFeatureClassList>";
+  echo "<GMLFeatureClassList>".$gfs."\n";
+
+  if (WITH_NRW_KOM) {
+    echo file_get_contents('../sql/nrw-kom.gfs');
+  }
+
+  echo "</GMLFeatureClassList>";
 
   $logger->log("
 </pre>
