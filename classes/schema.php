@@ -411,7 +411,7 @@ WHERE
   function getClassAttributes($class_name) {
     $sql = "
       SET search_path = " . $this->schemaName . ", public;
-      SELECT
+      SELECT DISTINCT ON (c.class_name, c.attribute_name)
         c.class_name,
         c.attribute_name,
         c.attribute_datatype,
@@ -443,7 +443,7 @@ WHERE
       SELECT
         ca.name a_class_name,
         b.id b_id,
-        trim(both ' ' FROM CASE WHEN b.name = '<undefined>' AND NOT b.\"isNavigable\" THEN 'inversZu_' || a.name || '_' || cb.name ELSE b.name END) AS b_name,
+        trim(both ' ' FROM CASE WHEN b.name = '<undefined>' AND NOT b.\"isNavigable\" THEN 'inversZu_' || trim(a.name) || '_' || cb.name ELSE b.name END) AS b_name,
         b.multiplicity_range_lower b_multiplicity_range_lower,
         b.multiplicity_range_upper b_multiplicity_range_upper,
         a.id a_id,

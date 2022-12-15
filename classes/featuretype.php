@@ -56,7 +56,7 @@ class FeatureType {
   }
 
   function addAttribute($attribute) {
-    $this->attributes[] = $attribute;
+    $this->attributes[$attribute->path_name] = $attribute;
   }
 
   function createUserInfoColumns() {
@@ -174,7 +174,7 @@ class FeatureType {
       foreach($this->parent->attributes AS $parent_attribute) {
         $parent_attribute->parts[0]->parent->alias = $this->alias;
         $parent_attribute->setNameFromParts();
-        $this->attributes[] = clone $parent_attribute;
+        $this->attributes[$parent_attribute->path_name] = clone $parent_attribute;
       }
     }
 
@@ -182,7 +182,7 @@ class FeatureType {
       $attribute = end($attribute_parts);
       $attribute->parts = $attribute_parts;
       $attribute->setNameFromParts();
-      $this->attributes[] = clone $attribute;
+      $this->attributes[$attribute->path_name] = clone $attribute;
     }
   }
 
@@ -247,7 +247,7 @@ class FeatureType {
   function unifyShortNamesLevel($startlevel = 1) {
     $this->logger->log('<br><b>unifyShortNames:</b>');
 
-    for($level = $startlevel; $level <= 15; ++$level) {
+    for($level = $startlevel; $level <= 25; ++$level) {
       if( !$this->hasCollisions() ) {
         $this->logger->log("<br>Keine verbleibenden Namenskollisionen!");
         return true;

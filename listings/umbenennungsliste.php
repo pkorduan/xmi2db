@@ -51,9 +51,9 @@
   $topClasses = $umlSchema->getTopUmlClasses('FeatureType');
 
   # Für alle oberen Klassen
-  foreach($topClasses as $topClass) {
-    $ogrSchema->listFeatureTypesAttributes('FeatureType', null, $topClass);
-  }
+  #foreach($topClasses as $topClass) {
+  $ogrSchema->listFeatureTypesAttributes('FeatureType', null, $topClasses);
+  #}
 
   # Für alle Aufzählungen
   foreach($umlSchema->getEnumerations() AS $enumeration) {

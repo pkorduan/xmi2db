@@ -85,14 +85,14 @@
   # FeatureTypes
   #**************
   # Lade oberste Klassen vom Typ FeatureType, die von keinen anderen abgeleitet wurden
-  $topClasses = $umlSchema->getTopUmlClasses('FeatureType');
+  $topClasses = $umlSchema->getTopUmlClasses('%Type');
 
   # Für alle oberen Klassen
-  foreach($topClasses as $topClass) {
-    $ogrSchema->logger->log('<br><b>TopKlasse: ' . $topClass['name'] . '</b> (' . $topClass['xmi_id'] . ')');
+  #foreach($topClasses as $topClass) {
+  #  $ogrSchema->logger->log('<br><b>TopKlasse: ' . $topClass['name'] . '</b> (' . $topClass['xmi_id'] . ')');
 
-    $sql .= $ogrSchema->createFeatureTypeTables('FeatureType', null, $topClass);
-  }
+  $sql .= $ogrSchema->createFeatureTypeTables('FeatureType', null, $topClasses);
+  #}
 
   $values = array_values($ogrSchema->wertartenQueries);
   sort($values);

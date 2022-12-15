@@ -70,10 +70,10 @@
   $topClasses = $umlSchema->getTopUmlClasses('FeatureType');
 
   # Für alle oberen Klassen
-  foreach($topClasses as $topClass) {
-    $ogrSchema->logger->log('<br><b>TopKlasse: ' . $topClass['name'] . '</b> (' . $topClass['xmi_id'] . ')');
-    $gfs .= $ogrSchema->createFeatureTypeGfs('FeatureType', null, $topClass);
-  }
+  #foreach($topClasses as $topClass) {
+  #  $ogrSchema->logger->log('<br><b>TopKlasse: ' . $topClass['name'] . '</b> (' . $topClass['xmi_id'] . ')');
+  $gfs .= $ogrSchema->createFeatureTypeGfs('FeatureType', null, $topClasses);
+  #}
 
   $logger->log("<pre>
 ");

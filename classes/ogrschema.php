@@ -1,6 +1,6 @@
 <?php
 class OgrSchema extends Schema {
-
+	
   function create_delete_trigger() {
     $sql = str_replace('schema_name', $this->schemaName, file_get_contents('../sql/delete_trigger.sql'));
     if (!empty(GEOMETRY_EPSG_CODE)) {
@@ -100,7 +100,7 @@ ALTER TABLE ax_fortfuehrungsauftrag SET WITH OIDS;";
     $featureType->getAttributesUntilLeaves($featureType->alias, $stereotype, array());
 
     $featureType->flattenAttributes();
-
+				
     $featureType->outputFlattenedAttributes();
     if ($this->logger->level > 0)
       $featureType->outputFlattenedAttributeTable();
@@ -122,20 +122,24 @@ ALTER TABLE ax_fortfuehrungsauftrag SET WITH OIDS;";
       $res[] = $featureType;
     }
     else {
-      $indent++;
-      foreach($subClasses as $subClass) {
-        # übergibt den featureType als parent an die Sub-Klassen
-        $this->logger->log('<br><b>Erzeuge Subclass: ' . $subClass['name'] . ' von Class ' . $featureType->name . '</b>');
-        $res = array_merge($res, $this->createFeatureTypes($stereotype, $featureType, $subClass));
-      }
-      $indent--;
+      $res = array_merge($res, $this->createFeatureTypes($stereotype, $featureType, $subClasses));
     }
+		
+		if (array_key_exists($class['name'], $this->featureTypes)) {
+			# Attribute mit denen aus vorigen Durchläufen dieses Featuretypes mergen (für Featuretypes, die aus mehreren Klassen abgeleitet sind)
+			$featureType->attributes = array_merge($featureType->attributes, $this->featureTypes[$class['name']]->attributes);
+		}
+		$this->featureTypes[$class['name']] = $featureType;		
 
     return $res;
   }
 
-  function createFeatureTypes($stereotype, $parent, $class) {
-    $featureTypes = $this->createFeatureTypeList($stereotype, $parent, $class);
+  function createFeatureTypes($stereotype, $parent, $classes) {
+		$featureTypes = [];
+		foreach($classes as $class) {
+			$this->logger->log('<br><b>Erzeuge Subclass: ' . $class['name'] . ' von Class ' . $parent->name . '</b>');
+			$featureTypes = array_merge($featureTypes, $this->createFeatureTypeList($stereotype, $parent, $class));
+		}
 
     if(RENAME_OPTIONAL_FIRST) {
       // Pfade feststellen auf denen umbenannt wurde
@@ -261,10 +265,10 @@ ALTER TABLE ax_fortfuehrungsauftrag SET WITH OIDS;";
     return $featureTypes;
   }
 
-  function createFeatureTypeTables($stereotype, $parent, $class, $parts = array(), $createUserInfoColumns = false) {
+  function createFeatureTypeTables($stereotype, $parent, $classes, $parts = array(), $createUserInfoColumns = false) {
     $sql = "";
-
-    foreach($this->createFeatureTypes($stereotype, $parent, $class) as $featureType) {
+		$this->createFeatureTypes($stereotype, $parent, $classes);
+    foreach($this->featureTypes as $featureType) {
       $sql .= $featureType->asFlattenedSql();
 
       foreach($featureType->attributes as $a) {
@@ -287,19 +291,19 @@ ALTER TABLE ax_fortfuehrungsauftrag SET WITH OIDS;";
     return $sql;
   }
 
-  function createFeatureTypeGfs($stereotype, $parent, $class) {
+  function createFeatureTypeGfs($stereotype, $parent, $classes) {
     $gfs = "";
 
-    foreach($this->createFeatureTypes($stereotype, $parent, $class) as $featureType) {
+    foreach($this->createFeatureTypes($stereotype, $parent, $classes) as $featureType) {
       $gfs .= $featureType->asGfs();
     }
 
     return $gfs;
   }
 
-  function listFeatureTypesAttributes($stereotype, $parent, $class) {
+  function listFeatureTypesAttributes($stereotype, $parent, $classes) {
     if ($this->logger->level > 0)
-      $this->createFeatureTypes($stereotype, $parent, $class);
+      $this->createFeatureTypes($stereotype, $parent, $classes);
   }
 
   function getAttributesFromComplexType($datatype, $stereotype) {
