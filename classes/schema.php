@@ -100,7 +100,8 @@ class Schema {
 SELECT
   c.id,
   c.xmi_id,
-  c.name
+  c.name,
+	s.name as stereotype
 FROM
   " . $this->schemaName . ".packages p LEFT JOIN
   " . $this->schemaName . ".uml_classes c ON p.id = c.package_id LEFT JOIN
@@ -108,7 +109,7 @@ FROM
   " . $this->schemaName . ".class_generalizations g ON g.xmi_id=general_id
 WHERE
   g.xmi_id IS NULL AND
-  lower(s.name) LIKE '" . strtolower($stereotype) . "'"
+  (lower(s.name) LIKE '" . strtolower($stereotype) . "' OR s.name IS NULL)"
   .$packSql."
 ";
     $this->logger->log('<br><b>Get Top ' . $stereotype . 's: </b>');
@@ -197,11 +198,14 @@ WHERE
 SELECT
   c.id,
   c.xmi_id,
-  c.name
+  c.name,
+	s.name as stereotype,
+	c.\"isAbstract\"
 FROM
   " . $this->schemaName . ".class_generalizations g LEFT JOIN
   " . $this->schemaName . ".uml_classes p ON g.parent_id = p.xmi_id JOIN
   " . $this->schemaName . ".uml_classes c ON g.child_id = c.xmi_id LEFT JOIN
+	" . $this->schemaName . ".stereotypes s ON c.stereotype_id = s.xmi_id LEFT JOIN
   " . $this->schemaName . ".packages pa ON c.package_id = pa.id
 WHERE
   p.xmi_id = '" . $class['xmi_id'] . "'"

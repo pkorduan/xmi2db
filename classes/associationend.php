@@ -20,7 +20,7 @@ class AssociationEnd extends Attribute {
 
   function getComment($parent_name) {
     $sql = "
-COMMENT ON COLUMN " . $this->parent_name . "." . $this->name . " IS 'Assoziation zu: ";
+COMMENT ON COLUMN " . $parent_name . "." . $this->name . " IS 'Assoziation zu: ";
     $sql .= trim($this->stereotype . ' ' . $this->zeigt_auf_alias . ' (' . $this->zeigt_auf_name . ')');
     $sql .= ' ' . $this->multiplicity;
     $sql .= "';";
@@ -33,12 +33,42 @@ COMMENT ON COLUMN " . $this->parent_name . "." . $this->name . " IS 'Assoziation
 
   function get_database_type($with_enum_type = true, $with_codelist_type = true) {
     if( $this->stereotype == "FeatureType" ) {
-      return PG_GML_ID;
+			switch (true) {
+				case in_array($this->name, array(
+						GEOMETRY_COLUMN_NAME
+					)):
+					$database_type = 'geometry';
+				break;
+				
+				default : {
+					$database_type = PG_GML_ID;
+				}
+			}
     }
     else {
-      return PG_CHARACTER_VARYING;
+      $database_type = PG_CHARACTER_VARYING;
     }
+		return $database_type;
   }
+	
+  function getBrackets() {
+    $brackets = false;
+    if (is_array($this->parts) and !empty($this->parts)) {
+      $brackets = in_array(
+        '[]',
+        array_map(
+          function($attribute) {
+            return ($attribute->multiplicity_upper == '*' OR $attribute->multiplicity == '*' OR intval($attribute->multiplicity) > 1) ? '[]' : '';
+          },
+          $this->parts
+        )
+      );
+    }
+    else {
+      $brackets = ($this->multiplicity_upper == '*' OR $this->multiplicity == '*' OR intval($this->multiplicity) > 1);
+    }
+    return ($brackets AND !in_array($this->name, array(GEOMETRY_COLUMN_NAME))) ? '[]' : '';
+  }	
 
   function asGfs() {
     $gfs = "

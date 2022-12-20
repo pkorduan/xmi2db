@@ -282,6 +282,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
             'featurecollection',
             'li_lineage',
             'sequence',
+						'sequence<record>',
             'genericname',
             'query',
             'transaction',
@@ -315,7 +316,10 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
             'sc_crs',
             'doublelist',
             'measure',
-            'dq_evaluationmethodtypecode'
+						'acceleration',
+						'accelerationgradient',
+            'dq_evaluationmethodtypecode',
+						'dq_relativeinternalpositionalaccuracy'
           )) :
           $database_type = PG_CHARACTER_VARYING;
         break;
@@ -374,7 +378,8 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
         case in_array($this->datatype, array(
             'integer',
             'int',
-            'codelist'
+            'codelist',
+						'voltage'
           )):
           $database_type = 'integer';
         break;
@@ -415,6 +420,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 
         case in_array($this->datatype, array(
             'gm_point',
+						'gm_pointref',
             'directposition'
           )):
           $database_type = 'geometry(POINT)';
@@ -445,7 +451,10 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
             $database_type = 'geometry(MULTILINESTRING)';
         break;
 
-        case ($this->datatype == 'gm_surface'):
+        case in_array($this->datatype, array(
+						'gm_surface',
+						'gm_polyhedralsurface'
+					)):
           $database_type = 'geometry(POLYGON)';
         break;
 

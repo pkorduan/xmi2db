@@ -83,7 +83,7 @@ ALTER TABLE ax_fortfuehrungsauftrag SET WITH OIDS;";
 
     $featureType = new FeatureType($class['name'], $parent, $this->logger, $this->umlSchema, $this->enumerations);
     $featureType->ogrSchema = $this;
-
+		$featureType->isAbstract = $class['isAbstract'];
     $featureType->setId($class['id']);
     $featureType->primaryKey = 'ogc_fid';
     $featureType->primaryKeyType = 'serial NOT NULL';
@@ -106,6 +106,12 @@ ALTER TABLE ax_fortfuehrungsauftrag SET WITH OIDS;";
       $featureType->outputFlattenedAttributeTable();
 
     $featureType->setAssociationEnds($class);
+		
+		if (array_key_exists($class['name'], $this->featureTypes)) {
+			# Attribute mit denen aus vorigen Durchläufen dieses Featuretypes mergen (für Featuretypes, die aus mehreren Klassen abgeleitet sind)
+			$featureType->attributes = array_merge($featureType->attributes, $this->featureTypes[$class['name']]->attributes);
+			$featureType->associationEnds = array_merge($featureType->associationEnds, $this->featureTypes[$class['name']]->associationEnds);
+		}		
 
     $res = array();
 
@@ -122,14 +128,14 @@ ALTER TABLE ax_fortfuehrungsauftrag SET WITH OIDS;";
       $res[] = $featureType;
     }
     else {
+			$indent++;
       $res = array_merge($res, $this->createFeatureTypes($stereotype, $featureType, $subClasses));
+			$indent--;
     }
 		
-		if (array_key_exists($class['name'], $this->featureTypes)) {
-			# Attribute mit denen aus vorigen Durchläufen dieses Featuretypes mergen (für Featuretypes, die aus mehreren Klassen abgeleitet sind)
-			$featureType->attributes = array_merge($featureType->attributes, $this->featureTypes[$class['name']]->attributes);
+		if ($class['stereotype'] == 'featureType') {
+			$this->featureTypes[$class['name']] = $featureType;		
 		}
-		$this->featureTypes[$class['name']] = $featureType;		
 
     return $res;
   }
@@ -269,23 +275,25 @@ ALTER TABLE ax_fortfuehrungsauftrag SET WITH OIDS;";
     $sql = "";
 		$this->createFeatureTypes($stereotype, $parent, $classes);
     foreach($this->featureTypes as $featureType) {
-      $sql .= $featureType->asFlattenedSql();
+			if ($featureType->isAbstract == 'f') {
+				$sql .= $featureType->asFlattenedSql();
 
-      foreach($featureType->attributes as $a) {
-        if(in_array($a->datatype, array("", "ci_rolecode")))
-          continue;
+				foreach($featureType->attributes as $a) {
+					if(in_array($a->datatype, array("", "ci_rolecode")))
+						continue;
 
-        if( $a->stereotype == "enumeration" ) {
-          $this->wertartenQueries[$featureType->name] = "SELECT wert::text AS k, beschreibung::text AS v,'' AS d,'" . $a->short_name . "' AS bezeichnung,'" . $featureType->name . "' AS element FROM " . $a->datatype;
-        }
-        else if( $a->stereotype == "codelist" ) {
-          if($a->datatype == "aa_anlassart" && !WITH_CODE_LISTS)
-            continue;
+					if( $a->stereotype == "enumeration" ) {
+						$this->wertartenQueries[$featureType->name] = "SELECT wert::text AS k, beschreibung::text AS v,'' AS d,'" . $a->short_name . "' AS bezeichnung,'" . $featureType->name . "' AS element FROM " . $a->datatype;
+					}
+					else if( $a->stereotype == "codelist" ) {
+						if($a->datatype == "aa_anlassart" && !WITH_CODE_LISTS)
+							continue;
 
 
-          $this->wertartenQueries[$featureType->name] = "SELECT id::text AS k, value::text AS v,'' AS d,'" . $a->short_name . "' AS bezeichnung,'" . $featureType->name . "' AS element FROM " . $a->datatype;
-        }
-      }
+						$this->wertartenQueries[$featureType->name] = "SELECT id::text AS k, value::text AS v,'' AS d,'" . $a->short_name . "' AS bezeichnung,'" . $featureType->name . "' AS element FROM " . $a->datatype;
+					}
+				}
+			}
     }
 
     return $sql;

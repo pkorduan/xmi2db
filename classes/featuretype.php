@@ -72,7 +72,7 @@ class FeatureType {
     foreach($this->umlSchema->getAssociationEnds($class) AS $end) {
       if (!$this->is_filtered('beziehungen', $class['name'], $end['b_name'])) {
         $associationEnd = new AssociationEnd(
-          $end['b_name'],
+					((in_array($end['b_name'], ['masche', 'thema']) and GEOMETRY_COLUMN_NAME != '') ? GEOMETRY_COLUMN_NAME : $end['b_name']),
           $end['a_class_name'],
           $end['b_class_name'],
           $this->logger
@@ -82,6 +82,7 @@ class FeatureType {
         $this->addAssociationEnd($associationEnd);
       }
     }
+		$this->associationEnds = array_merge($this->associationEnds, $this->getParentsAssociationEnds());
     $this->logger->log($this->associationsAsTable());
   }
 
@@ -103,16 +104,16 @@ class FeatureType {
 
   function getAttributesUntilLeaves($type, $stereotype, $parts) {
     $return_attributes = array();
-    $isExternal = in_array(substr($type, 0, 3), array('DQ_', 'LI_', 'CI_'));
-    if ($isExternal) {
+    #$isExternal = in_array(substr($type, 0, 3), array('DQ_', 'LI_', 'CI_'));
+    #if ($isExternal) {
       /* Damit die DQ_, LI_ und CI_ Elemente gefunden werden, müssen sie in classes existieren.
        * Zum Anlegen kann das SQL-Script sql/external_uml_classes.sql verwendet werden.
        */
-      $attributes = $this->umlSchema->getExternalClassAttributes($type, $stereotype, $parts);
-    }
-    else {
+     # $attributes = $this->umlSchema->getExternalClassAttributes($type, $stereotype, $parts);
+    #}
+    #else {
       $attributes = $this->umlSchema->getClassAttributes($type);
-    }
+    #}
     foreach ($attributes AS $attribute) {
       $this->logger->log("<br><b>Class:</b> {$attribute['class_name']} <b>Attribut:</b> {$attribute['attribute_name']} <b>datatype:</b> {$attribute['attribute_datatype']} <b>stereotype:</b> {$attribute['attribute_stereotype']}");
       if (!$this->is_filtered('attribute', $type, $attribute['attribute_name'])) {
@@ -154,7 +155,14 @@ class FeatureType {
 
           $new_path = $parts;
           array_push($new_path, $attributeObj);
-          if (in_array(strtolower($attribute['attribute_stereotype']), array('datatype', 'union'))) {
+          if (
+						in_array(strtolower($attribute['attribute_stereotype']), array('datatype', 'union')) OR 
+						in_array($attribute['attribute_datatype'], [
+								'CI_Responsibility', 
+								'TM_Primitive', 
+								'DQ_AbsoluteExternalPositionalAccuracy',
+								'GM_Envelope'])
+						) {
             foreach ($this->getAttributesUntilLeaves($attribute['attribute_datatype'], $attribute['attribute_stereotype'], $new_path) AS $child_attribute) {
               $return_attributes[] = $child_attribute;
             }
@@ -329,7 +337,7 @@ class FeatureType {
   }
 
   function addAssociationEnd($associationEnd) {
-    $this->associationEnds[] = $associationEnd;
+    $this->associationEnds[$associationEnd->name] = $associationEnd;
   }
 
   function addComment($comment) {
@@ -404,13 +412,17 @@ class FeatureType {
   }
 
   function hasGeometryColumn() {
-    $hasGeometryColumn = false;
     foreach($this->attributes AS $attribute) {
       if ($attribute->name == GEOMETRY_COLUMN_NAME) {
-        $hasGeometryColumn = true;
+        return true;
       }
     }
-    return $hasGeometryColumn;
+		foreach($this->associationEnds AS $associationsEnd) {
+      if ($associationsEnd->name == GEOMETRY_COLUMN_NAME) {
+        return true;
+      }
+    }
+    return false;
   }
 
   function getGeometryType() {
@@ -521,12 +533,12 @@ CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_objektkoordinaten
         $sql .= $associationEnd->getIndex($this->alias);
       }
 
-      if ($this->parent != null) {
-        # Ausgabe vererbter Assoziationsenden
-        foreach($this->getParentsAssociationEnds() AS $associationEnd) {
-          $sql .= $associationEnd->getIndex($this->alias);
-        }
-      }
+      // if ($this->parent != null) {
+        // # Ausgabe vererbter Assoziationsenden
+        // foreach($this->getParentsAssociationEnds() AS $associationEnd) {
+          // $sql .= $associationEnd->getIndex($this->alias);
+        // }
+      // }
     }
 
     $sql .= '
@@ -687,29 +699,34 @@ CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_objektkoordinaten
       }
     }
 
-    if ($this->parent != null) {
-      # Ausgabe vererbter Assoziationsenden
-      $attribute_parts = array_merge(
-        $attribute_parts,
-        array_map(
-          function($associationsEnd) {
-            return $associationsEnd->asSql('table');
-          },
-          $this->getParentsAssociationEnds()
-        )
-      );
-    }
+    // if ($this->parent != null) {
+      // # Ausgabe vererbter Assoziationsenden
+      // $attribute_parts = array_merge(
+        // $attribute_parts,
+        // array_map(
+          // function($associationsEnd) {
+            // return $associationsEnd->asSql('table');
+          // },
+          // $this->getParentsAssociationEnds()
+        // )
+      // );
+    // }
 
     # Ausgabe Assoziationsenden
-    $attribute_parts = array_merge(
-      $attribute_parts,
-      array_map(
-        function($associationsEnd) {
-          return $associationsEnd->asSql('table');
-        },
-        $this->associationEnds
-      )
-    );
+		foreach($this->associationEnds AS $associationsEnd) {
+      if (!in_array($associationsEnd->name, array(GEOMETRY_COLUMN_NAME))) {
+        $attribute_parts[] = $associationsEnd->asSql('table');
+      }
+    }
+    // $attribute_parts = array_merge(
+      // $attribute_parts,
+      // array_map(
+        // function($associationsEnd) {
+          // return $associationsEnd->asSql('table');
+        // },
+        // $this->associationEnds
+      // )
+    // );
 
     # Ausgabe Primary Key
     if ($this->primaryKey != '')
@@ -761,12 +778,12 @@ CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_objektkoordinaten
         $sql .= $associationEnd->getIndex($this->alias);
       }
 
-      if ($this->parent != null) {
-        # Ausgabe vererbter Assoziationsenden
-        foreach($this->getParentsAssociationEnds() AS $associationEnd) {
-          $sql .= $associationEnd->getIndex($this->alias);
-        }
-      }
+      // if ($this->parent != null) {
+        // # Ausgabe vererbter Assoziationsenden
+        // foreach($this->getParentsAssociationEnds() AS $associationEnd) {
+          // $sql .= $associationEnd->getIndex($this->alias);
+        // }
+      // }
     }
 
     $sql .= '
@@ -878,18 +895,18 @@ CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_objektkoordinaten
       )
     );
 
-    if ($this->parent != null) {
-      # Ausgabe vererbter Assoziationsenden
-      $attribute_parts = array_merge(
-        $attribute_parts,
-        array_map(
-          function($associationsEnd) {
-            return $associationsEnd->asGfs();
-          },
-          $this->getParentsAssociationEnds()
-        )
-      );
-    }
+    // if ($this->parent != null) {
+      // # Ausgabe vererbter Assoziationsenden
+      // $attribute_parts = array_merge(
+        // $attribute_parts,
+        // array_map(
+          // function($associationsEnd) {
+            // return $associationsEnd->asGfs();
+          // },
+          // $this->getParentsAssociationEnds()
+        // )
+      // );
+    // }
 
     # Ausgabe Assoziationsenden
     $attribute_parts = array_merge(

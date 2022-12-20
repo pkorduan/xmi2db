@@ -22,8 +22,9 @@ class Logger {
     }
     if($this->level & 1)
       echo $text;
-    if ($this->level & 2)
+    if ($this->level & 2){
       fwrite($this->file, $text);
+		}
   }
 
   function close() {
