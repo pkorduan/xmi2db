@@ -24,8 +24,9 @@ Changelog
 * 17.01.2017 Tabellendefinitionen für CodeListen hinzugefügt.
 * 15.11.2017 Version xmi2db_norbit in xmi2db gemerged 
 * 16.11.2017 Rename description to correct typ ax_datenerhebung_punktort, AAA model und gfs Datei neu erstellt mit 
+* 04.01.2023 Anpassungen zur Unterstützung der GeoInfoDok 7.1 - u.a. Mehrfachvererbung, neue Datentypen, usw.
 
-db2classes wird für einen Shape-to-XPlanGML-Konverter für XPlanung konforme Raumordnungspläne verwendet wird.
+db2classes wird für einen Shape-to-XPlanGML-Konverter für XPlanung konforme Raumordnungspläne verwendet.
 
 db2ogr wird für das PostNAS Projekt verwendet um alle Modellelemente der NAS-Schnittstelle mit ogr2ogr in Postgres einlesen zu können.
 
@@ -74,19 +75,11 @@ Um einen tieferen Einblick zu erhalten was alles abgefragt wird um die Schmata z
 http://meinserver.de/xmi2db/converter/db2classes.php?umlSchema=aaa_uml&gmlSchema=aaa_gml&loglevel=1
 ```
 
-Umbenennungsskript
-
-Um NAS-Dateien in das neue flache Schema, welches bei db2ogr herauskommt einlesen zu können, müssen einige XML-Elemente umbenannt werden. Dazu wurde das Ruby-Program rename_nas.rb geschrieben, welches sich im Verzeichnis converter befindet. Die Ausführung unter Debian erfordert die Installation von ruby_libxml.
-
 ```
 apt-get updated && apt-get install libxml-ruby
 ```
 
-In der Datei rename_nas.rb steht der Pfad auf die Umbenennungsdatei. Der Pfad ist relativ zum Verzeichnis converter angegeben in dem das Skript rename_nas.rb liegt. Wenn die Umbenennungsdatei da bleibt, wo sie standardmäßig liegt, passt der angegebenen Pfad.
 
-Die Umbenennung von Elementen in einer NAS-Datei "eingabedatei.xml" wird wie folgt aufgerufen:
-```
-ruby rename_nas.rb eingabedatei.xml [ausgabedatei.xml]
 ```
 
 Filter
@@ -174,7 +167,6 @@ Diese Dateien wiederum lassen sich wie folgt entpacken und in einer Schleife ver
 gunzip *.xml.gz
 for NAS_FILE in *.xml
 do
-  ruby rename_nas.rb $NAS_FILE renamed_nas.xml
   ogr2ogr -f "PostgreSQL" --config PG_USE_COPY NO -nlt CONVERT_TO_LINEAR -append PG:"dbname=mydbname active_schema=aaa_ogr user=mydbuser host=myhost port=5432" -a_srs EPSG:25833 renamed_nas.xml
 done
 ```
@@ -198,4 +190,4 @@ OGR_PATH="/pfad/zu/ogr2ogr/bin/verzeichnis"
 ERROR_LOG=/pfad/fuer/logfiles/mylogfile.log
 ```
 
-Diese Anwendung wurde 2016 entwickelt von Peter Korduan und Christian Seip.
+Diese Anwendung wurde 2016 entwickelt von Peter Korduan, Christian Seip und Stefan Rahn.
