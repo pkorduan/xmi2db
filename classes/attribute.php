@@ -262,6 +262,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
   }
 
   function get_database_type($with_enum_type = true, $with_codelist_type = true) {
+		#echo $this->alias . ' ' . $this->datatype.chr(10);
     $database_type = $this->datatype;
     $defined_types = array(
       'datatype'
@@ -413,7 +414,9 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
         case in_array($this->datatype, array(
             'gm_object',
             'union',
-            'xp_variablegeometrie'
+            'xp_variablegeometrie',
+						'au_geometrie',
+						'ag_geometrie'
           )):
           $database_type = 'geometry';
         break;
@@ -428,7 +431,8 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 
         case in_array($this->datatype, array(
             'gm_multipoint',
-            'xp_punktgeometrie'
+            'xp_punktgeometrie',
+						'aa_punktgeometrie'
           )):
           $database_type = 'geometry(MULTIPOINT)';
         break;
@@ -443,6 +447,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
         case in_array($this->datatype, array(
             'gm_multicurve',
             'xp_liniengeometrie',
+						'aa_liniengeometrie',
             'gm_compositecurve'
           )):
           if (LINESTRING_AS_GEOMETRY)
@@ -461,6 +466,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
         case in_array($this->datatype, array(
             'gm_triangulatedsurface',
             'xp_flaechengeometrie',
+						'aa_flaechengeometrie',
             'gm_solid',
             'gm_compositesolid',
             'gm_multisurface'
@@ -533,7 +539,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
         break;
     }
 
-    return $gfs_type . ($brackets == '[]' ? 'List' : '');
+    return $gfs_type . (($brackets == '[]' AND !is_numeric($gfs_type)) ? 'List' : '');
   }
 
   function getBrackets() {
@@ -642,42 +648,16 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
   }
 
   function asGfs() {
-    if($this->short_name != GEOMETRY_COLUMN_NAME && $this->short_name != "objektkoordinaten") {
-      if(0) {
-        $gfs = "\n    <!--";
-	foreach ($this as $property => $value) {
-	  $gfs .= "\n      $property => " . (is_scalar($value) ? $value : "[" . gettype($value) . "]");
-	}
-
-        $gfs .= "\n\n      overwrite:";
-	foreach ($this->overwrite as $property => $value) {
-	  $gfs .= "\n        $property => " . (is_scalar($value) ? $value : "[" . gettype($value) . "]");
-	}
-
-	foreach ($this->parts as $part) {
-	  $gfs .= "\n\n      part:";
-	  foreach ($part as $property => $value) {
-	    $gfs .= "\n        $property => " . (is_scalar($value) ? $value : "[" . gettype($value) . "]");
-
-	  }
-
-	  $gfs .= "\n        overwrite:";
-	  foreach ($part->overwrite as $property => $value) {
-	    $gfs .= "\n          $property => " . (is_scalar($value) ? $value : "[" . gettype($value) . "]");
-	  }
-	}
-        $gfs .= "\n      path:" . $this->getAttributePath();
-        $gfs .= "\n    -->";
-      }
-
-      $gfs .= "
-    <PropertyDefn>
-      <Name>".$this->short_name."</Name>
-      <ElementPath>" . $this->getRenamedAttributePath() . "</ElementPath>
-      <Type>".$this->get_gfs_type($this->get_database_type(false, false), $this->getBrackets())."</Type>
-    </PropertyDefn>";
-      return $gfs;
-    }
+		if($this->short_name != GEOMETRY_COLUMN_NAME){
+			$type = $this->get_gfs_type($this->get_database_type(false, false), $this->getBrackets());
+			$gfs = "
+			" . (is_numeric($type) ? '<GeomPropertyDefn>' : '<PropertyDefn>') . "
+				<Name>".$this->short_name."</Name>
+				<ElementPath>" . $this->getRenamedAttributePath() . "</ElementPath>
+				<Type>" . $type . "</Type>
+			" . (is_numeric($type) ? '</GeomPropertyDefn>' : '</PropertyDefn>');
+			return $gfs;
+		}
   }
 
   function isOptional() {

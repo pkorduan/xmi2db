@@ -156,13 +156,16 @@ class FeatureType {
           $new_path = $parts;
           array_push($new_path, $attributeObj);
           if (
-						in_array(strtolower($attribute['attribute_stereotype']), array('datatype', 'union')) OR 
-						in_array($attribute['attribute_datatype'], [
+						$attribute['attribute_name'] != 'position' AND
+						(
+							in_array(strtolower($attribute['attribute_stereotype']), array('datatype', 'union')) OR 
+							in_array($attribute['attribute_datatype'], [
 								'CI_Responsibility', 
 								'TM_Primitive', 
 								'DQ_AbsoluteExternalPositionalAccuracy',
 								'GM_Envelope'])
-						) {
+						)
+					) {
             foreach ($this->getAttributesUntilLeaves($attribute['attribute_datatype'], $attribute['attribute_stereotype'], $new_path) AS $child_attribute) {
               $return_attributes[] = $child_attribute;
             }
@@ -429,10 +432,14 @@ class FeatureType {
     $geometry_type = 100;
     foreach($this->attributes AS $attribute) {
       if($attribute->name == GEOMETRY_COLUMN_NAME) {
-        $geometry_type = $attribute->get_gfs_type($attribute->get_database_type(false, false), NULL);
+        return $attribute->get_gfs_type($attribute->get_database_type(false, false), NULL);
       }
     }
-    return $geometry_type;
+		foreach($this->associationEnds AS $associationsEnd) {
+      if ($associationsEnd->name == GEOMETRY_COLUMN_NAME) {
+				return $associationsEnd->get_gfs_type($associationsEnd->get_database_type(false, false), NULL);
+			}
+		}
   }
 
   function asSql() {
@@ -511,7 +518,7 @@ CREATE INDEX " . $this->name . "_endet ON " . $this->name . " USING btree (endet
     # Set epsg code
     if (!empty(GEOMETRY_EPSG_CODE) and $this->hasGeometryColumn()) {
       $sql .= "
-SELECT AddGeometryColumn('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "', " . GEOMETRY_EPSG_CODE . ", 'GEOMETRY', " . ($this->name=="ax_punktortau" || substr($this->name, strlen($this->name)-2) == "3d" ? 3 : 2) . ");";
+SELECT AddGeometryColumn('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "', " . GEOMETRY_EPSG_CODE . ", 'GEOMETRY', 2);";
       if(WITH_INDEXES) {
         $sql .= "
 CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_" . GEOMETRY_COLUMN_NAME . "_idx" ) . " ON " . $this->name . " USING gist (" . GEOMETRY_COLUMN_NAME . ");";
@@ -828,6 +835,7 @@ CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_objektkoordinaten
   }
 
   function asGfs() {
+		#echo $this->alias.chr(10);
     $attribute_parts = array();
     $gfs = "
   <GMLFeatureClass>
@@ -845,19 +853,15 @@ CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_objektkoordinaten
     </PropertyDefn>";
     }
 
-    $hat_position = false;
-    $hat_objektkoordinaten = false;
-    # Ausgabe Attribute
-    foreach($this->attributes AS $attribute) {
-      if ($attribute->name == GEOMETRY_COLUMN_NAME) {
-        $hat_position = true;
-      }
-      if ($attribute->name == "objektkoordinaten") {
-        $hat_objektkoordinaten = true;
-      }
-    }
+    // $hat_objektkoordinaten = false;
+    // # Ausgabe Attribute
+    // foreach($this->attributes AS $attribute) {
+      // if ($attribute->name == "objektkoordinaten") {
+        // $hat_objektkoordinaten = true;
+      // }
+    // }
 
-    if ($hat_position) {
+    if ($this->hasGeometryColumn()) {
       $attribute_parts[] .= "
     <GeomPropertyDefn>
       <Name>" . GEOMETRY_COLUMN_NAME . "</Name>
@@ -866,14 +870,14 @@ CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_objektkoordinaten
     </GeomPropertyDefn>";
     }
 
-    if($hat_objektkoordinaten) {
-      $attribute_parts[] .= "
-    <GeomPropertyDefn>
-      <Name>objektkoordinaten</Name>
-      <ElementPath>objektkoordinaten</ElementPath>
-      <GeometryType>1</GeometryType>
-    </GeomPropertyDefn>";
-    }
+    // if($hat_objektkoordinaten) {
+      // $attribute_parts[] .= "
+    // <GeomPropertyDefn>
+      // <Name>objektkoordinaten</Name>
+      // <ElementPath>objektkoordinaten</ElementPath>
+      // <GeometryType>1</GeometryType>
+    // </GeomPropertyDefn>";
+    // }
 
     # gml_id Spalte
     $attribute_parts[] .= "

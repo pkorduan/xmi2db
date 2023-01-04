@@ -71,13 +71,16 @@ COMMENT ON COLUMN " . $parent_name . "." . $this->name . " IS 'Assoziation zu: "
   }	
 
   function asGfs() {
-    $gfs = "
-    <PropertyDefn>
-      <Name>" . $this->name . "</Name>
-      <ElementPath>" . $this->alias . "</ElementPath>
-      <Type>" . $this->get_gfs_type($this->get_database_type(false, false), $this->getBrackets()) . "</Type>
-    </PropertyDefn>";
-    return $gfs;
+		if($this->name != GEOMETRY_COLUMN_NAME){
+			$type = $this->get_gfs_type($this->get_database_type(false, false), $this->getBrackets());
+			$gfs = "
+			" . (is_numeric($type) ? '<GeomPropertyDefn>' : '<PropertyDefn>') . "
+				<Name>" . $this->name . "</Name>
+				<ElementPath>" . (is_numeric($type) ? 'position' : $this->alias) . "</ElementPath>
+				<Type>" . $this->get_gfs_type($this->get_database_type(false, false), $this->getBrackets()) . "</Type>
+			" . (is_numeric($type) ? '</GeomPropertyDefn>' : '</PropertyDefn>');
+			return $gfs;
+		}
   }
 
   function getIndex($name) {

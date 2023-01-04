@@ -67,7 +67,7 @@
   # FeatureTypes
   #**************
   # Lade oberste Klassen vom Typ FeatureType, die von keinen anderen abgeleitet wurden
-  $topClasses = $umlSchema->getTopUmlClasses('FeatureType');
+	$topClasses = $umlSchema->getTopUmlClasses('%type');
 
   # Für alle oberen Klassen
   #foreach($topClasses as $topClass) {

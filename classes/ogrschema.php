@@ -301,9 +301,11 @@ ALTER TABLE ax_fortfuehrungsauftrag SET WITH OIDS;";
 
   function createFeatureTypeGfs($stereotype, $parent, $classes) {
     $gfs = "";
-
-    foreach($this->createFeatureTypes($stereotype, $parent, $classes) as $featureType) {
-      $gfs .= $featureType->asGfs();
+		$this->createFeatureTypes($stereotype, $parent, $classes);
+    foreach($this->featureTypes as $featureType) {
+			if ($featureType->isAbstract == 'f') {
+				$gfs .= $featureType->asGfs();
+			}
     }
 
     return $gfs;
