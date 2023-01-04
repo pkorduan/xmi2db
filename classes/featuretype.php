@@ -763,7 +763,7 @@ CREATE INDEX " . $this->name . "_endet ON " . $this->name . " USING btree (endet
     # Set epsg code
     if (!empty(GEOMETRY_EPSG_CODE) and $this->hasGeometryColumn()) {
       $sql .= "
-SELECT AddGeometryColumn('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "', " . GEOMETRY_EPSG_CODE . ", 'GEOMETRY', " . ($this->name=="ax_punktortau" || substr($this->name, strlen($this->name)-2) == "3d" ? 3 : 2) . ");";
+SELECT AddGeometryColumn('" . $this->name . "', '" . GEOMETRY_COLUMN_NAME . "', " . GEOMETRY_EPSG_CODE . ", 'GEOMETRY', 2);";
       if(WITH_INDEXES) {
         $sql .= "
 CREATE INDEX " . $this->ogrSchema->identifier( $this->name . "_" . GEOMETRY_COLUMN_NAME . "_idx" ) . " ON " . $this->name . " USING gist (" . GEOMETRY_COLUMN_NAME . ");";

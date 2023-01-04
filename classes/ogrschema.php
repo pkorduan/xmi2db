@@ -195,25 +195,27 @@ ALTER TABLE ax_fortfuehrungsauftrag SET WITH OIDS;";
       );
 
       foreach($featureTypes as $featureType) {
-        foreach($featureType->attributes as $a) {
-          if($a->short_name != end($a->parts)->name) {
-            $path =
-              implode('_',
-                array_map(
-                  function($part) {
-                    return $part->name;
-                  },
-                  array_slice($a->parts, 0, count($a->parts)-1)
-                )
-              );
+				if ($featureType->isAbstract == 'f') {
+					foreach($featureType->attributes as $a) {
+						if($a->short_name != end($a->parts)->name) {
+							$path =
+								implode('_',
+									array_map(
+										function($part) {
+											return $part->name;
+										},
+										array_slice($a->parts, 0, count($a->parts)-1)
+									)
+								);
 
-            if(array_key_exists($path, $renamed_paths))
-              continue;
+							if(array_key_exists($path, $renamed_paths))
+								continue;
 
-            $renamed_paths[$path] = substr( $a->short_name, 0, strlen($a->short_name) - strlen(end($a->parts)->name) );
-            $this->logger->log("<br>" . $featureType->alias .  ": Umbenannter Pfad: " . $path . " => " . $renamed_paths[$path] . " [" . end($a->parts)->name . " => " . $a->short_name . "; Konflikte: " . $a->conflictsAt . "]");
-          }
-        }
+							$renamed_paths[$path] = substr( $a->short_name, 0, strlen($a->short_name) - strlen(end($a->parts)->name) );
+							$this->logger->log("<br>" . $featureType->alias .  ": Umbenannter Pfad: " . $path . " => " . $renamed_paths[$path] . " [" . end($a->parts)->name . " => " . $a->short_name . "; Konflikte: " . $a->conflictsAt . "]");
+						}
+					}
+				}
       }
 
       // Auch nicht umbenannte Attribute auf Pfaden mit Umbenennung umbenennen
