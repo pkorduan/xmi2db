@@ -261,7 +261,7 @@ WHERE
     if (defined('PACKAGES')) $packSql = " AND p.name IN (" . str_replace(';', ',', PACKAGES) . ")";
     else $packSql = "";
     $sql = "
-SELECT
+SELECT distinct ON (c.name)
   c.id,
   c.name,
   c.xmi_id

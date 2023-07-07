@@ -370,7 +370,8 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 
         # datetime
         case in_array($this->datatype, array(
-            'datetime'
+            'datetime',
+						'tm_primitive'
           )) :
           $database_type = PG_DATETIME;
         break;

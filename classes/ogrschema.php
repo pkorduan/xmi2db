@@ -133,7 +133,7 @@ ALTER TABLE ax_fortfuehrungsauftrag SET WITH OIDS;";
 			$indent--;
     }
 		
-		if ($class['stereotype'] == 'featureType') {
+		if (strtolower($class['stereotype']) == 'featuretype') {
 			$this->featureTypes[$class['name']] = $featureType;		
 		}
 

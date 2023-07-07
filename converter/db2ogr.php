@@ -94,14 +94,14 @@
   $sql .= $ogrSchema->createFeatureTypeTables('FeatureType', null, $topClasses);
   #}
 
-  $values = array_values($ogrSchema->wertartenQueries);
-  sort($values);
-  $sql .= "\nCREATE VIEW alkis_wertearten(k,v,d,bezeichnung,element) AS\n  " . implode(" UNION\n  ", $values) . ";";
+  // $values = array_values($ogrSchema->wertartenQueries);
+  // sort($values);
+  // $sql .= "\nCREATE VIEW alkis_wertearten(k,v,d,bezeichnung,element) AS\n  " . implode(" UNION\n  ", $values) . ";";
 
-  if(WITH_DELETE_TRIGGER) {
-    # $logger->log('<br><hr><br>');
-    $sql .= "\n\n" . $ogrSchema->create_delete_trigger();
-  }
+  // if(WITH_DELETE_TRIGGER) {
+    // # $logger->log('<br><hr><br>');
+    // $sql .= "\n\n" . $ogrSchema->create_delete_trigger();
+  // }
 
   # $logger->log('<br><hr><br>');
   $sql .= "\n\n" . $ogrSchema->create_ax_fortfuehrungsauftrag();

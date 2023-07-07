@@ -161,7 +161,6 @@ class FeatureType {
 							in_array(strtolower($attribute['attribute_stereotype']), array('datatype', 'union')) OR 
 							in_array($attribute['attribute_datatype'], [
 								'CI_Responsibility', 
-								'TM_Primitive', 
 								'DQ_AbsoluteExternalPositionalAccuracy',
 								'GM_Envelope'])
 						)
