@@ -961,7 +961,7 @@ class xmi2db {
       //Delete single empty value so that array is really eampty when there are no PACKAGES given in database_conf
       //if ($packages_conf[0]=="") $packages_conf = array_filter($packages_conf);
       //Delete sole entry in array ('PACKAGES') which means that there is no package configured, thus the array should be empty.
-      if ($packages_conf[0]='PACKAGES')
+      if ($packages_conf[0] == 'PACKAGES')
         unset($packages_conf[0]);
     } else
       $packages_conf=array();
