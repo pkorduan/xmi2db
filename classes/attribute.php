@@ -654,7 +654,7 @@ COMMENT ON COLUMN " . $table_name . "." . $this->short_name . " IS '";
 			$gfs = "
 			" . (is_numeric($type) ? '<GeomPropertyDefn>' : '<PropertyDefn>') . "
 				<Name>".$this->short_name."</Name>
-				<ElementPath>" . $this->getRenamedAttributePath() . "</ElementPath>
+				<ElementPath>" . $this->getRenamedAttributePath() . ($this->stereotype == 'codelist'? '@href' : '') . "</ElementPath>
 				<Type>" . $type . "</Type>
 			" . (is_numeric($type) ? '</GeomPropertyDefn>' : '</PropertyDefn>');
 			return $gfs;

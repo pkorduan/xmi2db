@@ -76,7 +76,7 @@ COMMENT ON COLUMN " . $parent_name . "." . $this->name . " IS 'Assoziation zu: "
 			$gfs = "
 			" . (is_numeric($type) ? '<GeomPropertyDefn>' : '<PropertyDefn>') . "
 				<Name>" . $this->name . "</Name>
-				<ElementPath>" . (is_numeric($type) ? 'position' : $this->alias) . "</ElementPath>
+				<ElementPath>" . (is_numeric($type) ? 'position' : $this->alias) . "@href</ElementPath>
 				<Type>" . $this->get_gfs_type($this->get_database_type(false, false), $this->getBrackets()) . "</Type>
 			" . (is_numeric($type) ? '</GeomPropertyDefn>' : '</PropertyDefn>');
 			return $gfs;
