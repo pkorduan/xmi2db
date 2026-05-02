@@ -1,6 +1,7 @@
 <?php
 class Logger {
-  function __construct($level = 0, $filename = '/var/www/tmp/xmi2db.htm') {
+  //function __construct($level = 0, $filename = '/var/www/tmp/xmi2db.htm') {
+  function __construct($level = 0, $filename = 'C:\tmp\xmi2db.log') {
     $this->level = $level;
     $this->debug = false;
     $this->text = [];

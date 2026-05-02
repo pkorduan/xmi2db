@@ -53,8 +53,9 @@ class Schema {
     $sql .= "\nBEGIN;\n";
 
     IF(CREATE_SCHEMA) {
-      $sql .= 'DROP SCHEMA IF EXISTS ' . $this->schemaName . " CASCADE;\n";
-      $sql .= 'CREATE SCHEMA ' . $this->schemaName . ";\n";
+      #Für Postgres 13-Kompatibilität: 'CREATE SCHEMA IF NOT EXISTS' statt 'DROP SCHEMA IF EXISTS' und 'CREATE SCHEMA'
+      #$sql .= 'DROP SCHEMA IF EXISTS ' . $this->schemaName . " CASCADE;\n";
+      $sql .= 'CREATE SCHEMA IF NOT EXISTS ' . $this->schemaName . ";\n";
       if(COMMENTS) {
         $sql .= 'COMMENT ON SCHEMA ' . $this->schemaName . " IS '" . VERSION . "';\n";
       }
@@ -67,6 +68,7 @@ class Schema {
     if (WITH_UUID_OSSP) {
       $sql .= 'CREATE EXTENSION IF NOT EXISTS "uuid-ossp"' . ";\n";
     }
+
     return $sql;
   }
 
@@ -298,6 +300,9 @@ WHERE
   }
 
   function getAttributes($class_id) {
+    #$class_id kann null sein, wenn die Klasse über kein Attribut verfügt. In diesem Fall soll eine leere Liste zurückgegeben werden.
+    if ($class_id === null || strlen($class_id) == 0) return;
+
     $with_tagged_values = true;
     if ($with_tagged_values) {
       $tagged_values_select = ",

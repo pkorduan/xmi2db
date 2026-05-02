@@ -186,6 +186,9 @@
     <datalist id="basepkgNameListe">
       <option value="XPlanGML 4.1" selected>XPlanGML 4.1</option>
       <option value="XPlanGML 5.0" selected>XPlanGML 5.0</option>
+      <option value="XPlanGML 5.4" selected>XPlanGML 5.4</option>
+      <option value="XPlanGML 6.0" selected>XPlanGML 6.0</option>
+      <option value="XPlanGML 6_1" selected>XPlanGML 6.1</option>
       <option value="Raumordnungsplan_Kernmodell">Raumordnungsplan_Kernmodell</option>
     </datalist>
     <!--input type="text" id="basepkg" name="basepkg" list="basepkgNameListe" value="XPlanGML 4.1"/>

@@ -60,8 +60,11 @@
 
   # Für alle oberen Unions
   foreach($topDataTypes as $topDataType) {
-    $umlSchema->logger->log('<br><b>Top UnionType: ' . $topDataType['name'] . '</b> (' . $topDataType['xmi_id'] . ')');
-    $sql .= $umlSchema->createComplexDataTypes('Union', $topDataType, $gmlSchema);
+    //Mache das nur, wenn Union einen Namen hat, gibt nämlich scheinbar leere Unions
+    if ($topDataType['name']) {
+      $umlSchema->logger->log('<br><b>Top UnionType: ' . $topDataType['name'] . '</b> (' . $topDataType['xmi_id'] . ')');
+      $sql .= $umlSchema->createComplexDataTypes('Union', $topDataType, $gmlSchema);
+    }
   }
   $logger->log('<br><hr><br>');
 
@@ -80,8 +83,11 @@
 
   # Für alle oberen Datentypen
   foreach($topDataTypes as $topDataType) {
-    $umlSchema->logger->log('<br><b>Top DataType: ' . $topDataType['name'] . '</b> (' . $topDataType['xmi_id'] . ')');
-    $sql .= $umlSchema->createComplexDataTypes('DataType', $topDataType, $gmlSchema);
+    //Mache das nur, wenn Datentyp einen Namen hat, gibt nämlich scheinbar leere Datentypen
+    if ($topDataType['name']) {
+      $umlSchema->logger->log('<br><b>Top DataType: ' . $topDataType['name'] . '</b> (' . $topDataType['xmi_id'] . ')');
+      $sql .= $umlSchema->createComplexDataTypes('DataType', $topDataType, $gmlSchema);
+    }
   }
   $logger->log('<br><hr><br>');
 
@@ -93,14 +99,17 @@
 
   # Für alle oberen Klassen
   foreach($topClasses as $topClass) {
-    $umlSchema->logger->log('<br><b>TopKlasse: ' . $topClass['name'] . '</b> (' . $topClass['xmi_id'] . ')');
-    $sql .= $umlSchema->createFeatureTypeTables(
-      'FeatureType',
-      null,
-      $topClass,
-      '',
-      ($_REQUEST['createUserInfoColumns'] == 1) ? true : false
-    );
+    //Mache das nur, wenn Klasse einen Namen hat, gibt nämlich scheinbar leere Klassen
+    if ($topClass['name']) {
+      $umlSchema->logger->log('<br><b>TopKlasse: ' . $topClass['name'] . '</b> (' . $topClass['xmi_id'] . ')');
+      $sql .= $umlSchema->createFeatureTypeTables(
+        'FeatureType',
+        null,
+        $topClass,
+        '',
+        ($_REQUEST['createUserInfoColumns'] == 1) ? true : false
+      );
+    }
   }
   $logger->log('<br><hr><br>');
 
@@ -125,6 +134,9 @@
   $logger->log('<br>Ende Debug Ausgabe<br><hr><br>');
 
 # $gmlSchema->execSql($sql);
+
+  #Für Postgres 13-Kompatibilität: bei mir geht es nur mit "END;" am Ende
+  $sql .= "\nEND;\n";
 
   echo $sql;
 ?>
