@@ -35,11 +35,11 @@ class EnumType {
   }
 
   function getValues() {
+    #Vorher letzte Spalte im Select: v.datavalue
     $sql = "
 SELECT
     a.initialvalue_body,
-    a.name,
-    v.datavalue
+    a.name
 FROM
   " . $this->umlSchema->schemaName . ".uml_classes c JOIN
   " . $this->umlSchema->schemaName . ".uml_attributes a ON c.id = a.uml_class_id LEFT OUTER JOIN (
@@ -69,8 +69,8 @@ ORDER BY a.initialvalue_body
         $row['name'] = 'NULL';
       $this->values->addRow(array(
         $wert,
-        trim($row['name']),
-        trim($row['datavalue'])
+        trim($row['name'])
+        #trim($row['datavalue'])
       ));
     }
     return $this->values;

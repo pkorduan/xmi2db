@@ -908,8 +908,10 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
     $enumType = new EnumType($enumeration['name'], $this->logger);
     $enumType->setSchemas($this, $dbSchema);
     $enumType->setId($enumeration['id']);
-    $table->values = ($with_values ? $enumType->getValues($enumeration) : new Data());
-
+    #$table->values = ($with_values ? $enumType->getValues($enumeration) : new Data());
+    #$with_values ist nirgends definiert, deshalb kann nie in die Funktion getValues() verzweigt werden. Daher wird immer eine leere Tabelle erzeugt, was nicht gewünscht ist. Deshalb wird die Funktion getValues() direkt aufgerufen, ohne die Abfrage mit $with_values.
+    $table->values = $enumType->getValues($enumeration);
+    
     # definiere Attribute
     $wert_type = $enumType->getWertType();
     $attribute = new Attribute('wert', $wert_type);
