@@ -230,6 +230,7 @@ class FeatureType {
   }
 
   function unifyShortNames() {
+    $this->logger->log("<br>Springe in unifyShortNames()\n");
     if(RENAME_OPTIONAL_FIRST) {
       if( !$this->hasCollisions() ) {
         $this->logger->log("<br>Keine Namenskollisionen!\n");
@@ -300,7 +301,7 @@ class FeatureType {
       $html = '<br>Keine Attribute gefunden.';
     }
     else {
-      $html = '<table border="1"><tr><th>Attribut</th><th>Attributtyp</th><th>Stereotyp</th><th>Datentyp</th><th>Multiplizität</th><th>Default</th><th>Sequence</th></tr>';
+      $html = '<br><table border="1"><tr><th>Attribut</th><th>Attributtyp</th><th>Stereotyp</th><th>Datentyp</th><th>Multiplizität</th><th>Default</th><th>Sequence</th></tr>';
       # für jedes Attribut erzeuge Attributzeilen
       foreach($this->attributes AS $i => $attribute) {
         $html .= '<tr><td>' . $attribute->name . '</td><td>' .

@@ -724,6 +724,7 @@ class xmi2db {
     }
 
     $classId = $this->buildQueryForClass($classArray, $packageId);
+    #Pascoul::send_message(0, "\t\t\t Klassen-ID ".$classId." in die DB geschrieben für Klasse ".$class->attributes()->name);
 
     //taggedValues
     $i_taggedValues = 0;
@@ -787,6 +788,8 @@ class xmi2db {
           foreach ($attribute->{'ModelElement.taggedValue'}->TaggedValue as $taggedValueAttr) {
             $attributeTaggedValueArray = $this->getAttributeInfos($taggedValueAttr);
             $this->buildQueryForTaggedValue($attributeTaggedValueArray, $attributeId, 'NULL');
+            #Warum soll die Klasse hier Null sein?
+            #$this->buildQueryForTaggedValue($attributeTaggedValueArray, $attributeId, $classId);
             //echo "\t\t\t\tTaggedValue: ".$taggedValueAttr->{'TaggedValue.type'}->TagDefinition->attributes()->{'xmi.idref'}."<br>";
             //echo "\t\t\t\tTaggedValue isSpecification: ".$taggedValueAttr->attributes()->isSpecification."<br>";
             //echo "\t\t\t\tTaggedValue dataValue: ".$taggedValueAttr->{'TaggedValue.dataValue'}."<br>";

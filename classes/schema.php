@@ -201,6 +201,7 @@ SELECT
   c.id,
   c.xmi_id,
   c.name,
+  c.general_id,
 	s.name as stereotype,
 	c.\"isAbstract\"
 FROM
@@ -740,7 +741,32 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
       # union oder datentyp existiert noch nicht, jetzt erzeugen
       $dataType->setSchemas($this, $dbSchema);
       $dataType->setId($class['id']);
-      $attributes = $this->getAttributes($dataType->id);
+      //$this->logger->log('<br>General-ID vor Aufruf getAttributes: ' . $class['general_id'] . '<br>');
+      
+      $sqlGeneral = "
+        SELECT c.name AS general_name, c.id AS general_id
+        FROM " . $this->schemaName . ".class_generalizations g
+        JOIN " . $this->schemaName . ".uml_classes c ON g.parent_id = c.xmi_id
+        WHERE g.xmi_id = '" . pg_escape_string($class['general_id']) . "'
+      ";
+
+      $result = pg_fetch_all(pg_query($this->dbConn, $sqlGeneral));
+      $generalName = $result[0]['general_name'] ?? null;
+      $generalId = $result[0]['general_id'] ?? null;
+
+      //$this->logger->log('<br>General-Name vor Aufruf getAttributes: ' . $generalName . '<br>');
+      //$this->logger->log('<br>General-ID vor Aufruf getAttributes: ' . $generalId . '<br>');
+
+      //Falls übergeordnete Klasse/Datentyp vorhanden, lade deren/dessen Attribute und hänge sie an den aktuellen Datentypen an.
+      //TODO: Gibt es Seiteneffekte, dass alles zusätzlich  in $attributes zu packen?
+      if (!empty($generalId)) {
+        $parentAttributes = $this->getAttributes($generalId);
+        //$this->getAttributes($dataType->id) => Lade Attribute des aktuellen Datentyps
+        //in der Rehenfolgen kommen die geerbten Attribute ans Ende des Arrays
+        $attributes = array_merge($parentAttributes, $this->getAttributes($dataType->id));
+      }
+      else $attributes = $this->getAttributes($dataType->id);
+
       $this->logger->log('<ul>');
       foreach($attributes AS $attribute) {
         $this->logger->log('<li>');
@@ -749,11 +775,15 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
           $attribute['name'],
           $attribute['datatype'],
           $dataType,
-          $parts
+          $parts = array()//vorher ohne ' = array()', muss aber als Array definiert werden
         );
         $new_parts = $parts;
         if (is_array($new_parts))
           array_push($new_parts, $dataTypeAttribute);
+        //Neu: $new_parts muss auch als $parts des Attributs gesetzt werden
+        $dataTypeAttribute->parts = $new_parts;
+        //Neu: Hat auch gefehlt, ist aber essenziell, da sonst $dataTypeAttribute->path_name leer bleibt und der wird in dataTypeAttribute->addAttribute() benötigt, um das Attribut im Array $dataTypeAttribute->attributes[] zu speichern.
+        $dataTypeAttribute->setNameFromParts();
         $dataTypeAttribute->setStereoType($attribute['stereotype']);
         $dataTypeAttribute->attribute_type = $attribute['attribute_type'];
         $dataTypeAttribute->setMultiplicity($attribute['multiplicity_range_lower'], $attribute['multiplicity_range_upper']);
@@ -839,22 +869,35 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
       $this->logger->log(' abgeleitet von: <b>' . $parent->alias . '</b>');
     }
 
+    //Das attributes-Array wird nie geleert und enthält deshalb immer die Attribute aller FeatureTypes, die bisher erzeugt wurden. Deshalb wird das Array hier geleert, bevor die Attribute des aktuellen FeatureTypes hinzugefügt werden.
+    if (!empty($this->attributes)) {
+      // Array leeren
+      $this->attributes = [];
+    }
+
     foreach($this->getAttributes($featureType->id) AS $attribute) {
+      $this->logger->log('Attribut: ' . $attribute['name'] . '<br>');
       $featureTypeAttribute = new Attribute(
         $attribute['name'],
         $attribute['datatype'],
         $featureType,
-        $parts
+        $parts = array()//vorher ohne ' = array()', muss aber als Array definiert werden
       );
+
       $new_parts = $parts;
       if (is_array($new_parts))
         array_push($new_parts, $featureTypeAttribute);
+      //Neu: $new_parts muss auch als $parts des Attributs gesetzt werden
+      $featureTypeAttribute->parts = $new_parts;
+      //Neu: Hat auch gefehlt, ist aber essenziell, da sonst $featureTypeAttribute->path_name leer bleibt und der wird in featureType->addAttribute() benötigt, um das Attribut im Array $featureType->attributes[] zu speichern.
+      $featureTypeAttribute->setNameFromParts();
+
       $featureTypeAttribute->setStereoType($attribute['stereotype']);
       $featureTypeAttribute->attribute_type = $attribute['attribute_type'];
       $featureTypeAttribute->setMultiplicity($attribute['multiplicity_range_lower'], $attribute['multiplicity_range_upper']);
       $featureTypeAttribute->sequence_number = $attribute['sequence_number'];
+      
       $featureType->addAttribute($featureTypeAttribute);
-      $this->attributes[] = $featureTypeAttribute;
     }
 
     $this->logger->log($featureType->attributesAsTable());
@@ -888,7 +931,7 @@ COMMENT ON COLUMN " . strtolower($class['name']) . "." . strtolower($attribute['
       $sql = $featureType->asSql();
     }
 
-    $this->logger->log('<pre>' . $sql . '</pre>');
+    $this->logger->log('$featureType-Erzeung von '. $class['name'] . ' als SQL:<br><pre>' . $sql . '</pre>');
 
     # Für alle abgeleiteten Klassen
     foreach($subClasses as $subClass) {

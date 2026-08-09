@@ -1,3 +1,4 @@
+CREATE TABLE IF NOT EXISTS aa_anlassart (id integer, value CHARACTER varying, PRIMARY KEY (id));
 INSERT INTO aa_anlassart (id, value) VALUES ('000000', 'Ersteinrichtung');
 INSERT INTO aa_anlassart (id, value) VALUES ('010307', 'Eintragung des Flurstückes');
 INSERT INTO aa_anlassart (id, value) VALUES ('010308', 'Löschen des Flurstückes');

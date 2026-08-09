@@ -39,6 +39,7 @@
   # Erzeuge Enumerationtypen und dazugehörige enum_ Schlüsseltabellen
   foreach($umlSchema->getEnumerations() AS $enumeration) {
     $sql .= $umlSchema->createEnumerationTable($enumeration, $gmlSchema);
+    #$logger->log('<br>Rufe createEnumerationTable auf für '.$enumeration['name']);
   }
   $logger->log('<br><hr><br>');
 
